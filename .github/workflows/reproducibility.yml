@@ -30,7 +30,7 @@ jobs:
       - name: Install LaTeX
         run: |
           sudo apt-get update
-          sudo apt-get install -y latexmk texlive-latex-base texlive-latex-recommended texlive-latex-extra texlive-fonts-recommended poppler-utils
+          sudo apt-get install -y latexmk texlive-latex-base texlive-latex-recommended texlive-latex-extra texlive-fonts-recommended texlive-science poppler-utils
       - name: Build manuscript and Supplementary Material
         run: |
           latexmk -pdf -interaction=nonstopmode -halt-on-error -output-directory=paper paper/main.tex
