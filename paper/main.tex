@@ -1,0 +1,274 @@
+\documentclass[11pt]{article}
+\usepackage[a4paper,margin=2.15cm]{geometry}
+\usepackage{lmodern}
+\usepackage[T1]{fontenc}
+\usepackage{microtype}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{amsmath,amssymb}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{subcaption}
+\usepackage{enumitem}
+\usepackage{siunitx}
+\usepackage{authblk}
+\usepackage{caption}
+\usepackage{fancyhdr}
+\usepackage{setspace}
+\usepackage{url}
+\usepackage{multirow}
+\usepackage{float}
+\hypersetup{colorlinks=true,linkcolor=black,citecolor=black,urlcolor=blue}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.55em}
+\onehalfspacing
+\pagestyle{fancy}
+\setlength{\headheight}{14.5pt}
+\fancyhf{}
+\lhead{Journal-neutral author-review draft -- R25}
+\rhead{Missing-day decision reliability in PV monitoring}
+\cfoot{\thepage}
+
+\title{\textbf{When Missing Days Change a Photovoltaic Comparison Decision: A No-Imputation Reliability Surface Across Three Field Datasets}}
+\author[1]{Anonymous authors for scientific review}
+\affil[1]{Affiliations and author metadata to be supplied before journal submission}
+\date{Public reproducibility integration -- R25, 8 November 2026}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+Photovoltaic (PV) monitoring studies routinely confront missing observations, but data-quality rules are commonly expressed as a missing-data rate or as the error of a reconstructed continuous metric. We study a different downstream object: whether a declared multi-candidate PV comparison shortlist remains unchanged when whole observed days are unavailable, without imputing the missing energy. For each complete admitted calendar month, candidates are retained when accumulated normalized yield lies within a decision margin $q$ of the month leader. We then remove contiguous whole-day gaps of length $L$ and record whether the shortlist changes. The analysis was frozen on $q\in\{0,2.5,5,7.5,10\%\}$, $L=1,\ldots,7$ days, and at least ten retained days, and was applied separately to three materially different sources: 25 complete PROPRE.MA site-months, seven public EURAC observed-system months, and 79 public MORE-EU normalized-array months. At the continuity point $q=5\%$, contiguous gaps no longer than three days changed the shortlist in 3/25, 1/7, and 45/79 admitted months, respectively; these fractions are descriptive and are not pooled. Expanding the decision margin produced strongly dataset-dependent and non-monotonic reliability surfaces. At $L\leq7$ days, for example, MORE-EU fragile-month fractions were 11.4\%, 82.3\%, 64.6\%, 39.2\%, and 20.3\% as $q$ increased from 0 to 10\%. The result does not introduce a new case-removal robustness principle and does not establish technology superiority or a failure probability. Instead, it shows empirically that a rate-only missing-data threshold is not, by itself, a certificate for the stability of a discrete PV comparison decision: the declared decision margin and temporal missingness structure must be reported together.
+\end{abstract}
+
+\textbf{Keywords:} photovoltaic monitoring; missing data; decision reliability; data quality; contiguous gaps; candidate shortlist; no imputation; sensitivity analysis
+
+\section{Introduction}
+Field PV monitoring is intrinsically incomplete. Communication outages, logger failures, inverter downtime, sensor faults, time-base irregularities, and maintenance can remove or invalidate observations before a performance indicator is computed. Established PV data-quality work therefore emphasizes detection, filtering, reconstruction, and careful treatment of missing values. Koubli et al. reconstructed missing PV monitoring data to recover performance-ratio information \cite{koubli2016}; Livera et al. developed a structured data-quality and reconstruction pipeline and showed that performance and reliability analytics can be sensitive to missingness rate and treatment \cite{livera2021}; IEA PVPS guidance similarly treats missing-data handling as a prerequisite for credible technical key performance indicators \cite{ieapvps2024}. More recent work has continued to develop mask-aware repair policies for incomplete PV records \cite{wang2026}, while long-term performance-loss studies have explicitly tested the effect of sporadic gaps on continuous estimands such as performance loss rate \cite{quest2025}.
+
+Those studies ask how well a missing continuous signal or downstream continuous metric can be recovered or estimated. Many engineering comparisons, however, end with a \emph{discrete} decision: retain several candidates within a tolerance of the leader, exclude a candidate, or select a set for further engineering review. A small error in a continuous performance metric need not change that set, whereas a modest removal of high-leverage days can change the set when candidates lie near its boundary. Conversely, substantial missingness can leave the set unchanged when candidates are well separated. A missing-data percentage alone therefore need not identify the reliability of the discrete decision built on the data.
+
+The general idea of testing a conclusion by removing observations is not new. Minimal case-removal and fragility ideas appear in model comparison and decision audits \cite{alzhrani2026}, automatic finite-sample robustness assessment \cite{giordano2026}, training-set removal analyses \cite{yang2023}, and ranking-stability research \cite{liang2025}. The contribution of the present work is deliberately narrower: we adapt this logic to a PV monitoring decision object and ask what the retained observations support \emph{without imputing deleted whole-day energy}. We further distinguish the decision margin from the temporal structure of missingness by mapping a two-dimensional reliability surface over shortlist margin $q$ and contiguous gap length $L$.
+
+The study is motivated by three empirical settings that differ in provenance and interpretation. PROPRE.MA provides multi-site technology comparisons in Morocco, for which prior published work already reports technology/site comparisons and correction of erroneous or missing data \cite{bennouna2019}. EURAC provides a public multi-system PV monitoring dataset with electrical and environmental variables \cite{eurac2026}. MORE-EU provides public normalized output for 14 arrays of a single solar park at 15-minute resolution over 2016--2023 \cite{moreeu2026}. We do not pool these sources as independent trials. Instead, we ask whether the same qualitative statement survives their different measurement chains: decision reliability under missing days is heterogeneous and depends jointly on the decision definition and gap structure.
+
+The resulting paper has four objectives:
+\begin{enumerate}[leftmargin=1.5em]
+    \item define a transparent PV candidate-set audit that does not reconstruct missing whole-day energy;
+    \item separate the shortlist decision margin $q$ from contiguous missing-gap length $L$;
+    \item evaluate the same surface on three source-diverse PV datasets without pooling their frequencies; and
+    \item identify claim boundaries that prevent a data-quality sensitivity result from being misread as technology superiority, procurement failure, or calibrated probability.
+\end{enumerate}
+
+\section{Methods}
+\subsection{Decision object}
+For calendar month $m$, let $D_m$ be the set of admitted observed days and let $Y_{m,j}(D)$ denote accumulated normalized yield for candidate $j$ over a retained day set $D\subseteq D_m$. The normalization is source-specific: system-specific STC denominators are used where defensible, whereas the MORE-EU source already reports normalized array output. For a declared relative decision margin $q\in[0,1)$, the candidate shortlist is
+\begin{equation}
+S_m(q;D)=\left\{j:\;Y_{m,j}(D)\geq (1-q)\max_k Y_{m,k}(D)\right\}.
+\label{eq:shortlist}
+\end{equation}
+The full-data reference set is $S_m(q;D_m)$. The value $q$ is a decision resolution. It is not a sensor-accuracy tolerance, confidence level, or probability.
+
+\subsection{Contiguous whole-day deletion stress}
+A contiguous gap beginning at calendar position $s$ and lasting $\ell$ whole days is denoted $G_m(s,\ell)$. Deleted days are not reconstructed, predicted, or redistributed. For a maximum tested gap length $L$, define the month-level indicator
+\begin{equation}
+F_m(q,L)=\mathbf{1}\left[\exists\;\ell\leq L,\;s:\;S_m(q;D_m\setminus G_m(s,\ell))\neq S_m(q;D_m)\right],
+\label{eq:fragile}
+\end{equation}
+subject to at least ten retained days. The source-level descriptive surface is
+\begin{equation}
+R_{\mathcal{D}}(q,L)=\frac{1}{M_{\mathcal{D}}}\sum_{m=1}^{M_{\mathcal{D}}}F_m(q,L),
+\label{eq:surface}
+\end{equation}
+where $M_{\mathcal{D}}$ is the number of admitted complete months in source $\mathcal{D}$. Equation~\eqref{eq:surface} is a descriptive fraction within a source, not a population probability. Months share systems, seasons, and operational histories and are not treated as independent replications.
+
+The R22 design was frozen before inspecting the combined surface: $q\in\{0,0.025,0.05,0.075,0.10\}$; $L=1,\ldots,7$ days; at least ten retained days. The $q=5\%$ row was retained as a continuity point with prior project stages, not because it maximized an effect.
+
+\subsection{Source admission and estimands}
+Table~\ref{tab:data} summarizes the three cohorts. Detailed source-admission rules are provided in the Supplementary Material.
+
+\begin{table}[H]
+\centering
+\caption{Source-specific cohorts and decision objects. Counts are source-months, not independent climate trials.}
+\label{tab:data}
+\small
+\begin{tabular}{p{2.2cm}p{1.5cm}p{4.2cm}p{6.0cm}}
+\toprule
+Source & Months & Decision object & Main admission/interpretation boundary \\
+\midrule
+PROPRE.MA & 25 & Three-technology normalized-yield shortlist & Complete, boundary-stable primary months from the source-locked counter reconstruction. Raw donor files remain restricted; no missing daily energy is filled. \\
+EURAC & 7 & Four observed-system DC specific-yield shortlist & Public 2015 data; four systems with defensible module count and STC capacity; common-timestamp DC $P_{mpp}$ integration and a 95\% daily irradiance-support gate. Mounting geometry is not fully specified, so the estimand is observed-system comparison, not intrinsic technology efficiency. \\
+MORE-EU & 79 & Normalized 14-array output shortlist & Public 15-minute normalized array output; a day is admitted only with exactly 96 rows and 96 unique quarter-hour labels. Source-clock 23/25-hour days are excluded rather than rescaled. \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{PROPRE.MA.} The original Moroccan program installed comparable three-technology PV systems across 20 sites and has already been analyzed for multi-site relative yield and data-quality correction \cite{bennouna2019}. The present cohort is not a re-ranking of the 20-site program. It uses 25 complete months retained after source identity, cumulative-counter, and boundary checks developed before this manuscript. System/configuration-specific STC denominators are preserved. Because raw donor data are restricted, the paper reports derived month-level decision evidence rather than redistributing original observations.
+
+\paragraph{EURAC.} The public EURAC archive is identified by DOI and checksum \cite{eurac2026}. Four primary systems had defensible numeric module counts and STC ratings in the supplied metadata: Trina poly-Si (2070~W), SunPower mono-Si (1200~W), Sanyo HJT (3870~W), and Wurth CIGS (1050~W). First Solar was excluded from the primary normalized comparison because total system STC could not be defensibly reconstructed from the supplied metadata. Daily DC energy was integrated from exact common 15-minute timestamps. A day was admitted only when common timestamps retained at least 95\% of the day's positive recorded irradiance support. Seven calendar months met the complete-month gate. Tilt, azimuth, tracking, and other configuration details are not fully resolved in the supplied metadata, so these are observed-system decisions.
+
+\paragraph{MORE-EU.} The public MORE-EU repository describes normalized 15-minute output for 14 arrays of a solar park over 2016--2023 \cite{moreeu2026}. The analysis uses the pinned public Git blob of \texttt{Array Power.csv}. A strict source-calendar gate requires 96 rows and 96 unique quarter-hour labels for every day of an admitted month. Seventy-nine months satisfy this requirement. The 14 arrays are not relabeled as 14 technologies.
+
+\subsection{Analysis and reproducibility checks}
+No hypothesis test or confidence interval is attached to $R_{\mathcal{D}}(q,L)$ because the months are serially and structurally dependent and because the three sources have different candidate semantics. The analysis instead emphasizes deterministic re-computation, source-specific denominators, and explicit sensitivity dimensions.
+
+A required cross-stage verification was specified before accepting the expanded surface: at $q=5\%$ and $L\leq3$ days, R22 had to reproduce the locked structured-gap counts from the preceding novelty-gate stage. The required values were 3/25 for PROPRE.MA, 1/7 for EURAC, and 45/79 for MORE-EU. All three were reproduced exactly. A public reproducibility repository releases the locked publication tables and verification scripts and reruns these checks before rebuilding the figures and review PDFs (see Data and code availability).
+
+\section{Results}
+\subsection{A single missing-data percentage does not summarize decision reliability}
+At $q=5\%$, the three sources already show markedly different sensitivity to contiguous missing days (Table~\ref{tab:q5}). One-day gaps change the declared shortlist in 1/25 PROPRE.MA months, 1/7 EURAC months, and 35/79 MORE-EU months. Extending the allowed contiguous gap to three days increases the corresponding counts to 3/25, 1/7, and 45/79; at seven days they are 4/25, 1/7, and 51/79. These fractions are source-descriptive only.
+
+\begin{table}[H]
+\centering
+\caption{Primary continuity point $q=5\%$: cumulative months for which at least one contiguous gap of length $\leq L$ changes the shortlist.}
+\label{tab:q5}
+\begin{tabular}{lrrrr}
+\toprule
+Dataset & Admitted months & $L\leq1$ day & $L\leq3$ days & $L\leq7$ days \\
+\midrule
+PROPRE.MA & 25 & 1 (4.0\%) & 3 (12.0\%) & 4 (16.0\%) \\
+EURAC & 7 & 1 (14.3\%) & 1 (14.3\%) & 1 (14.3\%) \\
+MORE-EU & 79 & 35 (44.3\%) & 45 (57.0\%) & 51 (64.6\%) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+This result does not imply that MORE-EU is intrinsically less reliable than the other sources. Candidate counts, normalized responses, operating history, and source structure differ. The result instead demonstrates why a rate-only threshold cannot be transported from one decision object to another without stating what the decision is.
+
+\subsection{Reliability is a joint $q\times L$ surface}
+Figures~\ref{fig:proprema}--\ref{fig:moreeu} show the full predeclared surface. Increasing $L$ can only expand the set of admissible deletions and therefore makes $R_{\mathcal D}(q,L)$ nondecreasing in $L$ for fixed $q$. The behavior across $q$ is different: changing $q$ moves the boundary of the shortlist itself, and the fragile fraction is non-monotonic in $q$ in all three datasets at seven-day support.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.82\textwidth]{figures/R22_SURFACE_PROPREMA.png}
+\caption{PROPRE.MA decision-reliability surface (25 admitted months). Each cell is the fraction of admitted months for which at least one contiguous whole-day gap of length no greater than $L$ changes the shortlist defined by $q$.}
+\label{fig:proprema}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.82\textwidth]{figures/R22_SURFACE_EURAC.png}
+\caption{EURAC observed-system decision-reliability surface (7 admitted months). The small cohort is shown as external directional evidence, not a stable frequency estimate.}
+\label{fig:eurac}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.82\textwidth]{figures/R22_SURFACE_MORE_EU.png}
+\caption{MORE-EU normalized-array decision-reliability surface (79 admitted months). The months are serially dependent observations from one plant; colors are descriptive, not field-failure probabilities.}
+\label{fig:moreeu}
+\end{figure}
+
+At $L\leq7$ days, PROPRE.MA fragile fractions across $q=0,2.5,5,7.5,10\%$ are 0, 12, 16, 20, and 16\%; EURAC gives 14.3, 0, 14.3, 0, and 0\%; and MORE-EU gives 11.4, 82.3, 64.6, 39.2, and 20.3\%. The largest tested MORE-EU fragile fraction occurs at $q=2.5\%$, not at the strictest or loosest rule. In PROPRE.MA the maximum occurs at $q=7.5\%$.
+
+\begin{table}[H]
+\centering
+\caption{Fragile-month fractions at $L\leq7$ days across the declared decision-margin grid.}
+\label{tab:l7}
+\begin{tabular}{lrrrrr}
+\toprule
+Dataset & $q=0$ & $q=2.5\%$ & $q=5\%$ & $q=7.5\%$ & $q=10\%$ \\
+\midrule
+PROPRE.MA & 0.0\% & 12.0\% & 16.0\% & 20.0\% & 16.0\% \\
+EURAC & 14.3\% & 0.0\% & 14.3\% & 0.0\% & 0.0\% \\
+MORE-EU & 11.4\% & 82.3\% & 64.6\% & 39.2\% & 20.3\% \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The non-monotonicity is not paradoxical. At fixed data, $q$ defines which near-leader candidates belong to the reference set. Widening $q$ can bring a candidate into the baseline set and create a new exclusion boundary under deletion; it can also move a previously boundary-near candidate far inside the retained set. Thus the decision definition itself is part of the robustness problem.
+
+\subsection{Relation to the earlier single-margin evidence}
+The expanded surface preserves the locked $q=5\%$, $L\leq3$ results exactly: 3/25, 1/7, and 45/79. This matters because the R22 grid was not allowed to redefine the source cohorts or alter the earlier continuity point after seeing the expanded result.
+
+The source-specific detailed analyses also illustrate why the full surface is preferable to a single illustrative case. In PROPRE.MA, some complete months remained unchanged under extensive deletion while others changed after one or two high-leverage days. In EURAC, the July 2015 observed-system set was one-day fragile at $q=5\%$ but extremely close to the decision boundary; this supported an identifiability stress test rather than a metrologically robust technology recommendation. In MORE-EU, one-day fragility occurred frequently at some $q$ values but substantially less often at larger margins. The surface therefore summarizes a continuum of source-month decision states rather than centering the paper on one anomaly.
+
+\section{Discussion}
+\subsection{Decision reliability is not the same as reconstruction accuracy}
+PV data-quality practice must still detect and handle invalid or missing observations. The present result does not argue against imputation, back-filling, or model-based reconstruction. Rather, it separates two questions:
+\begin{enumerate}[leftmargin=1.5em]
+    \item How accurately can a missing signal or continuous performance metric be reconstructed?
+    \item Given the observations retained, is the declared discrete candidate set stable to plausible missing-day patterns?
+\end{enumerate}
+Koubli et al. \cite{koubli2016}, Livera et al. \cite{livera2021}, and more recent mask-aware repair work \cite{wang2026} address the first question. The second can be relevant even when reconstruction error is small, because a near-threshold candidate can cross a discrete boundary. Conversely, a large missing-data fraction can leave the candidate set unchanged when candidates are well separated.
+
+This distinction also clarifies why guidance expressed as a missing-data percentage should not be repurposed as a decision certificate. IEA PVPS guidance appropriately treats missingness as a data-quality issue and discusses substitution/exclusion practices \cite{ieapvps2024}; long-term PLR work has evaluated robustness to random multi-day gaps for a continuous loss-rate estimator \cite{quest2025}. Our result answers a narrower downstream question: whether a declared multi-candidate set changes under a structured omission pattern.
+
+\subsection{Why $q$ must be reported}
+The shortlist margin $q$ is not a nuisance parameter to tune until robustness looks favorable. It defines the decision. The same month can be stable at one $q$ and fragile at another because different candidates sit near the inclusion threshold. Reporting $q$ jointly with $L$ therefore prevents a common interpretive error: treating robustness as a property of the dataset alone.
+
+This point connects the PV application to a broader literature on case-removal robustness. Alzhrani's Decision Reliability Profiles \cite{alzhrani2026}, AMIP \cite{giordano2026}, training-point removal \cite{yang2023}, and ranking stability \cite{liang2025} all emphasize that aggregate conclusions can depend on a comparatively small subset of observations. We do not claim to introduce this general principle. The adaptation here is the combination of a PV-specific candidate-set decision, whole-day/contiguous outage-like deletions, a no-imputation evidence boundary, and source-diverse field evaluation.
+
+\subsection{What can and cannot be concluded across datasets}
+The three sources support a qualitative convergence claim: both stable and fragile decision regimes occur, and the resulting surface depends on the declared decision margin and gap structure. They do not support pooling the observed fractions into a universal PV probability. PROPRE.MA compares three technology systems across field sites, EURAC compares four observed systems at one test facility under incompletely documented geometry, and MORE-EU compares 14 normalized arrays from one plant. Their months are temporally dependent, and their candidate identities are not exchangeable.
+
+The safest transferable statement is therefore logical rather than probabilistic: \emph{a missing-data rate alone does not certify the stability of a discrete PV comparison decision}. The source-specific surface provides an audit of whether a particular declared decision survives particular missing-day structures.
+
+\subsection{Engineering use}
+A practical use of the audit is to accompany a monitoring-derived shortlist with two declarations: (i) the decision margin $q$, and (ii) the tested gap support $L$. A month with $F_m(q,L)=0$ has survived all contiguous gaps up to $L$ under the observed-source estimand, but this is not a guarantee against measurement error, STC uncertainty, hardware change, or unobserved operational confounding. A month with $F_m(q,L)=1$ indicates that at least one permissible gap can change the shortlist and may therefore warrant either additional data, a reconstruction study, or an explicitly unresolved candidate set.
+
+This audit can be complementary to imputation rather than a replacement for it. For example, a reconstruction method can be evaluated not only by RMSE or PR error but also by whether its repaired data alter a candidate set that is already identifiable from the observed subset. Such an extension is outside the present study and should be predeclared rather than optimized retrospectively.
+
+\section{Limitations}
+The analysis has important limitations.
+\begin{enumerate}[leftmargin=1.5em]
+    \item \textbf{No population inference.} Months within each dataset share systems, operating histories, and seasons. Fractions such as 45/79 are descriptive, not independent-sample estimates of field risk.
+    \item \textbf{Dataset-specific candidate semantics.} PROPRE.MA candidates are technology systems, EURAC candidates are observed systems with incomplete configuration metadata, and MORE-EU candidates are normalized arrays without technology labels.
+    \item \textbf{No calibrated measurement uncertainty.} The surface stresses missing-day structure only. It does not establish that meter, STC, irradiance, clock, or configuration uncertainty is smaller than the shortlist margin.
+    \item \textbf{No causal climate attribution.} Weather and season can influence which days are high leverage, but the present analysis does not identify a causal mechanism.
+    \item \textbf{Finite decision grid.} The chosen $q$ and $L$ grid was frozen before R22 inspection but is not universal. Different applications can legitimately define different decision margins or outage horizons.
+    \item \textbf{No claim of generic mathematical novelty.} Minimal deletion/fragility concepts have clear prior art outside PV. The paper is an applied decision-reliability study.
+    \item \textbf{PROPRE.MA access boundary.} Raw donor files are not redistributed. Reproducibility for the public datasets is stronger than raw-source reproducibility for the private source.
+\end{enumerate}
+
+\section{Conclusions}
+Across three materially different PV monitoring sources, a discrete candidate shortlist can be stable under substantial whole-day missingness in one period and fragile to a short contiguous gap in another. Expanding the analysis over a predeclared $q\times L$ grid shows that reliability is not governed by missing-data rate or by shortlist margin alone. At seven-day support the fragile-month fraction is non-monotonic in $q$ in all three datasets, and at the continuity point $q=5\%$ a three-day-or-shorter contiguous gap changes the shortlist in 3/25 PROPRE.MA months, 1/7 EURAC months, and 45/79 MORE-EU months. These numbers are source-specific and must not be pooled.
+
+The practical implication is narrow but consequential: a rate-only missing-data threshold is not a decision-stability certificate for a discrete PV comparison. Monitoring studies that use data to retain or exclude candidates should report the decision rule and temporal missingness structure together. The proposed audit intentionally avoids imputation and does not claim technology superiority, causal climate effects, or a universal failure probability. It provides a source-bounded answer to a simpler question: \emph{does the decision supported by the observed data survive the missing-day patterns the analysis is willing to tolerate?}
+
+\section*{Data and code availability}
+Public reproducibility materials are available at \href{https://github.com/shaikhamalkawi-ux/pv-missing-day-decision-reliability}{GitHub: pv-missing-day-decision-reliability}. The repository contains analysis/verification code, derived publication tables, source registers, the R22 result certificate, manuscript/Supplement source, and automated reproducibility checks. EURAC is available from Zenodo (DOI \href{https://doi.org/10.5281/zenodo.18316996}{10.5281/zenodo.18316996}); MORE-EU is available from \href{https://github.com/MORE-EU/OpenData}{MORE-EU/OpenData}, with \texttt{Array Power.csv} pinned to Git blob \texttt{5611277efdd581bb839ec380239846a43ebe0ba7}. PROPRE.MA raw donor files remain restricted and are not redistributed; raw-source replay of that branch therefore requires authorized access.
+
+\section*{Author, funding, conflict, and AI-use statements}
+Author metadata, affiliations, CRediT roles, funding, conflicts of interest, acknowledgments, and any journal-required AI-use statement remain author-controlled placeholders in this journal-neutral author-review draft.
+
+\begin{thebibliography}{99}
+\bibitem{bennouna2019}
+A. Bennouna et al., ``Energy performance of 3 silicon-based PV module technologies in 20 sites of Morocco,'' \emph{Energy for Sustainable Development}, vol. 53, pp. 30--56, 2019. doi: \href{https://doi.org/10.1016/j.esd.2019.09.002}{10.1016/j.esd.2019.09.002}.
+
+\bibitem{koubli2016}
+E. Koubli, D. Palmer, P. Rowley, and R. Gottschalg, ``Inference of missing data in photovoltaic monitoring datasets,'' \emph{IET Renewable Power Generation}, vol. 10, no. 4, pp. 434--439, 2016. doi: \href{https://doi.org/10.1049/iet-rpg.2015.0355}{10.1049/iet-rpg.2015.0355}.
+
+\bibitem{livera2021}
+A. Livera et al., ``Data processing and quality verification for improved photovoltaic performance and reliability analytics,'' \emph{Progress in Photovoltaics: Research and Applications}, vol. 29, no. 2, pp. 143--158, 2021. doi: \href{https://doi.org/10.1002/pip.3349}{10.1002/pip.3349}.
+
+\bibitem{ieapvps2024}
+S. Lindig, J. Deckx, M. Herz, J. Ascencio V\'{a}squez, M. Theristis, B. Herteleer, and K. Anderson, \emph{Best Practice Guidelines for the Use of Economic and Technical KPIs}. IEA PVPS Task 13, Report IEA-PVPS T13-28:2024, 2024.
+
+\bibitem{quest2025}
+H. Quest, C. Ballif, and A. Virtuani, ``Multi-Annual Year-on-Year: Minimising the Uncertainty in Photovoltaic System Performance Loss Rates,'' \emph{Progress in Photovoltaics: Research and Applications}, vol. 33, no. 3, pp. 411--424, 2025. doi: \href{https://doi.org/10.1002/pip.3855}{10.1002/pip.3855}.
+
+\bibitem{wang2026}
+X. Wang and S. Zhang, ``From Routing to Weighting: Mask-Only Policies for Repairing Incomplete Photovoltaic Monitoring Records,'' \emph{Sensors}, vol. 26, no. 20, 6589, 2026. doi: \href{https://doi.org/10.3390/s26206589}{10.3390/s26206589}.
+
+\bibitem{alzhrani2026}
+K. M. Alzhrani, ``Decision Reliability Profiles for Auditing Targeted Case-Removal Sensitivity in AI Model Comparisons Under Additive Metrics,'' \emph{Algorithms}, vol. 19, no. 8, 676, 2026. doi: \href{https://doi.org/10.3390/a19080676}{10.3390/a19080676}.
+
+\bibitem{giordano2026}
+R. Giordano, R. Meager, and T. Broderick, ``An automatic finite-sample robustness metric: when can dropping a little data change conclusions? Part I: definitions and experiments,'' \emph{Philosophical Transactions of the Royal Society A}, vol. 384, no. 2321, 20250001, 2026. doi: \href{https://doi.org/10.1098/rsta.2025.0001}{10.1098/rsta.2025.0001}.
+
+\bibitem{yang2023}
+J. Yang, S. Jain, and B. C. Wallace, ``How Many and Which Training Points Would Need to be Removed to Flip this Prediction?'' in \emph{Proceedings of EACL 2023}, pp. 2571--2584, 2023. doi: \href{https://doi.org/10.18653/v1/2023.eacl-main.188}{10.18653/v1/2023.eacl-main.188}.
+
+\bibitem{liang2025}
+R. Liang, J. A. Soloff, R. F. Barber, and R. Willett, ``Assumption-free stability for ranking problems,'' arXiv:2506.02257, 2025.
+
+\bibitem{eurac2026}
+Eurac Research, ``EURAC photovoltaic data,'' Zenodo, version 1, 2026. doi: \href{https://doi.org/10.5281/zenodo.18316996}{10.5281/zenodo.18316996}.
+
+\bibitem{moreeu2026}
+MORE-EU, ``OpenData: renewable-energy monitoring datasets,'' GitHub repository, accessed 8 Nov. 2026. \url{https://github.com/MORE-EU/OpenData}.
+\end{thebibliography}
+
+\end{document}

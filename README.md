@@ -26,6 +26,7 @@ figures/     CI-generated central q x gap-length reliability surfaces
 metadata/    source and literature registers
 ```
 
+
 ## Review PDFs
 
 The reproducibility workflow builds and commits:
@@ -81,7 +82,7 @@ python code/verify_publication_results.py
 Download the official EURAC archive from Zenodo and run:
 
 ```bash
-bash code/r19_eurac/reproduce_all_r19.sh /path/to/EURAC.rar /path/to/output
+bash code/r19_eurac/reproduce_all_r19.sh /path/to/EURAC.rar /tmp/eurac_extracted /path/to/output
 ```
 
 The scripts verify the expected source checksum before analysis.
@@ -96,7 +97,7 @@ python code/r20_more_eu/reproduce_r20_more_eu.py \
   /path/to/output
 ```
 
-The R22 MORE-EU script additionally checks the pinned Git blob SHA.
+The exact MORE-EU source identity is pinned in `DATA_AVAILABILITY.md` and `results/R22_RESULT_CERTIFICATE.json`; obtain `Array Power.csv` from that exact Git blob before replay.
 
 ## PROPRE.MA rights boundary
 
@@ -114,7 +115,7 @@ The manuscript integrates locked R22 results. Upstream project QA reported exact
 
 ## License and citation
 
-- Analysis code in `code/`: MIT License (see `LICENSE_CODE_MIT.txt`).
+- Analysis code in `code/`: MIT License (see `LICENSE`).
 - Third-party datasets retain their original licenses and are **not** redistributed here.
 - Manuscript, figures, and derived result tables are provided for scholarly review and reproducibility; copyright remains with the authors unless a later release states otherwise.
 

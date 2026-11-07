@@ -1,0 +1,158 @@
+\documentclass[11pt]{article}
+\usepackage[a4paper,margin=2.0cm]{geometry}
+\usepackage{lmodern}
+\usepackage[T1]{fontenc}
+\usepackage{microtype}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{amsmath,amssymb}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{longtable}
+\usepackage{fancyhdr}
+\usepackage{setspace}
+\usepackage{url}
+\hypersetup{colorlinks=true,linkcolor=black,urlcolor=blue}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.5em}
+\onehalfspacing
+\pagestyle{fancy}
+\setlength{\headheight}{14.5pt}
+\fancyhf{}
+\lhead{Supplementary Material -- R25 author-review draft}
+\rhead{PV decision reliability under missing-day gaps}
+\cfoot{\thepage}
+
+\title{\textbf{Supplementary Material}\\[0.4em]
+\large When Missing Days Change a Photovoltaic Comparison Decision: A No-Imputation Reliability Surface Across Three Field Datasets}
+\author{Anonymous authors for scientific review}
+\date{8 November 2026}
+
+\begin{document}
+\maketitle
+
+\section*{S1. Protocol freeze and notation}
+The R22 surface used in the manuscript was frozen before inspection of the combined result. The declared grid was
+\[
+q\in\{0,0.025,0.05,0.075,0.10\},\qquad L\in\{1,2,3,4,5,6,7\}\;\text{whole days},
+\]
+with at least ten retained days. Deleted days were not reconstructed. A source-month is counted as fragile at $(q,L)$ if at least one contiguous gap of length no greater than $L$ changes the candidate set relative to the full admitted month. The source-level surface is descriptive and months are not assumed independent.
+
+The main-text shortlist is
+\[
+S_m(q;D)=\{j:Y_{m,j}(D)\ge (1-q)\max_kY_{m,k}(D)\}.
+\]
+For a contiguous gap $G_m(s,\ell)$, the month-level indicator is
+\[
+F_m(q,L)=\mathbf{1}[\exists\,\ell\le L,s: S_m(q;D_m\setminus G_m(s,\ell))\ne S_m(q;D_m)].
+\]
+No generic mathematical novelty is claimed for case-removal sensitivity or minimum deletion budgets.
+
+\section*{S2. Dataset-specific admission details}
+\subsection*{S2.1 PROPRE.MA}
+The manuscript uses the exact 25 complete, boundary-stable source-months retained at the R18 gate. These months descend from source-locked cumulative-counter and date-identity work and preserve site/configuration-specific STC denominators. The cohort is not the entire 20-site historical dataset and does not re-admit historically excluded sites merely because a numerical record exists. Raw donor files are not redistributed. The source decision object is a three-technology normalized-yield shortlist.
+
+\subsection*{S2.2 EURAC}
+The public archive is EURAC Research, Zenodo DOI \href{https://doi.org/10.5281/zenodo.18316996}{10.5281/zenodo.18316996}. The source archive checksum used in R19 matched the published MD5. Four systems with defensible numeric total STC values were admitted: Trina poly-Si (2070~W), SunPower mono-Si (1200~W), Sanyo HJT (3870~W), and Wurth CIGS (1050~W). First Solar was excluded from the primary normalized analysis because a defensible total system STC could not be reconstructed from supplied metadata. Daily DC energy was based on common 15-minute $P_{mpp}$ timestamps and a 95\% common-irradiance support rule. Seven months passed the full-month gate. The supplied metadata do not fully establish identical mounting geometry, so results are described as observed-system decisions rather than intrinsic technology efficiency comparisons.
+
+\subsection*{S2.3 MORE-EU}
+The public source is \href{https://github.com/MORE-EU/OpenData}{MORE-EU/OpenData}, file \texttt{Solar Park Data -INACCESS/Array Power.csv}, pinned Git blob \texttt{5611277efdd581bb839ec380239846a43ebe0ba7}. The source reports normalized output for 14 arrays. A calendar day is admitted only when it contains exactly 96 rows and 96 unique quarter-hour labels. A month is complete only when every source-calendar day passes that rule. Seventy-nine months are admitted. Source-clock days with 92 or 100 rows are excluded rather than rescaled or shifted. Arrays are not assigned technology labels.
+
+\section*{S3. Full decision-reliability surfaces}
+Tables S1--S3 report the cumulative fraction of admitted months for which at least one contiguous gap of length $\le L$ changes the shortlist.
+
+\begin{table}[h]
+\centering
+\caption*{Table S1. PROPRE.MA surface (25 admitted months).}
+\begin{tabular}{lrrrrrrr}
+\toprule
+$q$ & $L\le1$ & $L\le2$ & $L\le3$ & $L\le4$ & $L\le5$ & $L\le6$ & $L\le7$ \\
+\midrule
+0\% & 0\% & 0\% & 0\% & 0\% & 0\% & 0\% & 0\% \\
+2.5\% & 0\% & 4\% & 4\% & 4\% & 4\% & 8\% & 12\% \\
+5\% & 4\% & 8\% & 12\% & 12\% & 12\% & 16\% & 16\% \\
+7.5\% & 12\% & 12\% & 16\% & 16\% & 16\% & 16\% & 20\% \\
+10\% & 4\% & 4\% & 4\% & 4\% & 8\% & 16\% & 16\% \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[h]
+\centering
+\caption*{Table S2. EURAC surface (7 admitted months).}
+\begin{tabular}{lrrrrrrr}
+\toprule
+$q$ & $L\le1$ & $L\le2$ & $L\le3$ & $L\le4$ & $L\le5$ & $L\le6$ & $L\le7$ \\
+\midrule
+0\% & 0\% & 0\% & 0\% & 0\% & 14.3\% & 14.3\% & 14.3\% \\
+2.5\% & 0\% & 0\% & 0\% & 0\% & 0\% & 0\% & 0\% \\
+5\% & 14.3\% & 14.3\% & 14.3\% & 14.3\% & 14.3\% & 14.3\% & 14.3\% \\
+7.5\% & 0\% & 0\% & 0\% & 0\% & 0\% & 0\% & 0\% \\
+10\% & 0\% & 0\% & 0\% & 0\% & 0\% & 0\% & 0\% \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[h]
+\centering
+\caption*{Table S3. MORE-EU surface (79 admitted months).}
+\begin{tabular}{lrrrrrrr}
+\toprule
+$q$ & $L\le1$ & $L\le2$ & $L\le3$ & $L\le4$ & $L\le5$ & $L\le6$ & $L\le7$ \\
+\midrule
+0\% & 6.3\% & 7.6\% & 8.9\% & 11.4\% & 11.4\% & 11.4\% & 11.4\% \\
+2.5\% & 51.9\% & 64.6\% & 69.6\% & 73.4\% & 73.4\% & 77.2\% & 82.3\% \\
+5\% & 44.3\% & 51.9\% & 57.0\% & 62.0\% & 62.0\% & 63.3\% & 64.6\% \\
+7.5\% & 17.7\% & 29.1\% & 31.6\% & 35.4\% & 35.4\% & 39.2\% & 39.2\% \\
+10\% & 11.4\% & 12.7\% & 15.2\% & 16.5\% & 19.0\% & 19.0\% & 20.3\% \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section*{S4. Locked $q=5\%$ cross-stage verification}
+The R22 expansion was required to reproduce the preceding R21 structured-gap result at $q=5\%$ and $L\le3$ days. The cross-check is exact:
+
+\begin{center}
+\begin{tabular}{lrrl}
+\toprule
+Dataset & R21 locked count & R22 count & Status \\
+\midrule
+PROPRE.MA & 3/25 & 3/25 & PASS \\
+EURAC & 1/7 & 1/7 & PASS \\
+MORE-EU & 45/79 & 45/79 & PASS \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+The MORE-EU surface was independently recomputed from the pinned public Git blob and reproduced the same 79 complete source-calendar months. The upstream EURAC and PROPRE.MA cohorts were not redefined for R22.
+
+\section*{S5. Interpretation and claim boundaries}
+The following statements are retained:
+\begin{itemize}
+    \item the discrete candidate-set decision can be stable or fragile under whole-day gaps;
+    \item contiguous gap length and declared decision margin must be reported together;
+    \item dependence on $q$ is non-monotonic in all three datasets at seven-day support;
+    \item a missing-rate threshold alone is not a certificate of shortlist stability for this decision object;
+    \item the three datasets provide source-diverse qualitative convergence without supporting a pooled probability.
+\end{itemize}
+
+The following statements are not supported by the present evidence:
+\begin{itemize}
+    \item universal probability that a real PV outage changes an engineering decision;
+    \item intrinsic technology superiority or procurement recommendation;
+    \item causal climate explanation for a shortlist change;
+    \item interpretation of $q$ as measurement accuracy or uncertainty;
+    \item statistical independence of months within a source;
+    \item novelty of case-removal fragility, deletion radius, or minimum deletion budgets.
+\end{itemize}
+
+\section*{S6. Relation to prior work}
+The manuscript deliberately distinguishes its applied decision object from established missing-data and robustness literatures. Koubli et al. infer missing PV monitoring data to recover performance metrics; Livera et al. develop data-quality filtering and reconstruction; IEA PVPS provides technical-KPI guidance; Quest et al. assess missing gaps in performance-loss estimation; and Wang and Zhang develop mask-only policies for repairing incomplete PV monitoring records. Outside PV, minimal removal and case-influence ideas are well established in decision reliability, AMIP, training-sample removal, and ranking stability. The present work therefore positions the contribution as a PV-domain audit of a declared set-valued downstream decision rather than a new generic robustness theorem.
+
+\section*{S7. Reproducibility and rights boundary}
+Public reproducibility materials are available at \href{https://github.com/shaikhamalkawi-ux/pv-missing-day-decision-reliability}{GitHub: pv-missing-day-decision-reliability}. The repository releases derived surfaces, R22 claim/result locks, analysis and verification code, and manuscript/Supplement source; automated checks rebuild the surface figures and review PDFs. It does not redistribute PROPRE.MA donor raw data or third-party EURAC/MORE-EU raw data. EURAC and MORE-EU replay sources are identified by DOI or pinned Git blob, whereas PROPRE.MA raw-source replay requires authorized donor-archive access.
+
+The R25 public-reproducibility integration changes no upstream R18--R22 numerical result. A future journal-specific version should not change the scientific surface unless a verified error or newly admitted evidence requires a new research stage.
+
+\end{document}
