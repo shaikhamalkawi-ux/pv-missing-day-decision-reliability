@@ -1,0 +1,48 @@
+name: Reproducibility and PDF build
+
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - 'paper/*.pdf'
+      - 'figures/*.png'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  verify-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install Python dependencies
+        run: pip install -r requirements.txt
+      - name: Verify locked results
+        run: |
+          python code/verify_publication_results.py
+          python code/rebuild_released_surface.py
+      - name: Rebuild decision-reliability figures
+        run: python code/plot_decision_reliability_surface.py --surface results/R22_DECISION_RELIABILITY_SURFACE.csv --out figures
+      - name: Install LaTeX
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y latexmk texlive-latex-base texlive-latex-recommended texlive-latex-extra texlive-fonts-recommended poppler-utils
+      - name: Build manuscript and Supplementary Material
+        run: |
+          latexmk -pdf -interaction=nonstopmode -halt-on-error -output-directory=paper paper/main.tex
+          mv paper/main.pdf paper/106Amen_R25_JournalNeutral_Main.pdf
+          latexmk -pdf -interaction=nonstopmode -halt-on-error -output-directory=paper paper/supplement.tex
+          mv paper/supplement.pdf paper/106Amen_R25_Supplementary_Material.pdf
+          pdfunite paper/106Amen_R25_JournalNeutral_Main.pdf paper/106Amen_R25_Supplementary_Material.pdf paper/106Amen_R25_Main_plus_Supplement.pdf
+      - name: Commit reproducible figures and PDFs
+        if: github.actor != 'github-actions[bot]'
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add figures/R22_SURFACE_*.png paper/106Amen_R25_*.pdf
+          git diff --cached --quiet || git commit -m 'Build reproducibility figures and PDFs [skip ci]'
+          git push
