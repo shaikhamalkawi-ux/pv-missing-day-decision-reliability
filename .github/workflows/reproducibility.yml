@@ -38,11 +38,12 @@ jobs:
           latexmk -pdf -interaction=nonstopmode -halt-on-error -output-directory=paper paper/supplement.tex
           mv paper/supplement.pdf paper/106Amen_R25_Supplementary_Material.pdf
           pdfunite paper/106Amen_R25_JournalNeutral_Main.pdf paper/106Amen_R25_Supplementary_Material.pdf paper/106Amen_R25_Main_plus_Supplement.pdf
+          python code/update_sha256s.py
       - name: Commit reproducible figures and PDFs
         if: github.actor != 'github-actions[bot]'
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add figures/R22_SURFACE_*.png paper/106Amen_R25_*.pdf
+          git add figures/R22_SURFACE_*.png paper/106Amen_R25_*.pdf SHA256SUMS.txt
           git diff --cached --quiet || git commit -m 'Build reproducibility figures and PDFs [skip ci]'
           git push
