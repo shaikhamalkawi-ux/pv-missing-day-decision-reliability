@@ -1,0 +1,4 @@
+dataset,months,q,gap_days,fragile_by_3d,expected_from_R21,pass
+PROPRE.MA,25,0.05,3,3,3,True
+EURAC,7,0.05,3,1,1,True
+MORE-EU,79,0.05,3,45,45,True

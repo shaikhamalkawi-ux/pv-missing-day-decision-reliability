@@ -1,0 +1,7 @@
+id,type,title,url,status,role
+S1,dataset,EURAC photovoltaic data,https://zenodo.org/records/18316996,KEEP,Primary external raw source
+L1,article,Bennouna et al. 2019 PROPRE.MA 20-site comparison,https://doi.org/10.1016/j.esd.2019.09.002,KEEP_PRIOR_ART,Blocks generic new technology/site comparison claim
+L2,article,Livera et al. data processing and quality verification,https://doi.org/10.1002/pip.3349,KEEP_PRIOR_ART,Missing-data deletion/imputation and QA prior art
+L3,article,Koubli et al. missing PV data inference,https://doi.org/10.1049/iet-rpg.2015.0355,KEEP_PRIOR_ART,Missing-data reconstruction prior art
+L4,report,IEA-PVPS KPI guidelines 2024,https://iea-pvps.org/wp-content/uploads/2024/12/IEA-PVPS-T13-28-2024-REPORT-Technical-and-Economic-KPIs.pdf,KEEP_CONTEXT,Missing-data amount and distribution context
+L5,article,Wang and Zhang 2026 mask-only repair policies,https://doi.org/10.3390/s26206589,KEEP_RECENT_PRIOR_ART,Recent incomplete-PV repair prior art

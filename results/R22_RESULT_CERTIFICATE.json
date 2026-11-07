@@ -1,0 +1,1 @@
+{"q_grid":[0,0.025,0.05,0.075,0.1],"gap_days_grid":[1,2,3,4,5,6,7],"minimum_retained_days":10,"datasets":{"PROPRE.MA":25,"EURAC":7,"MORE-EU":79},"r21_q5_gap_le3_crosscheck_all_pass":true,"method":"count months whose minimum contiguous whole-day gap causing shortlist change is <= L; no imputation; datasets not pooled","r20_blob_sha":"5611277efdd581bb839ec380239846a43ebe0ba7"}

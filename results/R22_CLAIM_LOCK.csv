@@ -1,0 +1,11 @@
+claim,status,boundary
+PV-specific no-imputation decision-reliability surface,KEEP,Applied PV monitoring contribution; not generic method novelty
+Contiguous whole-day gap stress,KEEP,Structured missingness audit under declared q
+Cross-dataset qualitative convergence,KEEP,Do not pool months or sources into one failure probability
+q and gap length must be reported jointly,KEEP,Empirical result across tested grid
+Missing-rate threshold alone is not a decision-stability certificate,KEEP,For the tested discrete shortlist objects; not a universal PV statement
+Generic deletion radius / fragility invention,REMOVE,Blocked by R21 prior-art collisions
+Intrinsic technology superiority,HOLD,Hardware/configuration/metrology not controlled across all sources
+Procurement error probability,HOLD,No calibrated deployment/exposure model
+Causal climate attribution,HOLD,Not identified by deletion surface
+Universal fragility frequency,HOLD,Months and datasets are dependent and structurally different

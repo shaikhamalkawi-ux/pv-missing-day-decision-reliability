@@ -1,0 +1,6 @@
+source_id,source,role,identifier,redistribution
+R20-S1,MORE-EU/OpenData,primary public raw source,Git blob 5611277efdd581bb839ec380239846a43ebe0ba7,not bundled
+R20-S2,EURAC Zenodo,R19 comparison baseline,DOI 10.5281/zenodo.18316996,not bundled here
+R20-L1,Livera et al. 2021,missing-data/QA prior art,DOI 10.1002/pip.3349,not bundled
+R20-L2,IEA-PVPS Task 13 KPI guidance,missing-data amount/distribution context,IEA-PVPS-T13-28-2024,not bundled
+R20-L3,Wang and Zhang 2026,incomplete-PV repair prior art,DOI 10.3390/s26206589,not bundled
