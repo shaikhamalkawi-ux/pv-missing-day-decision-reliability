@@ -2,7 +2,7 @@ name: R26H HKUST Library Development-Only q by Gap Surface
 on:
   push:
     branches: [r26e-solarmagix-source-intake]
-    paths: ['.github/workflows/r26h-hkust-library-development.yml']
+    paths: ['.github/workflows/r26h-hkust-library-development.yml', 'external_data/public_source_probes/r26h_hkust_library_development.py']
   workflow_dispatch:
 permissions: { contents: read, actions: read }
 jobs:
