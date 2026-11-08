@@ -1,0 +1,47 @@
+name: R26H HKUST Timestamp and Metadata Interpretation Check
+on:
+  push:
+    branches: [r26e-solarmagix-source-intake]
+    paths: ['.github/workflows/r26h-hkust-timebase-diagnostic.yml']
+  workflow_dispatch:
+permissions: { contents: read, actions: read }
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: hkust-zenodo-10909062-original-zip
+          run-id: 42481283218
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: source
+      - name: Source clock and capacity schema check
+        run: |
+          python3 - <<'PY'
+          import zipfile,csv,io,collections,datetime,re
+          p='source/dataset_original_Zenodo10909062.zip'
+          with zipfile.ZipFile(p) as z:
+            matches=[s for s in z.namelist() if 'PV generation dataset' in s and s.endswith('Inverter_1.csv')]
+            matches += [s for s in z.namelist() if 'PV generation dataset' in s and s.endswith('Indoor Sports Centre_Inverter.csv')]
+            matches += [s for s in z.namelist() if 'PV generation dataset' in s and s.endswith('UG Hall8_Inverter.csv')]
+            for name in matches[:5]:
+              print('\nSOURCE',name,flush=True)
+              with z.open(name) as f:
+                rd=csv.DictReader(io.TextIOWrapper(f,encoding='utf-8-sig',errors='replace'))
+                print('HEADERS',rd.fieldnames)
+                sample=[];days=collections.Counter();vals=[]
+                for n,x in enumerate(rd):
+                  if n<6:sample.append((x.get('Time'),x.get('totalActivePower(W)')))
+                  t=x.get('Time','')
+                  days[t.split(' ')[0]]+=1
+                  if n<10:vals.append(t)
+                print('SAMPLE',sample,'TIMES',vals,'ROWS',n+1,'DAYS',len(days),'MODAL_DAILY',days.most_common(3),'HIST',collections.Counter(days.values()).most_common(20))
+                print('DATERANGE',min(days) if days else None,max(days) if days else None)
+            ttl=next(s for s in z.namelist() if s.endswith('.ttl'))
+            raw=z.read(ttl).decode('utf-8','replace')
+            for key in ['nominal','capacity','rated','kWp','kW','Watt','dc_capacity','pv_module','Panel', 'inverter']:
+              pats=[line[:240] for line in raw.splitlines() if key.lower() in line.lower()]
+              print('TTL_KEY',key,'count',len(pats),'SAMPLE',pats[:6])
+          PY
