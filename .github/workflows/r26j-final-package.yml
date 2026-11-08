@@ -1,0 +1,67 @@
+name: R26J Final Research Gate and Complete Reproducibility Package
+on:
+  push:
+    branches: [r26j-hkust-calibration-gap-audit]
+    paths: ['.github/workflows/r26j-final-package.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  deliver:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: r26i-evidence-source-tiers-and-report
+          run-id: 42504128089
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: prior
+      - uses: actions/download-artifact@v4
+        with:
+          name: r26j-hkust-calibration-gap-lp
+          run-id: 42508843473
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: calibration
+      - uses: actions/download-artifact@v4
+        with:
+          name: r26j-hkust-independent-calibration-qa
+          run-id: 42509160909
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: verification
+      - name: Produce source-frozen scientific report
+        run: python3 external_data/public_source_probes/r26j_final_research_report.py
+      - name: Assemble and test complete portable derived-data and code package
+        run: |
+          set -euo pipefail
+          mkdir -p R26J_Portable_Delivery/{01_Report,02_SourceConditioned_Daily,03_Primary_Optimization,04_Independent_Verification,05_Code}
+          cp -a R26J_FinalResearchGate/. R26J_Portable_Delivery/01_Report/
+          cp -a prior/. R26J_Portable_Delivery/02_SourceConditioned_Daily/
+          cp -a calibration/. R26J_Portable_Delivery/03_Primary_Optimization/
+          cp -a verification/. R26J_Portable_Delivery/04_Independent_Verification/
+          cp -a external_data/public_source_probes/r26j_*py R26J_Portable_Delivery/05_Code/
+          cp .github/workflows/r26j-hkust-calibration-audit.yml R26J_Portable_Delivery/05_Code/
+          cp .github/workflows/r26j-independent-witness-review.yml R26J_Portable_Delivery/05_Code/
+          ( cd R26J_Portable_Delivery && find . -type f ! -name SHA256_FULL_PACKAGE.txt -print0 | sort -z | xargs -0 sha256sum > SHA256_FULL_PACKAGE.txt )
+          ( cd R26J_Portable_Delivery && sha256sum -c SHA256_FULL_PACKAGE.txt )
+          zip -qr R26J_HKUST_Final_SourceCalibration_ResearchOnly.zip R26J_Portable_Delivery
+          unzip -tqq R26J_HKUST_Final_SourceCalibration_ResearchOnly.zip
+          sha256sum R26J_HKUST_Final_SourceCalibration_ResearchOnly.zip
+          echo "R26J Package QA: PASS"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: r26j-hkust-scientific-report-and-qa
+          path: R26J_FinalResearchGate/
+          if-no-files-found: warn
+          retention-days: 30
+      - uses: actions/upload-artifact@v4
+        if: success()
+        with:
+          name: r26j-hkust-complete-research-only
+          path: R26J_HKUST_Final_SourceCalibration_ResearchOnly.zip
+          compression-level: 0
+          if-no-files-found: error
+          retention-days: 30
