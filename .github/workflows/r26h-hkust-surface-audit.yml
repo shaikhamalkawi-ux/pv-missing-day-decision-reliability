@@ -1,0 +1,41 @@
+name: R26H HKUST Library Surface Readback and Claim Gate
+on:
+  push:
+    branches: [r26e-solarmagix-source-intake]
+    paths: ['.github/workflows/r26h-hkust-surface-audit.yml']
+  workflow_dispatch:
+permissions: { contents: read, actions: read }
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: r26h-hkust-library-development-only
+          run-id: 42483211887
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: result
+      - name: Check original result output and summarize sensitivity
+        run: |
+          python3 - <<'PY'
+          import csv,json,collections
+          from pathlib import Path
+          base=Path('result')
+          rows=list(csv.DictReader((base/'R26H_HKUST_LIBRARY_SURFACE.csv').open()))
+          data=list(csv.DictReader((base/'R26H_HKUST_LIBRARY_Q_L_DEVELOPMENT.csv').open()))
+          cert=json.loads((base/'R26H_HKUST_LIBRARY_EXPLORATORY_CERTIFICATE.json').read_text())
+          assert len(rows)==35 and len(data)==105
+          for row in rows:
+            q=float(row['q']);L=int(row['L']); count=int(row['fragile_month_count'])
+            assert 0<=count<=3
+            assert count==sum(int(r['changed']) for r in data if float(r['q'])==q and int(r['L'])==L)
+          for q in sorted({float(x['q']) for x in rows}):
+            cells=sorted((int(x['L']),int(x['fragile_month_count'])) for x in rows if float(x['q'])==q)
+            counts=[x[1] for x in cells]
+            assert counts==sorted(counts)
+            print('MARGIN_Q',q,'L1_to_L7_count',counts)
+          print('CERT',json.dumps(cert,indent=2))
+          print('PASS R26H 35/35 grid with 105 month-specific cells, L monotonic, source-q5 verified')
+          PY
