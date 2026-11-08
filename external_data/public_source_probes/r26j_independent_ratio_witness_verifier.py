@@ -57,7 +57,7 @@ def robust_set_difference(ref,gap,theta,devs,q):
         state_out=gap if j in a else ref
         i_m=theta[j]*state_in[j]-(1-q)*max(theta[k]*state_in[k] for k in rest)
         o_m=(1-q)*max(theta[k]*state_out[k] for k in rest)-theta[j]*state_out[j]
-        if i_m/scale>TOL and o_m/scale>TOL:return True
+        if i_m/scale>=0.5*TOL and o_m/scale>TOL:return True
     return False
 
 def ratios_source_has_flip(ref,gap,devs,q):
