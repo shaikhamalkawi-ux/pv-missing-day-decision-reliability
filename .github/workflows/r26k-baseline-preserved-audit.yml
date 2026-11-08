@@ -1,0 +1,43 @@
+name: R26K Baseline Preserved Relative Calibration and Missing Days
+on:
+  push:
+    branches: [r26k-fixed-baseline-calibration-gate]
+    paths:
+      - '.github/workflows/r26k-baseline-preserved-audit.yml'
+      - 'external_data/public_source_probes/r26k_baseline_preservation.py'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install pinned linear solver
+        run: python3 -m pip install scipy==1.16.3
+      - name: Fetch source-gated daily inverter sums and R26I result lock
+        uses: actions/download-artifact@v4
+        with:
+          name: r26i-evidence-source-tiers-and-report
+          run-id: 42504128089
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: r26i
+      - name: Fetch R26J bounded independent calibration gate
+        uses: actions/download-artifact@v4
+        with:
+          name: r26j-hkust-calibration-gap-lp
+          run-id: 42508843473
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: r26j
+      - name: Source-fixed reference shortlist preserving LP audit
+        run: python3 external_data/public_source_probes/r26k_baseline_preservation.py
+      - name: Keep derived audit results separate from R25 manuscript
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: r26k-baseline-preserved-inverter-sensitivity
+          path: R26K_BaselinePreserved/
+          if-no-files-found: warn
+          retention-days: 30
