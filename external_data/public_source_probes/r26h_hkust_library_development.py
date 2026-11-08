@@ -49,7 +49,7 @@ for ym in months:
     assert len(dates) in (30,31), (ym,dates)
     assert all(d.startswith(ym) for d in dates)
     for name in names:
-        assert set(source[name])==set(dates)
+        assert {d for d in source[name] if d.startswith(ym)}==set(dates)
         for d in dates:
             r=source[name][d]
             assert len(r)==144 and len({t for t,p in r})==144,(name,d)
