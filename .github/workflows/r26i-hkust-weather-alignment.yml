@@ -2,7 +2,7 @@ name: R26I Native HKUST Irradiance Observed Support Audit
 on:
   push:
     branches: [r26i-hkust-capacity-sensitivity]
-    paths: ['.github/workflows/r26i-hkust-weather-alignment.yml']
+    paths: ['.github/workflows/r26i-hkust-weather-alignment.yml','external_data/public_source_probes/r26i_hkust_weather_alignment.py']
   workflow_dispatch:
 permissions:
   contents: read
