@@ -2,7 +2,7 @@ name: R26I HKUST Conditional Capacity and Exact q-L Independent Audit
 on:
   push:
     branches: [r26i-hkust-capacity-sensitivity]
-    paths: ['.github/workflows/r26i-hkust-conditional.yml']
+    paths: ['.github/workflows/r26i-hkust-conditional.yml', 'external_data/public_source_probes/r26i_hkust_group_extension.py', 'external_data/public_source_probes/r26i_independent_qL_verifier.py']
   workflow_dispatch:
 permissions:
   contents: read
