@@ -2,7 +2,7 @@
 """Download SolarMagix V2 from Mendeley public web Download All URL (no API token)."""
 import csv, hashlib, json, os
 from pathlib import Path, PurePosixPath
-import shutil, sys, urllib.request, urllib.error, zipfile
+import shutil, sys, urllib.request, urllib.error, zipfile, urllib.parse
 
 DATASET="4zgsckxpdy"
 VERSION=2
@@ -35,7 +35,7 @@ def main():
     log(f"DOWNLOAD ENDPOINT (from public Mendeley JS button): {ZIP_URL}")
     digest=hashlib.sha256(); bcount=0
     with get(ZIP_URL) as r, ARCHIVE.open("wb") as f:
-        log(f"HTTP {r.status}, FINAL_HOST={urllib.request.urlparse(r.url).hostname}, CONTENT_TYPE={r.headers.get('content-type')}, DECLARED_BYTES={r.headers.get('content-length')}")
+        log(f"HTTP {r.status}, FINAL_HOST={urllib.parse.urlparse(r.url).hostname}, CONTENT_TYPE={r.headers.get('content-type')}, DECLARED_BYTES={r.headers.get('content-length')}")
         while 1:
             x=r.read(2*1024*1024)
             if not x: break
