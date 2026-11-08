@@ -2,7 +2,7 @@ name: R26J Independent Two-Inverter Analytic Ratio and LP Witness QA
 on:
   push:
     branches: [r26j-hkust-calibration-gap-audit]
-    paths: ['.github/workflows/r26j-independent-witness-review.yml']
+    paths: ['.github/workflows/r26j-independent-witness-review.yml', 'external_data/public_source_probes/r26j_independent_ratio_witness_verifier.py']
   workflow_dispatch:
 permissions:
   contents: read
