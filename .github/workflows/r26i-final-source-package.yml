@@ -1,0 +1,46 @@
+name: R26I HKUST Final Audited Development Package
+on:
+  push:
+    branches: [r26i-hkust-capacity-sensitivity]
+    paths: ['.github/workflows/r26i-final-source-package.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: r26i-evidence-source-tiers-and-report
+          run-id: 42504128089
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: evidence
+      - uses: actions/download-artifact@v4
+        with:
+          name: r26i-hkust-irradiance-alignment
+          run-id: 42504382277
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: weather
+      - uses: actions/download-artifact@v4
+        with:
+          name: r26i-hkust-final-source-gate
+          run-id: 42504603108
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: integrated
+      - name: Build exact clean audit package and self-check ZIP
+        run: python3 external_data/public_source_probes/r26i_pack_report.py
+      - uses: actions/upload-artifact@v4
+        if: success()
+        with:
+          name: R26I_HKUST_FinalDevelopment_Evidence
+          path: |
+            R26I_HKUST_Independent_SourceAndWeatherAudit_Package.zip
+            R26I_PUBLISHABLE_SOURCE_AUDIT_PACKAGE/SHA256SUMS.txt
+            R26I_PUBLISHABLE_SOURCE_AUDIT_PACKAGE/README_FIRST.md
+          compression-level: 0
+          if-no-files-found: error
+          retention-days: 30
