@@ -82,7 +82,7 @@ def anchored_lp(full,gap,devices,baseline,eps):
                 r=[0.]*n
                 r[ix[j]]=-f[j]
                 r[ix[k]]=(1-Q)*f[k]
-                A.append(r);b.append(0.)
+                A.append(r);b.append(-STRICT)  # positive full-membership slack; do not count numerical boundary-only flips
         for j,k in zip(outbase,comps):
             r=[0.]*n
             r[ix[j]]=f[j]
@@ -214,7 +214,7 @@ cert=dict(status="DEVELOPMENT_PASS_PENDING_INDEPENDENT_CHECK",
           source_sha=source_cert["sha256"],
           q=Q,L_max=3,EPS_GRID=EPS_GRID,
           measurement_model="Fixed source-month eta_j per inverter, same gain in reference and all gaps, eta_j in [1-eps,1+eps]",
-          baseline_preservation="The full-month shortlist MUST exactly equal recorded-source full-month shortlist for the same eta used to stress deletions",
+          baseline_preservation="The full-month shortlist MUST equal the recorded-source baseline and preserve a positive normalized membership/exclusion margin in the LP; the identical theta is used in all gap deletions",
           source_months=len(per),rows=len(results),group_cells=len(group_sums),
           epsilon_monotonicity=True,point_flag_crosscheck_12of12=True,
           no_qatar=True,R25_SE1_unchanged=True,
