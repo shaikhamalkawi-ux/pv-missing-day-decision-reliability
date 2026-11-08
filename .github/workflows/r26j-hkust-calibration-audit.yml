@@ -2,7 +2,7 @@ name: R26J HKUST Fixed Calibration x Missing Days (Source Gate)
 on:
   push:
     branches: [r26j-hkust-calibration-gap-audit]
-    paths: ['.github/workflows/r26j-hkust-calibration-audit.yml']
+    paths: ['.github/workflows/r26j-hkust-calibration-audit.yml', 'external_data/public_source_probes/r26j_calibration_gap_audit.py']
   workflow_dispatch:
 permissions:
   contents: read
