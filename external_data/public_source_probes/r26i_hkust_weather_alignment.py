@@ -10,6 +10,7 @@ h=hashlib.sha256()
 with src.open("rb") as f:
     for c in iter(lambda:f.read(2*1024*1024),b''):h.update(c)
 assert h.hexdigest()=="610500cfda8309bcba85c4562a1406592882094638132c7ee478cd53e37e96ec"
+source_sha=h.hexdigest()
 months=["2022-07","2022-08","2023-05","2023-07"]
 targets=set()
 for m in months:
@@ -70,7 +71,7 @@ with (out/"WEATHER_MONTH_SUPPORT.csv").open("w",newline="",encoding="utf8") as f
     wr=csv.DictWriter(f,fieldnames=list(summaries[0]));wr.writeheader();wr.writerows(summaries)
 summary={
  "source":"HKUST 2024 original Zenodo 10909062",
- "source_sha256":h.hexdigest(),
+ "source_sha256":source_sha,
  "comparison_months":months,
  "weather":"on-campus Irradiance(W/m2) at 1-minute source clock, checked at each 5-minute PV inverter stamp",
  "NOT_PLANE_OF_ARRAY":"Weather station is shared across campus; no inverter-specific POA or plane/tilt calibration",
