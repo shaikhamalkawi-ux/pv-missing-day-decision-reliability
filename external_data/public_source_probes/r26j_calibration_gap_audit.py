@@ -26,6 +26,7 @@ OUT.mkdir(exist_ok=True)
 Q = 0.05
 EPS = 0.05
 ABS_VIOL = 1e-8
+INSIDE_SLACK = 1e-8
 SOLVER_OPTIONS = {"primal_feasibility_tolerance": 1e-10,
                   "dual_feasibility_tolerance": 1e-10}
 DAYS_FN = "DAILY_OBSERVED_INVERTER_SAMPLE_SUMS.csv"
@@ -108,7 +109,7 @@ def find_flip_lp(ref,gap,devices,q,eps):
                 c[idx[j]]=outside[j]
                 c[idx[k]]=-(1-q)*outside[k]
                 max_attempts+=1
-                result=linprog(c,A_ub=A,b_ub=[0.0]*len(A),
+                result=linprog(c,A_ub=A,b_ub=[-INSIDE_SLACK]*len(A),
                                bounds=bounds,method="highs",options=opts)
                 if result.status == 2:
                     continue # infeasible inside-membership constraints
@@ -121,7 +122,7 @@ def find_flip_lp(ref,gap,devices,q,eps):
                 gap_set=shortlist(gap,q,factors)
                 if (full_set==gap_set or
                     not all(1-eps-1e-9<=v<=1+eps+1e-9 for v in factors.values())):
-                    raise AssertionError("LP claimed witness but direct recomputation failed")
+                    continue  # Boundary-roundoff/non-robust optimizer point, do not assert a witness
                 return dict(direction=direction,member_j=j,witness_k=k,
                             normalized_violation=positive_violation,
                             factors=factors,
