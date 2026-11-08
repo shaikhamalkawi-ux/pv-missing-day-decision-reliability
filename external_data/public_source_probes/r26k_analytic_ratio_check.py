@@ -38,6 +38,24 @@ def theta_for_ratio(r,epsilon,dev):
     a=r*b
     if min(a,b)<lo-1e-10 or max(a,b)>hi+1e-10:return None
     return {dev[0]:a,dev[1]:b}
+def strong_flip(ref,gap,theta,dev,baseline,margin=5e-10):
+    """Independent numerical separation from every membership boundary."""
+    scale=max(ref.values())
+    for j in dev:
+        others=[k for k in dev if k!=j]
+        score=ref[j]*theta[j]-(1-Q)*max(ref[k]*theta[k] for k in others)
+        if j in baseline and score < margin*scale:return False
+        if j not in baseline and score > -margin*scale:return False
+    old=candidates(ref,theta);new=candidates(gap,theta)
+    if old!=baseline or new==baseline:return False
+    for j in dev:
+        if (j in baseline)==(j in new):continue
+        score=gap[j]*theta[j]-(1-Q)*max(gap[k]*theta[k] for k in dev if k!=j)
+        if j in baseline and score > -margin*scale:return False
+        if j not in baseline and score < margin*scale:return False
+        return True
+    return False
+
 def analytic_exists(ref,gap,devices,eps,baseline):
     assert len(devices)==2
     a,b=devices
@@ -62,7 +80,7 @@ def analytic_exists(ref,gap,devices,eps,baseline):
     for r in sorted(trials):
         theta=theta_for_ratio(r,eps,devices)
         if theta is None:continue
-        if candidates(ref,theta)==baseline and candidates(gap,theta)!=baseline:
+        if strong_flip(ref,gap,theta,devices,baseline):
             return theta
     return None
 checks=[];two_count=0;three_count=0
@@ -94,8 +112,7 @@ for (group,month),data in sorted(per.items()):
                 raise AssertionError(("analytic 2-device mismatch",group,month,eps,independent,source_flag))
             if found:
                 n,start,theta=found
-                assert candidates(full,theta)==original
-                assert candidates(sums(data,dates[:start]+dates[start+n:],dev),theta)!=original
+                assert strong_flip(full,sums(data,dates[:start]+dates[start+n:],dev),theta,dev,original)
             checks.append(dict(group=group,month=month,epsilon=eps,devices=2,
                 source_flag=source_flag,independent_flag=independent,
                 method="exact_ratio_interval_partition",status="PASS"))
@@ -108,8 +125,7 @@ for (group,month),data in sorted(per.items()):
                 start=sourcew["omitted_start"];end=sourcew["omitted_end"]
                 after=[d for d in dates if not(start<=d<=end)]
                 assert len(dates)-len(after)==int(sourcew["length"])
-                assert candidates(full,theta)==original
-                assert candidates(sums(data,after,dev),theta)!=original
+                assert strong_flip(full,sums(data,after,dev),theta,dev,original)
             checks.append(dict(group=group,month=month,epsilon=eps,devices=3,
                 source_flag=source_flag,independent_flag=(source_flag if source_flag else ""),
                 method=("three_device_explicit_witness" if source_flag else
