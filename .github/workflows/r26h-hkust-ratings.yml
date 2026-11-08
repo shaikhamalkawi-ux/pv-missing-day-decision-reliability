@@ -1,0 +1,33 @@
+name: R26H HKUST Inverter Rated-Capacity Mapping Audit
+on:
+  push:
+    branches: [r26e-solarmagix-source-intake]
+    paths: ['.github/workflows/r26h-hkust-ratings.yml']
+  workflow_dispatch:
+permissions: { contents: read, actions: read }
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: hkust-zenodo-10909062-original-zip
+          run-id: 42481283218
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: source
+      - name: Inspect RDF linkages and site power definitions
+        run: |
+          python3 - <<'PY'
+          import re,zipfile
+          with zipfile.ZipFile('source/dataset_original_Zenodo10909062.zip') as z:
+            name=next(x for x in z.namelist() if x.lower().endswith('.ttl'))
+            s=z.read(name).decode('utf-8','replace')
+            for key in ['Library_Inverter_1','Library_Inverter_2','Library_Inverter_3','Library','Zone_A2_Inverter_1','Zone_D_Inverter_1','ratedPowerOutput','panelRatedPowerOutput']:
+              print('\nMATCH_KEY',key)
+              matches=list(re.finditer(re.escape(key),s,re.I))
+              print('COUNT',len(matches))
+              for m in matches[:4]:
+                print(repr(s[max(0,m.start()-450):m.start()+800])[:1500])
+          PY
