@@ -32,7 +32,7 @@ with zipfile.ZipFile(source) as z:
     graph=Graph()
     graph.parse(data=turtle,format="turtle")
     ns=dict(graph.namespaces())
-    BR=ns["brick"]; EX=ns["ext"]; PV=ns["pvsystem"]
+    BR=Namespace(str(ns["brick"])); EX=Namespace(str(ns["ext"])); PV=Namespace(str(ns["pvsystem"]))
     def local(ref):
         return str(ref)[len(str(PV)):] if str(ref).startswith(str(PV)) else str(ref)
     def normalize(x):return re.sub("[^a-z0-9]","",x.lower())
