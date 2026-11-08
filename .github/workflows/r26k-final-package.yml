@@ -1,0 +1,99 @@
+name: R26K Clean-Source Replay, Audit and Standalone Transfer
+on:
+  push:
+    branches: [r26k-fixed-baseline-calibration-gate]
+    paths: ['.github/workflows/r26k-final-package.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install exact solver version
+        run: python3 -m pip install scipy==1.16.3
+      - uses: actions/download-artifact@v4
+        with:
+          name: r26i-evidence-source-tiers-and-report
+          run-id: 42504128089
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: r26i
+      - uses: actions/download-artifact@v4
+        with:
+          name: r26j-hkust-calibration-gap-lp
+          run-id: 42508843473
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: r26j
+      - uses: actions/download-artifact@v4
+        with:
+          name: r26k-baseline-preserved-inverter-sensitivity
+          run-id: 42513250336
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: expected_primary
+      - uses: actions/download-artifact@v4
+        with:
+          name: r26k-independent-baseline-preserved-qa
+          run-id: 42513338503
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: expected_independent
+      - name: Clean replay from original derived source evidence
+        run: |
+          set -euo pipefail
+          python3 external_data/public_source_probes/r26k_baseline_preservation.py > r26k_clean_primary_run.log
+          cmp expected_primary/SOURCE_MONTH_EPSILON_BASELINE_GATE.csv R26K_BaselinePreserved/SOURCE_MONTH_EPSILON_BASELINE_GATE.csv
+          cmp expected_primary/GROUP_EPSILON_SENSITIVITY.csv R26K_BaselinePreserved/GROUP_EPSILON_SENSITIVITY.csv
+          cmp expected_primary/BASELINE_PRESERVED_CONCRETE_WITNESSES.json R26K_BaselinePreserved/BASELINE_PRESERVED_CONCRETE_WITNESSES.json
+          cp -a R26K_BaselinePreserved/. r26k/
+          python3 external_data/public_source_probes/r26k_analytic_ratio_check.py > r26k_clean_independent_run.log
+          cmp expected_independent/INDEPENDENT_RATIO_AND_WITNESS_GRID.csv R26K_IndependentRatioQA/INDEPENDENT_RATIO_AND_WITNESS_GRID.csv
+          cmp expected_independent/R26K_INDEPENDENT_QA_CERTIFICATE.json R26K_IndependentRatioQA/R26K_INDEPENDENT_QA_CERTIFICATE.json
+          echo "CLEAN_RERUN_PASS all main and independent tables byte-identical"
+      - name: Assemble complete portable derived-data research package and verify SHA
+        run: |
+          set -euo pipefail
+          mkdir -p R26K_Portable_Development/{01_Report,02_Derived_R26I_Inputs,03_Prior_R26J_Context,04_R26K_Primary,05_R26K_Independent,06_Source_Code_and_QA}
+          cp external_data/public_source_probes/R26K_BASELINE_PRESERVED_FINDINGS.md R26K_Portable_Development/01_Report/
+          cp -a r26i/. R26K_Portable_Development/02_Derived_R26I_Inputs/
+          cp -a r26j/. R26K_Portable_Development/03_Prior_R26J_Context/
+          cp -a R26K_BaselinePreserved/. R26K_Portable_Development/04_R26K_Primary/
+          cp -a R26K_IndependentRatioQA/. R26K_Portable_Development/05_R26K_Independent/
+          cp external_data/public_source_probes/r26k_baseline_preservation.py R26K_Portable_Development/06_Source_Code_and_QA/
+          cp external_data/public_source_probes/r26k_analytic_ratio_check.py R26K_Portable_Development/06_Source_Code_and_QA/
+          cp r26k_clean_primary_run.log R26K_Portable_Development/06_Source_Code_and_QA/
+          cp r26k_clean_independent_run.log R26K_Portable_Development/06_Source_Code_and_QA/
+          echo 'scipy==1.16.3' > R26K_Portable_Development/06_Source_Code_and_QA/requirements.txt
+          cat > R26K_Portable_Development/00_README_AND_NEXT_CHAT.md <<'EOF'
+          # Project 106Amen — R26K Research-Only Transfer
+          Most recent journal-facing artifact remains R25-SE1, with locked R22 experimental surfaces: PROPRE.MA 3/25, EURAC 1/7, MORE-EU 45/79 at q=5%, L<=3.
+          Public GitHub stable ref: shaikhamalkawi-ux/pv-missing-day-decision-reliability/tree/r25-public-release (commit 0a3562db8d7812a3f2760d786432752f0a951b8f).
+          R26K is NOT a manuscript version; it extends the R26I/R26J HKUST source gate only, with no Qatar/QEERI data and no changes to frozen R25 numeric results.
+          Input derived daily data are in 02_Derived_R26I_Inputs. The source original HKUST Zenodo archive 10909062 is archived separately in project Google Drive as a SHA-verified multipart source because it is >100MB.
+          Reproduction: python3 -m pip install -r 06_Source_Code_and_QA/requirements.txt; from a writable working directory put 02_Derived_R26I_Inputs as r26i/ and 03_Prior_R26J_Context as r26j/, run 06_Source_Code_and_QA/r26k_baseline_preservation.py, copy its R26K_BaselinePreserved/ to r26k/, then run 06_Source_Code_and_QA/r26k_analytic_ratio_check.py.
+          No generic uncertainty theorem, no calibration proof, no imputation, no probabilities. See 01_Report/R26K_BASELINE_PRESERVED_FINDINGS.md.
+          Author-controlled only: permissions, final author metadata, journal approval. Do not open R26L merely for stylistic edits. Add to the journal-facing manuscript only after a defensible instrument calibration/covariance account or verified correction.
+          EOF
+          ( cd R26K_Portable_Development && find . -type f ! -name SHA256_FULL.txt -print0 | sort -z | xargs -0 sha256sum > SHA256_FULL.txt )
+          ( cd R26K_Portable_Development && sha256sum -c SHA256_FULL.txt )
+          zip -qr 106Amen_R26K_BaselinePreserved_Calibration_SourceGate_FULL.zip R26K_Portable_Development
+          unzip -tqq 106Amen_R26K_BaselinePreserved_Calibration_SourceGate_FULL.zip
+          sha256sum 106Amen_R26K_BaselinePreserved_Calibration_SourceGate_FULL.zip
+          echo "R26K_DELIVERY_QA_PASS"
+      - uses: actions/upload-artifact@v4
+        if: success()
+        with:
+          name: r26k-baseline-preserved-complete-source-audit
+          path: 106Amen_R26K_BaselinePreserved_Calibration_SourceGate_FULL.zip
+          compression-level: 0
+          retention-days: 30
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: r26k-clean-replay-logs
+          path: |
+            r26k_clean_primary_run.log
+            r26k_clean_independent_run.log
+          if-no-files-found: warn
+          retention-days: 30
