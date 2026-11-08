@@ -1,0 +1,35 @@
+name: Acquire SolarMagix via Mendeley public Download All (R26E)
+on:
+  push:
+    branches: [r26e-solarmagix-source-intake]
+    paths: ['.github/workflows/acquire-solarmagix-public-web.yml']
+  workflow_dispatch:
+permissions: { contents: read }
+jobs:
+  acquire:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download original public publisher ZIP and audit contents
+        run: python3 external_data/solarmagix/acquire_public_web_zip_v2.py
+      - name: Always save acquisition log and manifest
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: SolarMagix_V2_Intake_Provenance
+          path: |
+            SolarMagix_V2_Publisher/ACQUISITION_STATUS.txt
+            SolarMagix_V2_Publisher/SOURCE_MANIFEST.json
+            SolarMagix_V2_Publisher/SOURCE_SHA256SUMS.txt
+          if-no-files-found: warn
+          retention-days: 30
+      - name: Preserve original publisher Download All archive
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: SolarMagix_V2_Original_Mendeley_DownloadAll
+          path: SolarMagix_V2_Publisher/SolarMagix_V2_DownloadAll_PUBLISHER.zip
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 30
