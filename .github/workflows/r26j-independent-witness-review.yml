@@ -1,0 +1,36 @@
+name: R26J Independent Two-Inverter Analytic Ratio and LP Witness QA
+on:
+  push:
+    branches: [r26j-hkust-calibration-gap-audit]
+    paths: ['.github/workflows/r26j-independent-witness-review.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  independent:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: r26i-evidence-source-tiers-and-report
+          run-id: 42504128089
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: source
+      - uses: actions/download-artifact@v4
+        with:
+          name: r26j-hkust-calibration-gap-lp
+          run-id: 42508843473
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: result
+      - name: Compare exact two-inverter ratio partitions and recorded three-inverter witness scenarios
+        run: python3 external_data/public_source_probes/r26j_independent_ratio_witness_verifier.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: r26j-hkust-independent-calibration-qa
+          path: R26J_IndependentReadback/
+          if-no-files-found: warn
+          retention-days: 30
