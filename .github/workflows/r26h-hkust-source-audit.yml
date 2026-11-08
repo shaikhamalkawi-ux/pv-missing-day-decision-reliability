@@ -1,0 +1,37 @@
+name: R26H HKUST Open 60-Rooftop Source Audit
+on:
+  push:
+    branches: [r26e-solarmagix-source-intake]
+    paths: ['.github/workflows/r26h-hkust-source-audit.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  intake:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download exact Zenodo file and audit original archive
+        run: python3 external_data/public_source_probes/acquire_hkust_zenodo.py
+      - name: Preserve source metadata and archive file map
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: hkust-zenodo-10909062-provenance
+          path: |
+            R26H_HKUST_Zenodo_SourceIntake/zenodo_record.json
+            R26H_HKUST_Zenodo_SourceIntake/ACQUISITION_STATUS.txt
+            R26H_HKUST_Zenodo_SourceIntake/FILE_INVENTORY.json
+            R26H_HKUST_Zenodo_SourceIntake/SOURCE_MANIFEST.json
+          retention-days: 30
+          if-no-files-found: warn
+      - name: Preserve original publisher archive, separately from GitHub code
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: hkust-zenodo-10909062-original-zip
+          path: R26H_HKUST_Zenodo_SourceIntake/dataset_original_Zenodo10909062.zip
+          retention-days: 30
+          compression-level: 0
+          if-no-files-found: error
