@@ -1,0 +1,43 @@
+name: R26I HKUST Conditional Capacity and Exact q-L Independent Audit
+on:
+  push:
+    branches: [r26i-hkust-capacity-sensitivity]
+    paths: ['.github/workflows/r26i-hkust-conditional.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  source_and_independent_replay:
+    runs-on: ubuntu-latest
+    timeout-minutes: 50
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install RDF parser from pinned scientific dependency
+        run: python3 -m pip install rdflib==7.1.4
+      - name: Fetch original publisher bytes, SHA-locked
+        uses: actions/download-artifact@v4
+        with:
+          name: hkust-zenodo-10909062-original-zip
+          run-id: 42481283218
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: source
+      - name: Fetch prospectively source-admitted native 144-slot groups
+        uses: actions/download-artifact@v4
+        with:
+          name: r26h-hkust-144slot-admission-audit
+          run-id: 42482673762
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: gate
+      - name: Calculate source-grounded module DC STC and conditional q by L
+        run: python3 external_data/public_source_probes/r26i_hkust_group_extension.py
+      - name: Independent brute-force verification of every source-month cell
+        run: python3 external_data/public_source_probes/r26i_independent_qL_verifier.py
+      - name: Preserve new derived evidence; never copy source raw onto public code branch
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: r26i-hkust-conditional-evidence
+          path: R26I_HKUST_SourceConditional/
+          if-no-files-found: warn
+          retention-days: 30
