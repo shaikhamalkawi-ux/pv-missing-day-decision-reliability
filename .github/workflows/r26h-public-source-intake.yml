@@ -1,0 +1,38 @@
+name: R26H Public PV Source Intake (No Manuscript Change)
+on:
+  push:
+    branches: [r26e-solarmagix-source-intake]
+    paths: ['.github/workflows/r26h-public-source-intake.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  intake:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install archive reader
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq libarchive-tools
+      - name: Download and verify exact Zenodo vintage
+        run: python3 external_data/public_source_probes/acquire_zenodo_2026.py
+      - name: Preserve source provenance, including failure log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: r26h-zenodo-provenance
+          path: |
+            R26H_OfficialZenodoSourceIntake/*_source_record.json
+            R26H_OfficialZenodoSourceIntake/*_archive_listing.txt
+            R26H_OfficialZenodoSourceIntake/INTAKE_MANIFEST.json
+          if-no-files-found: warn
+          retention-days: 30
+      - name: Preserve publisher original RARs separately from code
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: r26h-zenodo-original-publisher-rars
+          path: R26H_OfficialZenodoSourceIntake/*.rar
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 30
