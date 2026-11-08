@@ -1,0 +1,39 @@
+name: R26I Final HKUST Weather and Source-Quality Decision Gate
+on:
+  push:
+    branches: [r26i-hkust-capacity-sensitivity]
+    paths: ['.github/workflows/r26i-combined-gate.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  final_gate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Read verified q L and source quality evidence
+        uses: actions/download-artifact@v4
+        with:
+          name: r26i-evidence-source-tiers-and-report
+          run-id: 42504128089
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: evidence
+      - name: Read independently sourced GHI time-alignment evidence
+        uses: actions/download-artifact@v4
+        with:
+          name: r26i-hkust-irradiance-alignment
+          run-id: 42504382277
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: weather
+      - name: Compute no-imputation weather admission sensitivity without recalculation of PV outcomes
+        run: python3 external_data/public_source_probes/r26i_weather_cohort_sensitivity.py
+      - name: Archive documented source-conditional evidence and QA
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: r26i-hkust-final-source-gate
+          path: R26I_Integrated_SourceAudit/
+          retention-days: 30
+          if-no-files-found: warn
