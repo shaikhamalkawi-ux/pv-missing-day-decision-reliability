@@ -88,6 +88,9 @@ for (group,month),data in sorted(per.items()):
                 if found:break
             independent=int(found is not None)
             if independent!=source_flag:
+                print("R26K_DIAGNOSTIC",json.dumps({"group":group,"month":month,"epsilon":eps,
+                    "ref":full,"baseline":original,"independent":independent,
+                    "source_flag":source_flag,"found":found,"source_cert_row":gridrow}),flush=True)
                 raise AssertionError(("analytic 2-device mismatch",group,month,eps,independent,source_flag))
             if found:
                 n,start,theta=found
