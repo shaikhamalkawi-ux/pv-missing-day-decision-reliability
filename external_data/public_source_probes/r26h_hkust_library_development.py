@@ -45,7 +45,7 @@ with zipfile.ZipFile(zpath) as z:
 names=sorted(stcs)
 days={}
 for ym in months:
-    dates=sorted(source[names[0]].keys() & source[names[1]].keys() & source[names[2]].keys())
+    dates=sorted(d for d in (source[names[0]].keys() & source[names[1]].keys() & source[names[2]].keys()) if d.startswith(ym))
     assert len(dates) in (30,31), (ym,dates)
     assert all(d.startswith(ym) for d in dates)
     for name in names:
@@ -102,4 +102,4 @@ cert=dict(source="HKUST Zenodo 10909062",source_sha256=h.hexdigest(),
           source_quality=within,source_cohort_size=3,source_development_only=True,
           r25_locked_unchanged=True,claim_boundary="Source-specific, site-dependent, observed-inverter shortlist: not population risk, operational outage likelihood, technology superiority, or new generic robustness")
 (out/"R26H_HKUST_LIBRARY_EXPLORATORY_CERTIFICATE.json").write_text(json.dumps(cert,indent=2))
-print("RESULT_CERTIFICATE",json.dumps(cert,flush=True))
+print("RESULT_CERTIFICATE",json.dumps(cert),flush=True)
