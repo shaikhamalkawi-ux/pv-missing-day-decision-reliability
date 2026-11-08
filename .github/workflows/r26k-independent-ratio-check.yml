@@ -1,0 +1,41 @@
+name: R26K Independent Analytic Two-Inverter Ratio and Three-Inverter Witness QA
+on:
+  push:
+    branches: [r26k-fixed-baseline-calibration-gate]
+    paths:
+      - '.github/workflows/r26k-independent-ratio-check.yml'
+      - 'external_data/public_source_probes/r26k_analytic_ratio_check.py'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - name: Read original source-audited daily inverter data
+        uses: actions/download-artifact@v4
+        with:
+          name: r26i-evidence-source-tiers-and-report
+          run-id: 42504128089
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: r26i
+      - name: Read R26K primary baseline-preserved grid, cert and LP factors
+        uses: actions/download-artifact@v4
+        with:
+          name: r26k-baseline-preserved-inverter-sensitivity
+          run-id: 42512790711
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: r26k
+      - name: Run independent analytic ratio partition and explicit witness checks
+        run: python3 external_data/public_source_probes/r26k_analytic_ratio_check.py
+      - name: Save independent results separate from locked R25 manuscript
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: r26k-independent-baseline-preserved-qa
+          path: R26K_IndependentRatioQA/
+          if-no-files-found: warn
+          retention-days: 30
