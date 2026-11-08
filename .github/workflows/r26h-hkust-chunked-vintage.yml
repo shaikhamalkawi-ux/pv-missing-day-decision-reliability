@@ -1,0 +1,80 @@
+name: R26H HKUST Source Archive Preservation in <100MB Pieces
+on:
+  push:
+    branches: [r26e-solarmagix-source-intake]
+    paths: ['.github/workflows/r26h-hkust-chunked-vintage.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  preserve:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: hkust-zenodo-10909062-original-zip
+          run-id: 42481283218
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: source
+      - name: Validate source SHA, split without modifying original payload, write manifest
+        run: |
+          set -euo pipefail
+          mkdir -p R26H_HKUST_Source_Chunks
+          python3 - <<'PY'
+          import hashlib,json,pathlib
+          p=pathlib.Path('source/dataset_original_Zenodo10909062.zip')
+          assert p.is_file(),p
+          h=hashlib.sha256(p.read_bytes()).hexdigest()
+          assert h=='610500cfda8309bcba85c4562a1406592882094638132c7ee478cd53e37e96ec',h
+          chunk=80*1024*1024
+          data=p.read_bytes()
+          root=pathlib.Path('R26H_HKUST_Source_Chunks')
+          files=[]
+          for i in range(0,len(data),chunk):
+            name=f'hkust_zenodo10909062_orig.zip.part{i//chunk:02d}'
+            b=data[i:i+chunk]
+            (root/name).write_bytes(b)
+            files.append(dict(name=name,bytes=len(b),sha256=hashlib.sha256(b).hexdigest()))
+          (root/'RECONSTRUCTION_MANIFEST.json').write_text(json.dumps({
+            'source':'https://zenodo.org/records/10909062',
+            'original_sha256':h,
+            'original_bytes':len(data),
+            'part_size':chunk,
+            'files':files,
+            'reconstruct':'concatenate .part00, .part01, .part02, .part03 in numeric order; compare original SHA',
+            'rights':'Preserved private project source; not public code repository',
+          },indent=2))
+          print(json.dumps(files))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: hkust_10909062_PART00
+          path: R26H_HKUST_Source_Chunks/*part00
+          compression-level: 0
+          retention-days: 30
+      - uses: actions/upload-artifact@v4
+        with:
+          name: hkust_10909062_PART01
+          path: R26H_HKUST_Source_Chunks/*part01
+          compression-level: 0
+          retention-days: 30
+      - uses: actions/upload-artifact@v4
+        with:
+          name: hkust_10909062_PART02
+          path: R26H_HKUST_Source_Chunks/*part02
+          compression-level: 0
+          retention-days: 30
+      - uses: actions/upload-artifact@v4
+        with:
+          name: hkust_10909062_PART03
+          path: R26H_HKUST_Source_Chunks/*part03
+          compression-level: 0
+          retention-days: 30
+      - uses: actions/upload-artifact@v4
+        with:
+          name: hkust_10909062_RECONSTRUCTION_MANIFEST
+          path: R26H_HKUST_Source_Chunks/RECONSTRUCTION_MANIFEST.json
+          retention-days: 30
