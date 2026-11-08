@@ -1,0 +1,30 @@
+name: R26I HKUST Onsite Weather Source Provenance
+on:
+  push:
+    branches: [r26i-hkust-capacity-sensitivity]
+    paths: ['.github/workflows/r26i-hkust-weather-inventory.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  inventory:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: hkust-zenodo-10909062-original-zip
+          run-id: 42481283218
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: source
+      - name: Inventory original weather/irradiance channels without filling NA
+        run: python3 external_data/public_source_probes/r26i_weather_inventory.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: r26i-hkust-weather-source-inventory
+          path: R26I_HKUST_WeatherGate/
+          if-no-files-found: warn
+          retention-days: 30
