@@ -1,0 +1,58 @@
+name: Acquire SolarMagix V2 official source (isolated research gate)
+
+on:
+  push:
+    branches: [r26e-solarmagix-source-intake]
+    paths:
+      - '.github/workflows/acquire-solarmagix.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  acquire:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Checkout intake branch
+        uses: actions/checkout@v4
+      - name: Verify official publisher source and download dataset
+        run: python3 external_data/solarmagix/acquire_official_v2.py
+      - name: Preserve provider provenance and acquisition log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: solarmagix-v2-source-acquisition-report
+          path: |
+            SolarMagix_V2_original/ACQUISITION_STATUS.txt
+            SolarMagix_V2_original/SOURCE_MANIFEST.json
+            SolarMagix_V2_original/SOURCE_SHA256SUMS.txt
+            SolarMagix_V2_original/publisher_dataset_metadata.json
+            SolarMagix_V2_original/publisher_file_listing_*.json
+          if-no-files-found: warn
+          retention-days: 30
+      - name: Archive source metadata and hourly tables
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: solarmagix-v2-official-hourly
+          path: |
+            SolarMagix_V2_original/stations.csv
+            SolarMagix_V2_original/devices.csv
+            SolarMagix_V2_original/source.csv
+            SolarMagix_V2_original/inverter_state_*.csv
+            SolarMagix_V2_original/*hourly*.csv
+          if-no-files-found: error
+          retention-days: 30
+      - name: Archive original detailed and vendor tables
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: solarmagix-v2-official-granular
+          path: |
+            SolarMagix_V2_original/energy_production.csv
+            SolarMagix_V2_original/fusionsolar_energy_production.csv
+            SolarMagix_V2_original/solis_energy_production.csv
+          if-no-files-found: error
+          retention-days: 30
