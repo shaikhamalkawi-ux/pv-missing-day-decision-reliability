@@ -151,6 +151,63 @@ MORE-EU & 45/79 & 45/79 & PASS \\
 
 The MORE-EU surface was independently recomputed from the pinned public Git blob and reproduced the same 79 complete source-calendar months. The upstream EURAC and PROPRE.MA cohorts were not redefined for R22.
 
+\section*{S4a. Paired site--inverter source-channel cross-check}
+The publisher archive provides \texttt{Site level dataset/<roof>.csv} with 15-minute \texttt{power(W)} and \texttt{generation(kWh)}, and distinct \texttt{Inverter level dataset/<roof>\_Inverter\_j.csv} with five-minute \texttt{totalActivePower(W)}. For source-qualified days with 96 finite 15-minute site samples and 144 finite five-minute inverter samples, the site channel is integrated as $\sum_t P_{\mathrm{site}}(t)(0.25~\mathrm{h})/1000$ and the inverter channels as $\sum_j\sum_t P_j(t)(1/12~\mathrm{h})/1000$. They are each calculated directly from observed source powers, without filling missing samples. A descriptive absolute disagreement percentage is $100|E_{\mathrm{site}}-\sum_j E_j|/\min(E_{\mathrm{site}},\sum_jE_j)$ on days with positive denominators. This cannot be interpreted as a bound on independent inverter bias.
+
+\begin{table}[h]
+\centering
+\caption*{Table S5. Source-channel consistency by same-roof group. Only Library is admitted to the R27 fourth-source decision comparison; other groups are source-audit diagnostics and are not pooled.}
+\small
+\begin{tabular}{p{4.7cm}rrrl}
+\toprule
+HKUST roof & Matched days & Median disagreement & 95th percentile & Source state \\
+\midrule
+Library & 93 & 0.428\% & 0.994\% & Primary extension \\
+S H Ho Sports Hall & 93 & 0.358\% & 0.828\% & Conditional \\
+Wong Check She Research Centre & 93 & 0.311\% & 0.785\% & Conditional \\
+Zone A2 & 31 & 0.753\% & 1.147\% & Conditional \\
+Zone D & 62 & 0.348\% & 0.905\% & Electrical-data hold \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+An exact source replay of the published Library example of 31 August 2022 yielded $175.77325$, $251.88075$, and $213.90475$~kWh for inverters 1--3, and $642.087334791$~kWh from the site-power channel, agreeing with the data descriptor's rounded $175.77$, $251.88$, $213.90$, and $642.09$~kWh. The relative discrepancy is $0.08239\%$. The distinct site \texttt{generation(kWh)} entries sum instead to $651.32$~kWh on that date. We do not assign the latter field the same integration semantics or declare either record erroneous. The original source is provider-resampled, and both channels may share data acquisition or processing; aggregate agreement does not identify individual gain errors or their covariance. The 31 August example is an independent source-example check, \emph{not} one of the three decision-admitted Library months.
+
+\section*{S4b. Analytical measurement-gain stress with fixed full-month reference}
+The R26K extension applies an \emph{assumed} per-inverter constant relative gain $\eta_j\in[1-\varepsilon,1+\varepsilon]$, with the \emph{same} $\boldsymbol{\eta}$ used in the full-month reference and in all gap-retained variants. Define the baseline-preserving event
+\[
+A_m(q,L,\varepsilon)=\mathbf{1}\!\left[
+\exists\,\boldsymbol{\eta},\,s,\,\ell\leq L:
+S_m(q;D_m,\boldsymbol{\eta})=S_m(q;D_m,\mathbf{1})
+\ \land\
+S_m(q;D_m\setminus G_m(s,\ell),\boldsymbol{\eta})
+\ne S_m(q;D_m,\mathbf{1})
+\right].
+\]
+The full-month shortlist is required to retain its \emph{recorded-data identity}, so a gain-only reference-set change is not counted as a missing-day effect. A positive solver margin and independent ratio/exact-witness arithmetic checks were used to avoid boundary-only numerical claims. Gain bounds are \emph{not} probabilities, measured calibration uncertainties, or actual inverter-error covariance.
+
+\begin{table}[h]
+\centering
+\caption*{Table S6. Baseline-preserving conditional gain sensitivity at $q=5\%$, gaps no longer than three days; source-specific month counts, NOT independent-trial failure probabilities.}
+\small
+\begin{tabular}{p{4.6cm}rrrrrrr}
+\toprule
+Roof & $\varepsilon=0$ & 0.25\% & 0.5\% & 1\% & 2\% & 3\% & 5\% \\
+\midrule
+Library & 0/3 & 0/3 & 1/3 & 1/3 & 2/3 & 3/3 & 3/3 \\
+S H Ho Sports Hall & 1/3 & 1/3 & 1/3 & 2/3 & 2/3 & 3/3 & 3/3 \\
+Wong Check She Research Centre & 0/3 & 0/3 & 0/3 & 0/3 & 2/3 & 2/3 & 2/3 \\
+Zone A2 & 0/1 & 0/1 & 1/1 & 1/1 & 1/1 & 1/1 & 1/1 \\
+Zone D (HOLD) & 0/2 & 0/2 & 0/2 & 0/2 & 0/2 & 0/2 & 0/2 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The strongest source-identity case (Library) thus has no observed-data gap change at $q=5\%$, $L\leq3$, but an existence witness under an \emph{assumed} relative gain envelope as small as $\varepsilon=0.5\%$ in one month. This is a non-calibrated feasibility result. A shared positive gain identical across inverters cancels in the relative shortlist inequality and leaves the recorded-data result unchanged. In the broader R26K source audit, 56 two-inverter month--gain cells were independently verified by ratio partitions and 15 positive three-inverter gain witnesses were independently recomputed; negative three-inverter LP claims were not given an independent symbolic certificate.
+
+\section*{S4c. Supporting on-site weather, not a per-panel calibration}
+The original HKUST archive also provides on-campus irradiance at one-minute cadence. Across the four source-months involved in the wider source triage (July and August 2022; May and July 2023), all 144 five-minute daylight positions were available on every day except 30 July 2023, which lacked one irradiance value. If complete \emph{shared-weather} support is imposed as an auxiliary secondary rule, July 2023 would be excluded, despite complete source-inverter records. This rule was \emph{not} in the frozen R22 decision gate and is not used to revise the three original or HKUST main counts. Campus irradiance does not establish the plane-of-array illumination or metrological accuracy for an individual inverter.
+
 \section*{S5. Interpretation and claim boundaries}
 The following statements are retained:
 \begin{itemize}
