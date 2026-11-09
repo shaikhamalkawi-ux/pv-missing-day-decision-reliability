@@ -215,7 +215,9 @@ The following statements are retained:
     \item contiguous gap length and declared decision margin must be reported together;
     \item dependence on $q$ is non-monotonic in all three datasets at seven-day support;
     \item a missing-rate threshold alone is not a certificate of shortlist stability for this decision object;
-    \item the three datasets provide source-diverse qualitative convergence without supporting a pooled probability.
+    \item the three frozen datasets and a separate retrospective HKUST roof provide source-diverse qualitative comparison without supporting a pooled probability;
+    \item the HKUST observed-inverter subset passes a direct paired site--inverter power-integral consistency check, while its small size and post-freeze selection limit inference;
+    \item source-deletion stability and hypothetical relative device-gain sensitivity are distinct and must be reported with separate assumptions.
 \end{itemize}
 
 The following statements are not supported by the present evidence:
@@ -224,16 +226,19 @@ The following statements are not supported by the present evidence:
     \item intrinsic technology superiority or procurement recommendation;
     \item causal climate explanation for a shortlist change;
     \item interpretation of $q$ as measurement accuracy or uncertainty;
+    \item use of a site-level meter-sum residual as an independently calibrated per-inverter measurement error or covariance;
+    \item treatment of a retrospective three-month single-roof sample as a blinded external validation cohort;
+    \item reporting the conditional gain stress as a measured device-error distribution or a confidence interval;
     \item statistical independence of months within a source;
     \item novelty of case-removal fragility, deletion radius, or minimum deletion budgets.
 \end{itemize}
 
 \section*{S6. Relation to prior work}
-The manuscript deliberately distinguishes its applied decision object from established missing-data and robustness literatures. Koubli et al. infer missing PV monitoring data to recover performance metrics; Livera et al. develop data-quality filtering and reconstruction; IEA PVPS provides technical-KPI guidance; Quest et al. assess missing gaps in performance-loss estimation; and Wang and Zhang develop mask-only policies for repairing incomplete PV monitoring records. Outside PV, minimal removal and case-influence ideas are well established in decision reliability, AMIP, training-sample removal, and ranking stability. The present work therefore positions the contribution as a PV-domain audit of a declared set-valued downstream decision rather than a new generic robustness theorem.
+The manuscript deliberately distinguishes its applied decision object from established missing-data and robustness literatures. Koubli et al. infer missing PV monitoring data to recover performance metrics; Livera et al. develop data-quality filtering and reconstruction; IEA PVPS provides technical-KPI guidance; Quest et al. assess missing gaps in performance-loss estimation; and Wang and Zhang develop mask-only policies for repairing incomplete PV monitoring records. Outside PV, minimal removal and case-influence ideas are well established in decision reliability, AMIP, training-sample removal, and ranking stability. The present work therefore positions the contribution as a PV-domain audit of a declared set-valued downstream decision rather than a new generic robustness theorem. The retrospective fourth-source comparison draws on Lin et al. (2025), Scientific Data 12, 63, with original 2024 source at https://zenodo.org/records/10909062.
 
 \section*{S7. Reproducibility and rights boundary}
 Public reproducibility materials are available at \href{https://github.com/shaikhamalkawi-ux/pv-missing-day-decision-reliability}{GitHub: pv-missing-day-decision-reliability}. The repository releases derived surfaces, R22 claim/result locks, analysis and verification code, and manuscript/Supplement source; automated checks rebuild the surface figures and review PDFs. It does not redistribute PROPRE.MA donor raw data or third-party EURAC/MORE-EU raw data. EURAC and MORE-EU replay sources are identified by DOI or pinned Git blob, whereas PROPRE.MA raw-source replay requires authorized donor-archive access.
 
-The R25 public-reproducibility integration changes no upstream R18--R22 numerical result. A future journal-specific version should not change the scientific surface unless a verified error or newly admitted evidence requires a new research stage.
+The three original R18--R22 source results and the public R25 release remain numerically unchanged. The retrospective HKUST Library subset uses the original public 2024 Zenodo archive (record 10909062, SHA-256 \texttt{610500cfda8309bcba85c4562a1406592882094638132c7ee478cd53e37e96ec}) and separately replayable development-only audit code. The R27 author-review deliverable includes its source-qualified 35-cell $q\times L$ table, the original-publisher paired site--inverter source audit (372 matched days in the wider source triage, including 93 Library source days), the 31 August 2022 published-example replay, and conditional relative-gain calculations with independent verification. The source-derived evidence must remain distinguishable from raw publisher telemetry, and the archived source version must not be silently replaced by the later Dryad release. No Qatar/QEERI telemetry enters this work. The R27 scientific candidate should not be presented as an accepted journal revision until its source admissibility and author-controlled declarations are approved.
 
 \end{document}
