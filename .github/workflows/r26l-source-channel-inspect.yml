@@ -1,0 +1,30 @@
+name: R26L Inspect Original HKUST Cross-Meter Data Channels
+on:
+  push:
+    branches: [r26l-station-inverter-crossmeter-audit]
+    paths: [ '.github/workflows/r26l-source-channel-inspect.yml', 'external_data/public_source_probes/r26l_site_inverter_inspect.py' ]
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: hkust-zenodo-10909062-original-zip
+          run-id: 42481283218
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: source
+      - name: Inspect raw independent station and inverter channels
+        run: python3 external_data/public_source_probes/r26l_site_inverter_inspect.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: r26l-hkust-crossmeter-source-channel-inventory
+          path: R26L_SourceRecordInspection/
+          if-no-files-found: warn
+          retention-days: 30
