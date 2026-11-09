@@ -194,6 +194,13 @@ The HKUST Library subset contains three complete source-clock months, each with 
 
 We reconstructed daily site energy from recorded 15-minute \texttt{power(W)} values and compared it with the sum of all three five-minute inverter \texttt{totalActivePower(W)} integrations. All 93 days in the three admitted Library months have complete paired-source support. The median absolute relative site--inverter discrepancy was $0.428\%$ (95th percentile $0.994\%$). An additional 31 August 2022 record, independently identifiable as an example in the source data descriptor, gives $642.087$~kWh from site power and $641.559$~kWh from inverter power, a discrepancy of $0.0824\%$. By contrast, simply summing the separate site \texttt{generation(kWh)} column yields $651.32$~kWh on that day; its data meaning is not interchangeable with integrating the site power channel. This source audit checks \emph{aggregate logging consistency}, not independent calibration of individual inverter gains.
 
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.69\textwidth]{figures/R27_HKUST_LIBRARY_SITE_VS_INVERTER.png}
+\caption{Independent source-channel comparison for 93 complete HKUST Library days: energy reconstructed from 15-minute site power versus the sum from three five-minute inverter power streams. The diagonal denotes exact equality; site and device records share infrastructure, so this is an aggregate consistency check rather than a traceable calibration certificate.}
+\label{fig:hkust_meter}
+\end{figure}
+
 \subsection{Conditional device-gain sensitivity is a separate question}
 As a strictly analytical companion, let each inverter's yield be multiplied by one positive device-specific factor $\eta_j\in[1-\varepsilon,1+\varepsilon]$ that is held fixed for the reference month and every deleted-day variant. The gain-stressed shortlist is
 \begin{equation}
