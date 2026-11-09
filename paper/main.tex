@@ -26,20 +26,20 @@
 \pagestyle{fancy}
 \setlength{\headheight}{14.5pt}
 \fancyhf{}
-\lhead{Journal-neutral author-review draft -- R25}
+\lhead{Journal-neutral revised scientific candidate -- R27}
 \rhead{Missing-day decision reliability in PV monitoring}
 \cfoot{\thepage}
 
-\title{\textbf{When Missing Days Change a Photovoltaic Comparison Decision: A No-Imputation Reliability Surface Across Three Field Datasets}}
+\title{\textbf{When Missing Days Change a Photovoltaic Comparison Decision: No-Imputation Reliability Surfaces Across Four Field Sources}}
 \author[1]{Anonymous authors for scientific review}
 \affil[1]{Affiliations and author metadata to be supplied before journal submission}
-\date{Public reproducibility integration -- R25, 8 November 2026}
+\date{Four-source external audit candidate -- R27, 9 November 2026}
 
 \begin{document}
 \maketitle
 
 \begin{abstract}
-Photovoltaic (PV) monitoring studies routinely confront missing observations, but data-quality rules are commonly expressed as a missing-data rate or as the error of a reconstructed continuous metric. We study a different downstream object: whether a declared multi-candidate PV comparison shortlist remains unchanged when whole observed days are unavailable, without imputing the missing energy. For each complete admitted calendar month, candidates are retained when accumulated normalized yield lies within a decision margin $q$ of the month leader. We then remove contiguous whole-day gaps of length $L$ and record whether the shortlist changes. The analysis was frozen on $q\in\{0,2.5,5,7.5,10\%\}$, $L=1,\ldots,7$ days, and at least ten retained days, and was applied separately to three materially different sources: 25 complete PROPRE.MA site-months, seven public EURAC observed-system months, and 79 public MORE-EU normalized-array months. At the continuity point $q=5\%$, contiguous gaps no longer than three days changed the shortlist in 3/25, 1/7, and 45/79 admitted months, respectively; these fractions are descriptive and are not pooled. Expanding the decision margin produced strongly dataset-dependent and non-monotonic reliability surfaces. At $L\leq7$ days, for example, MORE-EU fragile-month fractions were 11.4\%, 82.3\%, 64.6\%, 39.2\%, and 20.3\% as $q$ increased from 0 to 10\%. The result does not introduce a new case-removal robustness principle and does not establish technology superiority or a failure probability. Instead, it shows empirically that a rate-only missing-data threshold is not, by itself, a certificate for the stability of a discrete PV comparison decision: the declared decision margin and temporal missingness structure must be reported together.
+Missing observations in photovoltaic (PV) monitoring are commonly summarized by a missing-data rate or reconstruction error. We instead audit whether a multi-candidate PV shortlist changes when contiguous whole days are deleted without imputation. Within each admitted calendar month, candidates within margin $q$ of the leader's normalized yield are retained; we stress $q\in\{0,2.5,5,7.5,10\%\}$ and gaps of up to seven days, retaining at least ten days. The original frozen design covers 25 PROPRE.MA, seven EURAC, and 79 MORE-EU source-months. A retrospective fourth-source check uses three complete months of three co-roof inverters from the public HKUST rooftop archive, with source-derived module capacities and paired site/inverter measurements. At $q=5\%$ and gaps no longer than three days, the corresponding fragile-month counts are 3/25, 1/7, 45/79, and 0/3; these nonexchangeable fractions are reported separately. The HKUST shortlist remained unchanged through seven-day omissions at $q=5\%$, whereas one of its three months changed at $q=10\%$ and $L\leq7$. Over 93 complete HKUST Library days, the site-power integral and sum of inverter-power integrals differed by a median absolute relative 0.428\% (95th percentile 0.994\%), supporting aggregate source consistency, not individual inverter calibration. In a separate hypothetical relative-gain stress that preserves the recorded full-month shortlist, deletion stability does not always survive assumed device-specific gain differences. No distribution or covariance of instrument errors is calibrated. The study shows why missing-data percentage alone cannot certify a discrete PV decision and why decision margin, omission structure, and source measurement boundaries must be reported together.
 \end{abstract}
 
 \textbf{Keywords:} photovoltaic monitoring; missing data; decision reliability; data quality; contiguous gaps; candidate shortlist; no imputation; sensitivity analysis
@@ -51,13 +51,13 @@ Those studies ask how well a missing continuous signal or downstream continuous 
 
 The general idea of testing a conclusion by removing observations is not new. Minimal case-removal and fragility ideas appear in model comparison and decision audits \cite{alzhrani2026}, automatic finite-sample robustness assessment \cite{giordano2026}, training-set removal analyses \cite{yang2023}, and ranking-stability research \cite{liang2025}. The contribution of the present work is deliberately narrower: we adapt this logic to a PV monitoring decision object and ask what the retained observations support \emph{without imputing deleted whole-day energy}. We further distinguish the decision margin from the temporal structure of missingness by mapping a two-dimensional reliability surface over shortlist margin $q$ and contiguous gap length $L$.
 
-The study is motivated by three empirical settings that differ in provenance and interpretation. PROPRE.MA provides multi-site technology comparisons in Morocco, for which prior published work already reports technology/site comparisons and correction of erroneous or missing data \cite{bennouna2019}. EURAC provides a public multi-system PV monitoring dataset with electrical and environmental variables \cite{eurac2026}. MORE-EU provides public normalized output for 14 arrays of a single solar park at 15-minute resolution over 2016--2023 \cite{moreeu2026}. We do not pool these sources as independent trials. Instead, we ask whether the same qualitative statement survives their different measurement chains: decision reliability under missing days is heterogeneous and depends jointly on the decision definition and gap structure.
+Three originally frozen field sources differ in provenance and interpretation. PROPRE.MA provides multi-site technology comparisons in Morocco \cite{bennouna2019}; EURAC provides public multi-system measurements \cite{eurac2026}; and MORE-EU provides normalized output for 14 arrays of one solar park \cite{moreeu2026}. We now add a \emph{retrospective}, separately gated fourth-source demonstration using co-located inverter and site-power channels from the HKUST campus archive in Hong Kong \cite{lin2025,hkust2024}. The original three-source analysis remains locked; HKUST was not part of its frozen cohort. None of the source-month fractions is pooled or interpreted as independent field-failure trials. This extension tests whether the decision-audit interpretation and its evidence boundary survive another measurement chain, not whether performance of technologies or installations can be compared across sites.
 
 The resulting paper has four objectives:
 \begin{enumerate}[leftmargin=1.5em]
     \item define a transparent PV candidate-set audit that does not reconstruct missing whole-day energy;
     \item separate the shortlist decision margin $q$ from contiguous missing-gap length $L$;
-    \item evaluate the same surface on three source-diverse PV datasets without pooling their frequencies; and
+    \item evaluate the frozen surface on three original field sources and a retrospective, source-qualified fourth observed-inverter subset without pooling their frequencies; and
     \item identify claim boundaries that prevent a data-quality sensitivity result from being misread as technology superiority, procurement failure, or calibrated probability.
 \end{enumerate}
 
