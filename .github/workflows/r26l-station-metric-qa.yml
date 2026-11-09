@@ -1,0 +1,28 @@
+name: R26L Verify HKUST Source Channel Semantics
+on:
+  push:
+    branches: [r26l-station-inverter-crossmeter-audit]
+    paths: ['.github/workflows/r26l-station-metric-qa.yml','external_data/public_source_probes/r26l_station_channel_semantics.py']
+  workflow_dispatch:
+permissions: {contents: read, actions: read}
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: hkust-zenodo-10909062-original-zip
+          run-id: 42481283218
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: source
+      - name: Profile raw 15-minute site power and generation columns
+        run: python3 external_data/public_source_probes/r26l_station_channel_semantics.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: r26l-site-inverter-original-field-preview
+          path: R26L_Library_ChannelSemantics/
+          retention-days: 30
+          if-no-files-found: warn
