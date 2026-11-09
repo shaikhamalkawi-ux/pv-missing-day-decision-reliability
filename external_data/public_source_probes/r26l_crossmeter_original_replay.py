@@ -155,6 +155,26 @@ for c in cohorts:
 with (OUT/"R26L_GROUP_CROSSMETER_SUMMARY.csv").open("w",encoding="utf8",newline="") as f:
     w=csv.DictWriter(f,fieldnames=list(group_summary[0]));w.writeheader();w.writerows(group_summary)
 example=next(r for r in rows if r["group"]=="Library" and r["date"]==SELECTED_EXAMPLE)
+library_inverter_example={device:sum(ts.values())/12000 for device,ts in raw["Library"][SELECTED_EXAMPLE].items()}
+assert len(library_inverter_example)==3
+published_example={"Library_Inverter_1.csv":175.77,"Library_Inverter_2.csv":251.88,"Library_Inverter_3.csv":213.90}
+for d,expected in published_example.items():
+    assert abs(library_inverter_example[d]-expected)<0.015,(d,library_inverter_example[d],expected)
+assert abs(example["station_power_integral_rect_kwh"]-642.09)<0.015
+assert abs(example["sum_inverter_power_5min_integral_kwh"]-sum(published_example.values()))<0.02
+(OUT/"R26L_PUBLISHED_FIGURE6_EXACT_REPLAY.json").write_text(json.dumps({
+    "source_original":"Zenodo 10909062","date":SELECTED_EXAMPLE,
+    "inverter_power_integrals_kwh":library_inverter_example,
+    "published_inverter_energy_kwh":published_example,
+    "station_power_integral_kwh":example["station_power_integral_rect_kwh"],
+    "station_generation_field_sum_kwh":example["station_native_generation_sum_kwh"],
+    "source_ratio_abs_pct":example["pct_abs_diff_station_power_vs_inverters"],
+    "published_station_integral_kwh":642.09,
+    "source_comparison":"15min station power(W) vs 5min inverter totalActivePower(W)",
+    "result":"PASS within published two-decimal rounding",
+    "metrology_boundary":"Cross-channel consistency, not independent sensor calibration"
+},indent=2))
+print("R26L_PUBLISHED_FIGURE6_REPLAY",json.dumps(library_inverter_example),flush=True)
 (OUT/"R26L_PUBLISHED_DAY_REFERENCE.json").write_text(json.dumps({
  "date":"2022-08-31","paper":"Lin et al. 2025 Scientific Data, Fig. 6",
  "paper_site_reported_kwh":642.09,
