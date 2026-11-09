@@ -120,7 +120,7 @@ A required cross-stage verification was specified before accepting the expanded 
 
 \section{Results}
 \subsection{A single missing-data percentage does not summarize decision reliability}
-At $q=5\%$, the three sources already show markedly different sensitivity to contiguous missing days (Table~\ref{tab:q5}). One-day gaps change the declared shortlist in 1/25 PROPRE.MA months, 1/7 EURAC months, and 35/79 MORE-EU months. Extending the allowed contiguous gap to three days increases the corresponding counts to 3/25, 1/7, and 45/79; at seven days they are 4/25, 1/7, and 51/79. These fractions are source-descriptive only.
+At $q=5\%$, the three originally frozen sources show markedly different sensitivity to contiguous missing days; the later HKUST check is shown separately in the same comparison table (Table~\ref{tab:q5}). One-day gaps change the declared shortlist in 1/25 PROPRE.MA months, 1/7 EURAC months, and 35/79 MORE-EU months. Extending the allowed contiguous gap to three days increases the corresponding counts to 3/25, 1/7, and 45/79; at seven days they are 4/25, 1/7, and 51/79. These fractions are source-descriptive only.
 
 \begin{table}[H]
 \centering
@@ -133,14 +133,16 @@ Dataset & Admitted months & $L\leq1$ day & $L\leq3$ days & $L\leq7$ days \\
 PROPRE.MA & 25 & 1 (4.0\%) & 3 (12.0\%) & 4 (16.0\%) \\
 EURAC & 7 & 1 (14.3\%) & 1 (14.3\%) & 1 (14.3\%) \\
 MORE-EU & 79 & 35 (44.3\%) & 45 (57.0\%) & 51 (64.6\%) \\
+HKUST Library\textsuperscript{a} & 3 & 0 (0.0\%) & 0 (0.0\%) & 0 (0.0\%) \\
 \bottomrule
 \end{tabular}
+\begin{flushleft}\footnotesize\textsuperscript{a} Retrospective, single-roof observed-inverter source; not an original R22 cohort.\end{flushleft}
 \end{table}
 
 This result does not imply that MORE-EU is intrinsically less reliable than the other sources. Candidate counts, normalized responses, operating history, and source structure differ. The result instead demonstrates why a rate-only threshold cannot be transported from one decision object to another without stating what the decision is.
 
 \subsection{Reliability is a joint $q\times L$ surface}
-Figures~\ref{fig:proprema}--\ref{fig:moreeu} show the full predeclared surface. Increasing $L$ can only expand the set of admissible deletions and therefore makes $R_{\mathcal D}(q,L)$ nondecreasing in $L$ for fixed $q$. The behavior across $q$ is different: changing $q$ moves the boundary of the shortlist itself, and the fragile fraction is non-monotonic in $q$ in all three datasets at seven-day support.
+Figures~\ref{fig:proprema}--\ref{fig:moreeu} show the original three predeclared surfaces; the smaller retrospective HKUST surface is tabulated separately in Supplementary Table~S4. Increasing $L$ can only expand the set of admissible deletions and therefore makes $R_{\mathcal D}(q,L)$ nondecreasing in $L$ for fixed $q$. The behavior across $q$ is different: changing $q$ moves the boundary of the shortlist itself, and the fragile fraction is non-monotonic in $q$ in all three datasets at seven-day support.
 
 \begin{figure}[H]
 \centering
@@ -186,6 +188,19 @@ The non-monotonicity is not paradoxical. At fixed data, $q$ defines which near-l
 The expanded surface preserves the locked $q=5\%$, $L\leq3$ results exactly: 3/25, 1/7, and 45/79. This matters because the R22 grid was not allowed to redefine the source cohorts or alter the earlier continuity point after seeing the expanded result.
 
 The source-specific detailed analyses also illustrate why the full surface is preferable to a single illustrative case. In PROPRE.MA, some complete months remained unchanged under extensive deletion while others changed after one or two high-leverage days. In EURAC, the July 2015 observed-system set was one-day fragile at $q=5\%$ but extremely close to the decision boundary; this supported an identifiability stress test rather than a metrologically robust technology recommendation. In MORE-EU, one-day fragility occurred frequently at some $q$ values but substantially less often at larger margins. The surface therefore summarizes a continuum of source-month decision states rather than centering the paper on one anomaly.
+
+\subsection{Retrospective fourth-source evidence: the HKUST Library roof}
+The HKUST Library subset contains three complete source-clock months, each with three simultaneously recorded inverter output streams. Under the \emph{unchanged} decision and deletion rule, $F_m(0.05,L)=0$ for each month at every $L\leq7$ days. This does not imply universal shortlist stability: at $q=10\%$, one of the same three months changes its shortlist for $L=7$ (Supplementary Table~S4). The subset adds a distinct source and an example of a stable observed-inverter decision, not a new field-wide probability or a blinded holdout test.
+
+We reconstructed daily site energy from recorded 15-minute \texttt{power(W)} values and compared it with the sum of all three five-minute inverter \texttt{totalActivePower(W)} integrations. All 93 days in the three admitted Library months have complete paired-source support. The median absolute relative site--inverter discrepancy was $0.428\%$ (95th percentile $0.994\%$). An additional 31 August 2022 record, independently identifiable as an example in the source data descriptor, gives $642.087$~kWh from site power and $641.559$~kWh from inverter power, a discrepancy of $0.0824\%$. By contrast, simply summing the separate site \texttt{generation(kWh)} column yields $651.32$~kWh on that day; its data meaning is not interchangeable with integrating the site power channel. This source audit checks \emph{aggregate logging consistency}, not independent calibration of individual inverter gains.
+
+\subsection{Conditional device-gain sensitivity is a separate question}
+As a strictly analytical companion, let each inverter's yield be multiplied by one positive device-specific factor $\eta_j\in[1-\varepsilon,1+\varepsilon]$ that is held fixed for the reference month and every deleted-day variant. The gain-stressed shortlist is
+\begin{equation}
+S_m(q;D,\boldsymbol{\eta})=\left\{j:\eta_jY_{m,j}(D)\ge(1-q)\max_k\eta_kY_{m,k}(D)\right\}.
+\label{eq:gain}
+\end{equation}
+We seek an admissible gap and gain vector that leave the full-month shortlist identical to its \emph{recorded-data} reference but change it after deletion. This stronger baseline-preservation condition prevents reclassifying a gain-only change as an effect of lost days. For the Library at $q=5\%$, $L\leq3$, source-month counts with such an existence witness are 0/3 at $\varepsilon=0$, 1/3 at $0.5\%$, 2/3 at $2\%$, and 3/3 at $3\%$ or $5\%$. They are mathematical possibilities under assumed relative gain bounds, \emph{not} measured calibration errors or likelihoods. If all inverters share the same positive factor, it cancels in Eq.~\eqref{eq:gain} and the original missing-day decision is exactly preserved. Source-level details, the seven-point gain grid and independent arithmetic verification are in Supplementary Table~S6.
 
 \section{Discussion}
 \subsection{Decision reliability is not the same as reconstruction accuracy}
