@@ -1,0 +1,143 @@
+name: R27 Four-Source Manuscript and Scientific Evidence Build
+on:
+  push:
+    branches: [r27-four-source-author-review-candidate]
+    paths: ['.github/workflows/r27-four-source-manuscript-build.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  manuscript:
+    runs-on: ubuntu-latest
+    timeout-minutes: 55
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install publication and graphics dependencies
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq latexmk texlive-latex-base texlive-latex-recommended texlive-latex-extra texlive-fonts-recommended texlive-science poppler-utils zip
+          python3 -m pip install -r requirements.txt matplotlib==3.10.6
+      - name: Fetch pinned HKUST source-conditional q by L results
+        uses: actions/download-artifact@v4
+        with:
+          name: r26h-hkust-library-development-only
+          run-id: 42483211887
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: r27_evidence/R26H
+      - name: Fetch independent original site and inverter energy audit
+        uses: actions/download-artifact@v4
+        with:
+          name: r26l-crossmeter-source-original-empirical-audit
+          run-id: 42641999899
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: r27_evidence/R26L
+      - name: Fetch R26K baseline-preserved source-conditional results
+        uses: actions/download-artifact@v4
+        with:
+          name: r26k-baseline-preserved-inverter-sensitivity
+          run-id: 42513250336
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: r27_evidence/R26K
+      - name: Fetch R26K independent reproducibility certificate
+        uses: actions/download-artifact@v4
+        with:
+          name: r26k-independent-baseline-preserved-qa
+          run-id: 42513338503
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: r27_evidence/R26K_Independent
+      - name: Verify original R22 scientific result lock
+        run: |
+          python3 code/verify_publication_results.py
+          python3 code/rebuild_released_surface.py
+      - name: Verify all newly admitted evidence and generate Fig. 4
+        run: |
+          python3 code/r27_verify_hkust_evidence.py | tee r27_evidence/R27_SourceToManuscript_QA.json
+          python3 code/r27_plot_hkust_crossmeter.py
+          test -s figures/R27_HKUST_LIBRARY_SITE_VS_INVERTER.png
+      - name: Build R27 main and supplement from editable LaTeX
+        run: |
+          mkdir -p build
+          latexmk -pdf -interaction=nonstopmode -halt-on-error -file-line-error -output-directory=build paper/main.tex
+          latexmk -pdf -interaction=nonstopmode -halt-on-error -file-line-error -output-directory=build paper/supplement.tex
+          cp build/main.pdf 106Amen_R27_FourSource_Main_AUTHOR_REVIEW.pdf
+          cp build/supplement.pdf 106Amen_R27_FourSource_Supplementary_Material.pdf
+          pdfunite 106Amen_R27_FourSource_Main_AUTHOR_REVIEW.pdf 106Amen_R27_FourSource_Supplementary_Material.pdf 106Amen_R27_FourSource_Main_PLUS_Supplement.pdf
+      - name: Inspect page properties, reference integrity and source-candidate wording
+        run: |
+          set -euo pipefail
+          pdfinfo 106Amen_R27_FourSource_Main_AUTHOR_REVIEW.pdf | grep -E 'Pages:|Page size:|File size:'
+          pdfinfo 106Amen_R27_FourSource_Supplementary_Material.pdf | grep -E 'Pages:|Page size:|File size:'
+          for p in 106Amen_R27_FourSource_Main_AUTHOR_REVIEW.pdf 106Amen_R27_FourSource_Supplementary_Material.pdf; do
+            if pdffonts "$p" | grep -E 'Type 3|Type3'; then echo 'HOLD: Type3 font'; exit 1; fi
+            pdftotext -layout "$p" "${p%.pdf}.txt"
+          done
+          grep -qi 'HKUST Library' 106Amen_R27_FourSource_Main_AUTHOR_REVIEW.txt
+          grep -qi 'Conditional device-gain sensitivity' 106Amen_R27_FourSource_Main_AUTHOR_REVIEW.txt
+          grep -qi 'S4a' 106Amen_R27_FourSource_Supplementary_Material.txt
+          grep -qi 'S4b' 106Amen_R27_FourSource_Supplementary_Material.txt
+          if grep -E 'LaTeX Warning: (Citation|Reference).*undefined|undefined citations|Undefined control sequence|Overfull \\hbox' build/*.log; then echo 'HOLD source output warning'; exit 1; fi
+          test -s 106Amen_R27_FourSource_Main_PLUS_Supplement.pdf
+          echo 'R27_PRODUCTION_QA_PASS source-to-manuscript+LaTeX+PDF+texts'
+      - name: Package journal review, editable Overleaf sources and reproducibility evidence
+        run: |
+          set -euo pipefail
+          mkdir -p R27_Overleaf_Source/paper R27_Overleaf_Source/figures R27_Delivery
+          cp paper/main.tex paper/supplement.tex R27_Overleaf_Source/paper/
+          cp figures/R22_SURFACE_*.png figures/R27_HKUST_LIBRARY_SITE_VS_INVERTER.png R27_Overleaf_Source/figures/
+          cp code/r27_verify_hkust_evidence.py code/r27_plot_hkust_crossmeter.py R27_Overleaf_Source/
+          cat > R27_Overleaf_Source/README.md <<'EOF'
+          # 106Amen R27 — Four-Source Revised Scientific Candidate
+          **NOT a substitution for the frozen R25-SE1 submitted author-review baseline.**
+          Open this zip in Overleaf with project root containing paper/ and figures/.
+          Set paper/main.tex as main document; build supplement paper/supplement.tex separately.
+          The original three sources and R22 source q×L surfaces are scientifically locked.
+          HKUST Library 3-month q×L and cross-meter field-source evidence were added retrospectively; full original raw source available as Zenodo 10909062 SHA256 610500cfda8309bcba85c4562a1406592882094638132c7ee478cd53e37e96ec.
+          The assumed device-gain envelope is a noncalibrated sensitivity test, never a confidence interval or field measurement.
+          EOF
+          cp 106Amen_R27_FourSource_Main_AUTHOR_REVIEW.pdf 106Amen_R27_FourSource_Supplementary_Material.pdf 106Amen_R27_FourSource_Main_PLUS_Supplement.pdf R27_Delivery/
+          cp -a r27_evidence R27_Delivery/
+          cp -a R27_Overleaf_Source R27_Delivery/
+          cp code/r27_verify_hkust_evidence.py code/r27_plot_hkust_crossmeter.py R27_Delivery/
+          echo 'R27 candidate: four source types, original R22 three primary result locks unchanged; HKUST Library 3 months q5L3=0/3; Library measured-channel 93 days p50=0.428%, p95=0.994%; assumed gain epsilon sensitivity is exploratory only. No Qatar.' > R27_Delivery/R27_SCIENTIFIC_DELTA_AND_CLAIM_BOUNDARY.txt
+          (cd R27_Delivery && find . -type f ! -name SHA256SUMS.txt -print0 | sort -z | xargs -0 sha256sum > SHA256SUMS.txt)
+          (cd R27_Delivery && sha256sum -c SHA256SUMS.txt)
+          zip -qr 106Amen_R27_FourSource_OverleafReady_Source.zip R27_Overleaf_Source
+          unzip -tqq 106Amen_R27_FourSource_OverleafReady_Source.zip
+          zip -qr 106Amen_R27_FourSource_Complete_AuthorReview_PACKAGE.zip R27_Delivery
+          unzip -tqq 106Amen_R27_FourSource_Complete_AuthorReview_PACKAGE.zip
+          sha256sum 106Amen_R27_FourSource_*.zip 106Amen_R27_FourSource_*.pdf > R27_DELIVERABLE_SHA256.txt
+          echo 'R27_DELIVERY_QA_PASS'
+      - uses: actions/upload-artifact@v4
+        if: success()
+        with:
+          name: 106amen-r27-main-and-supplement
+          path: |
+            106Amen_R27_FourSource_Main_AUTHOR_REVIEW.pdf
+            106Amen_R27_FourSource_Supplementary_Material.pdf
+            106Amen_R27_FourSource_Main_PLUS_Supplement.pdf
+            R27_DELIVERABLE_SHA256.txt
+          retention-days: 30
+      - uses: actions/upload-artifact@v4
+        if: success()
+        with:
+          name: 106amen-r27-overleaf-ready-source
+          path: 106Amen_R27_FourSource_OverleafReady_Source.zip
+          compression-level: 0
+          retention-days: 30
+      - uses: actions/upload-artifact@v4
+        if: success()
+        with:
+          name: 106amen-r27-complete-research-author-review
+          path: 106Amen_R27_FourSource_Complete_AuthorReview_PACKAGE.zip
+          compression-level: 0
+          retention-days: 30
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: 106amen-r27-build-trace
+          path: |
+            build/*.log
+            r27_evidence/R27_SourceToManuscript_QA.json
+          if-no-files-found: warn
+          retention-days: 30
