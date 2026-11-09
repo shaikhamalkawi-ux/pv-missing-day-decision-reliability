@@ -1,0 +1,28 @@
+name: R26L Independent Cross-Meter Arithmetic QA
+on:
+  push:
+    branches: [r26l-station-inverter-crossmeter-audit]
+    paths: [ '.github/workflows/r26l-crossmeter-independent.yml','external_data/public_source_probes/r26l_independent_crossmeter_validation.py']
+  workflow_dispatch:
+permissions: {contents: read, actions: read}
+jobs:
+  qa:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: r26l-crossmeter-source-original-empirical-audit
+          run-id: 42641999899
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: R26L_HKUST_SiteVsInverter
+      - name: Check every source day and independently recompute group percentiles
+        run: python3 external_data/public_source_probes/r26l_independent_crossmeter_validation.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: r26l-independent-observation-qa
+          path: R26L_HKUST_SiteVsInverter/R26L_INDEPENDENT_ARITHMETIC_QA.json
+          if-no-files-found: warn
+          retention-days: 30
