@@ -1,0 +1,34 @@
+name: R26L Original HKUST Cross-Meter Source Validation
+on:
+  push:
+    branches: [r26l-station-inverter-crossmeter-audit]
+    paths: ['.github/workflows/r26l-crossmeter-source-replay.yml', 'external_data/public_source_probes/r26l_crossmeter_original_replay.py']
+  workflow_dispatch:
+permissions: {contents: read, actions: read}
+jobs:
+  replay:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: hkust-zenodo-10909062-original-zip
+          run-id: 42481283218
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: source
+      - uses: actions/download-artifact@v4
+        with:
+          name: r26i-evidence-source-tiers-and-report
+          run-id: 42504128089
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: r26i
+      - name: Replay source site and inverter observations, no imputation
+        run: python3 external_data/public_source_probes/r26l_crossmeter_original_replay.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: r26l-crossmeter-source-original-empirical-audit
+          path: R26L_HKUST_SiteVsInverter/
+          if-no-files-found: warn
+          retention-days: 30
