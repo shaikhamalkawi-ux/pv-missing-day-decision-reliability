@@ -86,7 +86,7 @@ where $M_{\mathcal{D}}$ is the number of admitted complete months in source $\ma
 The R22 design was frozen before inspecting the combined surface: $q\in\{0,0.025,0.05,0.075,0.10\}$; $L=1,\ldots,7$ days; at least ten retained days. The $q=5\%$ row was retained as a continuity point with prior project stages, not because it maximized an effect.
 
 \subsection{Source admission and estimands}
-Table~\ref{tab:data} summarizes the three cohorts. Detailed source-admission rules are provided in the Supplementary Material.
+Table~\ref{tab:data} summarizes the three original frozen cohorts and one retrospective HKUST subset. Detailed source-admission rules, including HKUST's native source clock and paired site/inverter channel check, are in the Supplementary Material.
 
 \begin{table}[H]
 \centering
@@ -100,6 +100,7 @@ Source & Months & Decision object & Main admission/interpretation boundary \\
 PROPRE.MA & 25 & Three-technology normalized-yield shortlist & Complete, boundary-stable primary months from the source-locked counter reconstruction. Raw donor files remain restricted; no missing daily energy is filled. \\
 EURAC & 7 & Four observed-system DC specific-yield shortlist & Public 2015 data; four systems with defensible module count and STC capacity; common-timestamp DC $P_{mpp}$ integration and a 95\% daily irradiance-support gate. Mounting geometry is not fully specified, so the estimand is observed-system comparison, not intrinsic technology efficiency. \\
 MORE-EU & 79 & Normalized 14-array output shortlist & Public 15-minute normalized array output; a day is admitted only with exactly 96 rows and 96 unique quarter-hour labels. Source-clock 23/25-hour days are excluded rather than rescaled. \\
+HKUST (new) & 3 & Three observed co-roof inverter AC-yield/STC shortlist & One Library roof; complete 144-sample source-daylight records at five-minute cadence with source-traced DC-STC denominators; retrospective external check, not device calibration. \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -110,10 +111,12 @@ MORE-EU & 79 & Normalized 14-array output shortlist & Public 15-minute normalize
 
 \paragraph{MORE-EU.} The public MORE-EU repository describes normalized 15-minute output for 14 arrays of a solar park over 2016--2023 \cite{moreeu2026}. The analysis uses the pinned public Git blob of \texttt{Array Power.csv}. A strict source-calendar gate requires 96 rows and 96 unique quarter-hour labels for every day of an admitted month. Seventy-nine months satisfy this requirement. The 14 arrays are not relabeled as 14 technologies.
 
-\subsection{Analysis and reproducibility checks}
-No hypothesis test or confidence interval is attached to $R_{\mathcal{D}}(q,L)$ because the months are serially and structurally dependent and because the three sources have different candidate semantics. The analysis instead emphasizes deterministic re-computation, source-specific denominators, and explicit sensitivity dimensions.
+\paragraph{HKUST retrospective extension.} The original public HKUST dataset covers 60 rooftop PV installations, but this comparison admits only three inverters at the Library roof \cite{lin2025,hkust2024}. Each admitted day has exactly 144 unique finite five-minute inverter power samples over the source's recorded 06:00--17:55 daylight window; July 2022, May 2023, and July 2023 pass the complete-calendar-month gate for all three devices. Original Brick/RDF metadata gives their module DC STC as $156\times370=57{,}720$~W, $152\times370=56{,}240$~W, and $152\times370=56{,}240$~W, summing to the published $170{,}200$~W Library rating. For observed retained days $D$, the compared specific-yield proxy is $\sum_{t\in D}P_j(t)\Delta t/P_{j,\mathrm{STC}}$, with equal $\Delta t=5$ minutes. These candidates are \emph{observed inverters}, not technologies or intrinsic efficiencies. Other HKUST roof groups with unresolved station/inverter rating bases or electrical-data alerts were not promoted to the primary extension. HKUST was identified and studied \emph{after} the three-source R22 freeze; its analysis is explicitly retrospective, not a blinded prospective external validation.
 
-A required cross-stage verification was specified before accepting the expanded surface: at $q=5\%$ and $L\leq3$ days, R22 had to reproduce the locked structured-gap counts from the preceding novelty-gate stage. The required values were 3/25 for PROPRE.MA, 1/7 for EURAC, and 45/79 for MORE-EU. All three were reproduced exactly. A public reproducibility repository releases the locked publication tables and verification scripts and reruns these checks before rebuilding the figures and review PDFs (see Data and code availability).
+\subsection{Analysis and reproducibility checks}
+No hypothesis test or confidence interval is attached to $R_{\mathcal{D}}(q,L)$ because the months are serially and structurally dependent and because the four source-specific decision objects have different candidate semantics. The analysis instead emphasizes deterministic re-computation, source-specific denominators, and explicit sensitivity dimensions.
+
+A required cross-stage verification was specified before accepting the expanded surface: at $q=5\%$ and $L\leq3$ days, R22 had to reproduce the locked structured-gap counts from the preceding novelty-gate stage. The required values were 3/25 for PROPRE.MA, 1/7 for EURAC, and 45/79 for MORE-EU. All three were reproduced exactly. The later HKUST extension was evaluated with the \emph{same} frozen $q\times L$ definitions, without changing the original cohort memberships or any R22 numerical result. A public reproducibility repository releases the locked publication tables and verification scripts and reruns these checks before rebuilding the figures and review PDFs (see Data and code availability).
 
 \section{Results}
 \subsection{A single missing-data percentage does not summarize decision reliability}
