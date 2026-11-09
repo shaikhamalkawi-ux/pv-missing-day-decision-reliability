@@ -1,0 +1,83 @@
+name: R26L Cross-Meter Source Validation Clean Reproduction
+on:
+  push:
+    branches: [r26l-station-inverter-crossmeter-audit]
+    paths: ['.github/workflows/r26l-final-clean-source-delivery.yml']
+  workflow_dispatch:
+permissions: {contents: read, actions: read}
+jobs:
+  clean:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: hkust-zenodo-10909062-original-zip
+          run-id: 42481283218
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: source
+      - uses: actions/download-artifact@v4
+        with:
+          name: r26i-evidence-source-tiers-and-report
+          run-id: 42504128089
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: r26i
+      - uses: actions/download-artifact@v4
+        with:
+          name: r26l-crossmeter-source-original-empirical-audit
+          run-id: 42641999899
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: expected
+      - name: Fresh replay from checksum-verified source and frozen R26I cohort
+        run: |
+          set -euo pipefail
+          python3 external_data/public_source_probes/r26l_crossmeter_original_replay.py > r26l_clean_source_run.log
+          for f in R26L_MATCHED_SOURCE_DAY_AUDIT.csv R26L_GROUP_CROSSMETER_SUMMARY.csv R26L_PUBLISHED_DAY_REFERENCE.json R26L_PUBLISHED_FIGURE6_EXACT_REPLAY.json R26L_SOURCE_CROSSMETER_CERTIFICATE.json; do
+            cmp expected/$f R26L_HKUST_SiteVsInverter/$f
+          done
+          python3 external_data/public_source_probes/r26l_independent_crossmeter_validation.py > r26l_clean_independent_qa.log
+          grep R26L_INDEPENDENT_QA_PASS r26l_clean_independent_qa.log
+          echo "R26L_FRESH_SOURCE_REPLAY_PASS"
+      - name: Assemble isolated R26L scientific evidence package with reproducibility SHA
+        run: |
+          set -euo pipefail
+          mkdir -p 106Amen_R26L_CrossMeter_SourceQA/{01_Research_Report,02_Cohort_Derived_Data,03_Independent_QA,04_Reproducibility_Code}
+          cp external_data/public_source_probes/R26L_CROSSMETER_SOURCE_VALIDATION_REPORT.md 106Amen_R26L_CrossMeter_SourceQA/01_Research_Report/
+          cp R26L_HKUST_SiteVsInverter/{R26L_MATCHED_SOURCE_DAY_AUDIT.csv,R26L_GROUP_CROSSMETER_SUMMARY.csv,R26L_PUBLISHED_DAY_REFERENCE.json,R26L_PUBLISHED_FIGURE6_EXACT_REPLAY.json,R26L_SOURCE_CROSSMETER_CERTIFICATE.json} 106Amen_R26L_CrossMeter_SourceQA/02_Cohort_Derived_Data/
+          cp R26L_HKUST_SiteVsInverter/R26L_INDEPENDENT_ARITHMETIC_QA.json 106Amen_R26L_CrossMeter_SourceQA/03_Independent_QA/
+          cp external_data/public_source_probes/{r26l_site_inverter_inspect.py,r26l_station_channel_semantics.py,r26l_crossmeter_original_replay.py,r26l_independent_crossmeter_validation.py} 106Amen_R26L_CrossMeter_SourceQA/04_Reproducibility_Code/
+          cp r26l_clean_source_run.log r26l_clean_independent_qa.log 106Amen_R26L_CrossMeter_SourceQA/04_Reproducibility_Code/
+          cat > 106Amen_R26L_CrossMeter_SourceQA/00_START_HERE.md <<'EOF'
+          # Project 106Amen: R26L empirical HKUST site/inverter source validation
+          Development ONLY. The active Solar Energy manuscript remains R25-SE1 with locked R22 q×L results.
+          Public source: HKUST Zenodo 10909062, 2024 original dataset ZIP SHA256 610500cfda8309bcba85c4562a1406592882094638132c7ee478cd53e37e96ec.
+          Site telemetry: power(W) and generation(kWh), 15-minute timestamps. Inverter telemetry: totalActivePower(W), 5-minute timestamps. Original published data were source-resampled but not imputed or outlier-removed.
+          To reproduce: acquire original Zenodo ZIP; verify SHA256; place its original bytes as source/dataset_original_Zenodo10909062.zip; separately obtain the R26I derived source-cohort output from the Project 106Amen R26I Drive and place those files under r26i/. Then run 04_Reproducibility_Code/r26l_crossmeter_original_replay.py and r26l_independent_crossmeter_validation.py (from the working directory).
+          Key result: 372/372 paired complete source-days across 5 roof groups, and exact published 31-Aug-2022 Library Figure6 within rounding. Median percentage disagreement of site integrated power vs sum of inverter integrated power is around 0.31% to 0.75% by roof; these are NOT per-inverter calibration errors or instrument confidence limits.
+          Do not interpret station generation(kWh) field as equivalent to integrated site power(W); original values show the fields differ.
+          This is *aggregate source-channel agreement* only, not an independent traceable meter-calibration certificate or an error-covariance estimate. No Qatar or QEERI data used. Do not modify R25-SE1 and do not publish R26L as a new fourth cohort until source and instrument admission has been signed off.
+          EOF
+          ( cd 106Amen_R26L_CrossMeter_SourceQA && find . -type f ! -name SHA256SUMS.txt -print0 | sort -z | xargs -0 sha256sum > SHA256SUMS.txt )
+          ( cd 106Amen_R26L_CrossMeter_SourceQA && sha256sum -c SHA256SUMS.txt )
+          zip -qr 106Amen_R26L_CrossMeter_OriginalChannelAudit_RESEARCH_ONLY.zip 106Amen_R26L_CrossMeter_SourceQA
+          unzip -tqq 106Amen_R26L_CrossMeter_OriginalChannelAudit_RESEARCH_ONLY.zip
+          sha256sum 106Amen_R26L_CrossMeter_OriginalChannelAudit_RESEARCH_ONLY.zip
+          echo "R26L_FINAL_QA_PASS"
+      - uses: actions/upload-artifact@v4
+        if: success()
+        with:
+          name: r26l-crossmeter-complete-research-evidence
+          path: 106Amen_R26L_CrossMeter_OriginalChannelAudit_RESEARCH_ONLY.zip
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 30
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: r26l-crossmeter-reproduction-logs
+          path: |
+            r26l_clean_source_run.log
+            r26l_clean_independent_qa.log
+          if-no-files-found: warn
+          retention-days: 30
