@@ -20,20 +20,20 @@
 \pagestyle{fancy}
 \setlength{\headheight}{14.5pt}
 \fancyhf{}
-\lhead{Supplementary Material -- R25 author-review draft}
+\lhead{Supplementary Material -- R27 revised author-review candidate}
 \rhead{PV decision reliability under missing-day gaps}
 \cfoot{\thepage}
 
 \title{\textbf{Supplementary Material}\\[0.4em]
-\large When Missing Days Change a Photovoltaic Comparison Decision: A No-Imputation Reliability Surface Across Three Field Datasets}
+\large When Missing Days Change a Photovoltaic Comparison Decision: No-Imputation Reliability Surfaces Across Four Field Sources}
 \author{Anonymous authors for scientific review}
-\date{8 November 2026}
+\date{9 November 2026}
 
 \begin{document}
 \maketitle
 
 \section*{S1. Protocol freeze and notation}
-The R22 surface used in the manuscript was frozen before inspection of the combined result. The declared grid was
+The original three-source R22 surface used in the manuscript was frozen before inspection of its combined result. The fourth-source HKUST Library subset was acquired and source-qualified retrospectively, after the R22 freeze; the same frozen $q,L$ rule was reused without retuning, but this later cohort must not be represented as a prospectively predeclared external test. The declared grid was
 \[
 q\in\{0,0.025,0.05,0.075,0.10\},\qquad L\in\{1,2,3,4,5,6,7\}\;\text{whole days},
 \]
@@ -58,6 +58,11 @@ The public archive is EURAC Research, Zenodo DOI \href{https://doi.org/10.5281/z
 
 \subsection*{S2.3 MORE-EU}
 The public source is \href{https://github.com/MORE-EU/OpenData}{MORE-EU/OpenData}, file \texttt{Solar Park Data -INACCESS/Array Power.csv}, pinned Git blob \texttt{5611277efdd581bb839ec380239846a43ebe0ba7}. The source reports normalized output for 14 arrays. A calendar day is admitted only when it contains exactly 96 rows and 96 unique quarter-hour labels. A month is complete only when every source-calendar day passes that rule. Seventy-nine months are admitted. Source-clock days with 92 or 100 rows are excluded rather than rescaled or shifted. Arrays are not assigned technology labels.
+
+\subsection*{S2.4 HKUST retrospective Library subset}
+Original source: HKUST, Zenodo 10909062, published 2 April 2024, original \texttt{dataset.zip} SHA-256 \texttt{610500cfda8309bcba85c4562a1406592882094638132c7ee478cd53e37e96ec}; data descriptor Lin et al., \emph{Scientific Data} 12, 63 (2025), DOI \href{https://doi.org/10.1038/s41597-025-04397-y}{10.1038/s41597-025-04397-y}. The published archive contains electrical telemetry already resampled to five-minute intervals, with \texttt{NA} recorded rather than source-imputed missing values. The Library roof has three inverter data files. The stored Brick/RDF module configuration traces each device to 156, 152, and 152 modules of 370~W DC-STC each, respectively. The sum (170.2~kW) matches the source Library site rating. This exact equality is a useful provenance check, \emph{not} proof that the independent devices were metrologically calibrated.
+
+One observed inverter-day is complete only with exactly 144 unique source-clock timestamps from 06:00 through 17:55 at five-minute cadence, and finite reported inverter \texttt{totalActivePower(W)} at every position. The three inverters must share every source-clock position on every day of a complete calendar month. Only July 2022, May 2023 and July 2023 pass this gate for the selected Library group (3 months, 93 days). We retain the source's observed equal-cadence AC power records and divide each device's accumulated integrated power by its own DC-STC module sum, without imputing any measurements. Other roofs may be valuable but their station-rating and module-STC semantics or electrical-source flags were not fully reconciled in the primary analysis; no other HKUST roof group is included in the main four-source comparison. Each site/month belongs to a dependent history, not an independent PV technology trial.
 
 \section*{S3. Full decision-reliability surfaces}
 Tables S1--S3 report the cumulative fraction of admitted months for which at least one contiguous gap of length $\le L$ changes the shortlist.
