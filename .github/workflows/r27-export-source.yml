@@ -1,0 +1,23 @@
+name: R27 Source Snapshot for SE1 Production Parity
+on:
+  push:
+    branches: [r27-four-source-author-review-candidate]
+    paths: ['.github/workflows/r27-export-source.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  archive:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/upload-artifact@v4
+        with:
+          name: r27-current-scientific-tex-and-figures
+          path: |
+            paper/main.tex
+            paper/supplement.tex
+            figures/R22_SURFACE_*.png
+            code/r27_plot_hkust_crossmeter.py
+            code/r27_verify_hkust_evidence.py
+          retention-days: 30
