@@ -13,6 +13,7 @@
 \usepackage{fancyhdr}
 \usepackage{setspace}
 \usepackage{url}
+\usepackage{seqsplit}
 \hypersetup{colorlinks=true,linkcolor=black,urlcolor=blue}
 \setlength{\parindent}{0pt}
 \setlength{\parskip}{0.5em}
@@ -60,7 +61,7 @@ The public archive is EURAC Research, Zenodo DOI \href{https://doi.org/10.5281/z
 The public source is \href{https://github.com/MORE-EU/OpenData}{MORE-EU/OpenData}, file \texttt{Solar Park Data -INACCESS/Array Power.csv}, pinned Git blob \texttt{5611277efdd581bb839ec380239846a43ebe0ba7}. The source reports normalized output for 14 arrays. A calendar day is admitted only when it contains exactly 96 rows and 96 unique quarter-hour labels. A month is complete only when every source-calendar day passes that rule. Seventy-nine months are admitted. Source-clock days with 92 or 100 rows are excluded rather than rescaled or shifted. Arrays are not assigned technology labels.
 
 \subsection*{S2.4 HKUST retrospective Library subset}
-Original source: HKUST, Zenodo 10909062, published 2 April 2024, original \texttt{dataset.zip} SHA-256 \texttt{610500cfda8309bcba85c4562a1406592882094638132c7ee478cd53e37e96ec}; data descriptor Lin et al., \emph{Scientific Data} 12, 63 (2025), DOI \href{https://doi.org/10.1038/s41597-025-04397-y}{10.1038/s41597-025-04397-y}. The published archive contains electrical telemetry already resampled to five-minute intervals, with \texttt{NA} recorded rather than source-imputed missing values. The Library roof has three inverter data files. The stored Brick/RDF module configuration traces each device to 156, 152, and 152 modules of 370~W DC-STC each, respectively. The sum (170.2~kW) matches the source Library site rating. This exact equality is a useful provenance check, \emph{not} proof that the independent devices were metrologically calibrated.
+Original source: HKUST, Zenodo 10909062, published 2 April 2024, original \texttt{dataset.zip} SHA-256 \texttt{\seqsplit{610500cfda8309bcba85c4562a1406592882094638132c7ee478cd53e37e96ec}}; data descriptor Lin et al., \emph{Scientific Data} 12, 63 (2025), DOI \href{https://doi.org/10.1038/s41597-025-04397-y}{10.1038/s41597-025-04397-y}. The published archive contains electrical telemetry already resampled to five-minute intervals, with \texttt{NA} recorded rather than source-imputed missing values. The Library roof has three inverter data files. The stored Brick/RDF module configuration traces each device to 156, 152, and 152 modules of 370~W DC-STC each, respectively. The sum (170.2~kW) matches the source Library site rating. This exact equality is a useful provenance check, \emph{not} proof that the independent devices were metrologically calibrated.
 
 One observed inverter-day is complete only with exactly 144 unique source-clock timestamps from 06:00 through 17:55 at five-minute cadence, and finite reported inverter \texttt{totalActivePower(W)} at every position. The three inverters must share every source-clock position on every day of a complete calendar month. Only July 2022, May 2023 and July 2023 pass this gate for the selected Library group (3 months, 93 days). We retain the source's observed equal-cadence AC power records and divide each device's accumulated integrated power by its own DC-STC module sum, without imputing any measurements. Other roofs may be valuable but their station-rating and module-STC semantics or electrical-source flags were not fully reconciled in the primary analysis; no other HKUST roof group is included in the main four-source comparison. Each site/month belongs to a dependent history, not an independent PV technology trial.
 
@@ -158,9 +159,9 @@ The publisher archive provides \texttt{Site level dataset/<roof>.csv} with 15-mi
 \centering
 \caption*{Table S5. Source-channel consistency by same-roof group. Only Library is admitted to the retrospective fourth-source decision comparison; other groups are source-audit diagnostics and are not pooled.}
 \small
-\begin{tabular}{p{4.7cm}rrrl}
+\begin{tabular}{p{4.0cm}rrrp{2.4cm}}
 \toprule
-HKUST roof & Matched days & Median disagreement & 95th percentile & Source state \\
+HKUST roof & Days & Median (\%) & P95 (\%) & Source state \\
 \midrule
 Library & 93 & 0.428\% & 0.994\% & Primary extension \\
 S H Ho Sports Hall & 93 & 0.358\% & 0.828\% & Conditional \\
@@ -174,15 +175,17 @@ Zone D & 62 & 0.348\% & 0.905\% & Electrical-data hold \\
 An exact source replay of the published Library example of 31 August 2022 yielded $175.77325$, $251.88075$, and $213.90475$~kWh for inverters 1--3, and $642.087334791$~kWh from the site-power channel, agreeing with the data descriptor's rounded $175.77$, $251.88$, $213.90$, and $642.09$~kWh. The relative discrepancy is $0.08239\%$. The distinct site \texttt{generation(kWh)} entries sum instead to $651.32$~kWh on that date. We do not assign the latter field the same integration semantics or declare either record erroneous. The original source is provider-resampled, and both channels may share data acquisition or processing; aggregate agreement does not identify individual gain errors or their covariance. The 31 August example is an independent source-example check, \emph{not} one of the three decision-admitted Library months.
 
 \section*{S4b. Analytical measurement-gain stress with fixed full-month reference}
-The R26K extension applies an \emph{assumed} per-inverter constant relative gain $\eta_j\in[1-\varepsilon,1+\varepsilon]$, with the \emph{same} $\boldsymbol{\eta}$ used in the full-month reference and in all gap-retained variants. Define the baseline-preserving event
+This analytical extension applies an \emph{assumed} per-inverter constant relative gain $\eta_j\in[1-\varepsilon,1+\varepsilon]$, with the \emph{same} $\boldsymbol{\eta}$ used in the full-month reference and in all gap-retained variants. Define the baseline-preserving event
 \[
-A_m(q,L,\varepsilon)=\mathbf{1}\!\left[
-\exists\,\boldsymbol{\eta},\,s,\,\ell\leq L:
-S_m(q;D_m,\boldsymbol{\eta})=S_m(q;D_m,\mathbf{1})
-\ \land\
-S_m(q;D_m\setminus G_m(s,\ell),\boldsymbol{\eta})
-\ne S_m(q;D_m,\mathbf{1})
-\right].
+\begin{aligned}
+A_m(q,L,\varepsilon)&=\mathbf{1}\!\big[
+\exists\,\boldsymbol{\eta},s,\ell\leq L:
+\\[-0.15em]
+&\quad S_m(q;D_m,\boldsymbol{\eta})
+=S_m(q;D_m,\mathbf{1}),\\[-0.1em]
+&\quad S_m(q;D_m\setminus G_m(s,\ell),\boldsymbol{\eta})
+\ne S_m(q;D_m,\mathbf{1})\big].
+\end{aligned}
 \]
 The full-month shortlist is required to retain its \emph{recorded-data identity}, so a gain-only reference-set change is not counted as a missing-day effect. A positive solver margin and independent ratio/exact-witness arithmetic checks were used to avoid boundary-only numerical claims. Gain bounds are \emph{not} probabilities, measured calibration uncertainties, or actual inverter-error covariance.
 
@@ -190,7 +193,7 @@ The full-month shortlist is required to retain its \emph{recorded-data identity}
 \centering
 \caption*{Table S6. Baseline-preserving conditional gain sensitivity at $q=5\%$, gaps no longer than three days; source-specific month counts, NOT independent-trial failure probabilities.}
 \small
-\begin{tabular}{p{4.6cm}rrrrrrr}
+\begin{tabular}{p{3.8cm}rrrrrrr}
 \toprule
 Roof & $\varepsilon=0$ & 0.25\% & 0.5\% & 1\% & 2\% & 3\% & 5\% \\
 \midrule
@@ -279,6 +282,6 @@ The manuscript deliberately distinguishes its applied decision object from estab
 \section*{S7. Reproducibility and rights boundary}
 Public reproducibility materials are available at \href{https://github.com/shaikhamalkawi-ux/pv-missing-day-decision-reliability}{GitHub: pv-missing-day-decision-reliability}. The repository releases derived surfaces, original scientific claim/result locks, analysis and verification code, and manuscript/Supplement source; automated checks rebuild the surface figures and review PDFs. It does not redistribute PROPRE.MA donor raw data or third-party EURAC/MORE-EU raw data. EURAC and MORE-EU replay sources are identified by DOI or pinned Git blob, whereas PROPRE.MA raw-source replay requires authorized donor-archive access.
 
-The three original source result records and the prior public release remain numerically unchanged. The retrospective HKUST Library subset uses the original public 2024 Zenodo archive (record 10909062, SHA-256 \texttt{610500cfda8309bcba85c4562a1406592882094638132c7ee478cd53e37e96ec}) and separately replayable development-only audit code. The author-review research package includes its source-qualified 35-cell $q\times L$ table, the original-publisher paired site--inverter source audit (372 matched days in the wider source triage, including 93 Library source days), the 31 August 2022 published-example replay, and conditional relative-gain calculations with independent verification. The source-derived evidence must remain distinguishable from raw publisher telemetry, and the archived source version must not be silently replaced by the later Dryad release. No Qatar/QEERI telemetry enters this work. This scientific candidate should not be presented as an accepted journal revision until its source admissibility and author-controlled declarations are approved.
+The three original source result records and the prior public release remain numerically unchanged. The retrospective HKUST Library subset uses the original public 2024 Zenodo archive (record 10909062, SHA-256 \texttt{\seqsplit{610500cfda8309bcba85c4562a1406592882094638132c7ee478cd53e37e96ec}}) and separately replayable development-only audit code. The author-review research package includes its source-qualified 35-cell $q\times L$ table, the original-publisher paired site--inverter source audit (372 matched days in the wider source triage, including 93 Library source days), the 31 August 2022 published-example replay, and conditional relative-gain calculations with independent verification. The source-derived evidence must remain distinguishable from raw publisher telemetry, and the archived source version must not be silently replaced by the later Dryad release. No Qatar/QEERI telemetry enters this work. This scientific candidate should not be presented as an accepted journal revision until its source admissibility and author-controlled declarations are approved.
 
 \end{document}
