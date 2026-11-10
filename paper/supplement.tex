@@ -39,7 +39,7 @@ The original three-source reliability surface used in the manuscript was frozen 
 \[
 q\in\{0,0.025,0.05,0.075,0.10\},\qquad L\in\{1,2,3,4,5,6,7\}\;\text{whole days},
 \]
-with at least ten retained days. Deleted days were not reconstructed. A source-month is counted as fragile at $(q,L)$ if at least one contiguous gap of length no greater than $L$ changes the candidate set relative to the full admitted month. The source-level surface is descriptive and months are not assumed independent.
+with at least ten retained days. Deleted days were counterfactually removed from otherwise complete source-months, not inferred from an observed logger-outage sample, and were not reconstructed. A source-month is counted as fragile at $(q,L)$ if at least one contiguous gap of length no greater than $L$ changes the candidate set relative to the full admitted month. The source-level surface is descriptive and months are not assumed independent.
 
 The main-text shortlist is
 \[
@@ -269,6 +269,28 @@ Here $\Delta$ is the minimum possible range $\max_jx_j-\min_jx_j$ subject to the
 This \emph{closed-graph} formula is a lower threshold for an individual enumerated alternative, not by itself a witness of strict exclusion. Taking the minimum across all finite alternatives and allowable gaps reproduces the original LP relaxation. A separately recomputed strict source-derived witness brackets each of the nine positive cases from above. The graph test also places the remaining three secondary/held cases outside the $0$--$5\%$ test box, without promoting any held source to the fourth-source comparison. The independent implementation enumerated 4,680 alternative graphs, compared with 9,360 original strict/relaxed LP subproblems. In the nine cases with a positive witness, the largest absolute difference between graph and LP relaxed gain-fraction lower thresholds was $3.6\times10^{-13}$. This is numerical cross-certification of a conditional model, not a new field-measurement or a general mathematical novelty claim.
 
 The Library's three upper-witness margins are approximately $0.469\%$, $2.025\%$, and $1.827\%$. They are not calibrated error magnitudes and cannot be compared directly to the aggregate site-versus-inverter disagreement in Table~S5, which measures a different combination of sensors and processing effects. The primary computation covered 12 eligible source-months and 9,360 finite linear-program subproblems. Separate verification recomputed 8 two-inverter source-month thresholds by a direct gain-ratio partition that does not use the primary solver and validated 4 three-inverter positive witnesses against source-derived daily powers. The new solver-independent closed log-ratio graph audit verifies every relaxed lower threshold; the positive-margin device witnesses separately verify shortlist changes, rather than treating a relaxed boundary equality as a strict event. The original R22/PV main results are unchanged, and none of the reported source-month thresholds is interpreted probabilistically.
+
+\section*{S4e. Matched missing-day fraction with different decision outcomes}
+
+The July 2023 HKUST Library source month contains 31 fully observed admitted inverter days and three co-roof devices. At the declared decision margin $q=10\%$, the full-month shortlist contains inverters 1, 2 and 3. We enumerated \emph{all 25} contiguous deletion placements with exactly seven omitted days and 24 retained days. Three placements drop inverter 3; the remaining 22 preserve the full-month three-inverter shortlist. Every placement has precisely the same deleted-day fraction, $7/31$, with no imputation or probabilistic weighting. The two independently written aggregation paths (retained-day sum and full-month sum minus omitted-day sum) give identical candidate sets for all 25 placements.
+
+\begin{table}[ht]
+\centering
+\caption*{Table S8. A fixed missing-day fraction does not determine the candidate shortlist: source-derived HKUST Library July 2023, $q=10\%$. Exactly seven complete days are removed in every row; 22/25 locations preserve the shortlist, and the three changing locations are shown.}
+\small
+\begin{tabular}{lccp{5.5cm}}
+\toprule
+Omitted seven-day window & Change? & Retained days & Retained candidate set \\
+\midrule
+1--7 July 2023 & No & 24 & Inverters 1, 2, 3 \\
+5--11 July 2023 & Yes & 24 & Inverters 1, 2 \\
+7--13 July 2023 & Yes & 24 & Inverters 1, 2 \\
+8--14 July 2023 & Yes & 24 & Inverters 1, 2 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The remaining 21 unchanged windows, in addition to the displayed 1--7 July example, are listed in the machine-readable 25-window audit. This is a finite counterfactual enumeration within one dependent month: the 25 overlapping windows are neither independent trials nor observed outage histories. The result provides a direct same-source, same-margin, same-deletion-length example for the paper's rate-only insufficiency claim; it does not assign a probability to actual future data loss.
 
 \section*{S5. Interpretation and claim boundaries}
 The following statements are retained:
