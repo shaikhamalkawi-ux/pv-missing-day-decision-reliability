@@ -8,6 +8,7 @@ on:
       - 'paper/supplement.tex'
       - 'code/r28_verify_science.py'
       - 'code/r28_package_release.py'
+      - 'code/r28_replay_bundled.py'
       - 'code/r27_plot_hkust_crossmeter.py'
   workflow_dispatch:
 permissions: {contents: read, actions: read}
@@ -49,6 +50,18 @@ jobs:
           run-id: 42641999899
           github-token: ${{ secrets.GITHUB_TOKEN }}
           path: r28_evidence/HKUST_R26L
+      - uses: actions/download-artifact@v4
+        with:
+          name: r26i-evidence-source-tiers-and-report
+          run-id: 42504128089
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: r28_evidence/HKUST_R26I
+      - uses: actions/download-artifact@v4
+        with:
+          name: r26k-baseline-preserved-inverter-sensitivity
+          run-id: 42513250336
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: r28_evidence/HKUST_R26K
       - name: Prepare checked source evidence and original R22 result lock
         run: |
           mkdir -p r28_evidence/R28_Primary r28_evidence/R28_Independent
@@ -57,6 +70,7 @@ jobs:
           python code/verify_publication_results.py
           python code/rebuild_released_surface.py
           python code/r28_verify_science.py
+          python code/r28_replay_bundled.py
           python code/r27_plot_hkust_crossmeter.py
       - name: Compile journal main and supplementary sources
         run: |
