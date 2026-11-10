@@ -6,6 +6,7 @@ on:
       - '.github/workflows/r28-solarenergy-build.yml'
       - 'paper/main.tex'
       - 'paper/supplement.tex'
+      - 'paper/R28_SolarEnergy_Highlights.txt'
       - 'code/r28_verify_science.py'
       - 'code/r28_package_release.py'
       - 'code/r28_replay_bundled.py'
