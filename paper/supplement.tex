@@ -20,7 +20,7 @@
 \pagestyle{fancy}
 \setlength{\headheight}{14.5pt}
 \fancyhf{}
-\lhead{Supplementary Material -- R28 critical-margin author-review candidate}
+\lhead{Supplementary Methods and Source-Evidence Audit}
 \rhead{PV decision reliability under missing-day gaps}
 \cfoot{\thepage}
 
@@ -33,7 +33,7 @@
 \maketitle
 
 \section*{S1. Protocol freeze and notation}
-The original three-source R22 surface used in the manuscript was frozen before inspection of its combined result. The fourth-source HKUST Library subset was acquired and source-qualified retrospectively, after the R22 freeze; the same frozen $q,L$ rule was reused without retuning, but this later cohort must not be represented as a prospectively predeclared external test. The declared grid was
+The original three-source reliability surface used in the manuscript was frozen before inspection of its combined result. The fourth-source HKUST Library subset was acquired and source-qualified retrospectively, after that protocol freeze; the same frozen $q,L$ rule was reused without retuning, but this later cohort must not be represented as a prospectively predeclared external test. The declared grid was
 \[
 q\in\{0,0.025,0.05,0.075,0.10\},\qquad L\in\{1,2,3,4,5,6,7\}\;\text{whole days},
 \]
@@ -51,10 +51,10 @@ No generic mathematical novelty is claimed for case-removal sensitivity or minim
 
 \section*{S2. Dataset-specific admission details}
 \subsection*{S2.1 PROPRE.MA}
-The manuscript uses the exact 25 complete, boundary-stable source-months retained at the R18 gate. These months descend from source-locked cumulative-counter and date-identity work and preserve site/configuration-specific STC denominators. The cohort is not the entire 20-site historical dataset and does not re-admit historically excluded sites merely because a numerical record exists. Raw donor files are not redistributed. The source decision object is a three-technology normalized-yield shortlist.
+The manuscript uses the exact 25 complete, boundary-stable source-months retained after the original source-identity and boundary gate. These months descend from source-locked cumulative-counter and date-identity work and preserve site/configuration-specific STC denominators. The cohort is not the entire 20-site historical dataset and does not re-admit historically excluded sites merely because a numerical record exists. Raw donor files are not redistributed. The source decision object is a three-technology normalized-yield shortlist.
 
 \subsection*{S2.2 EURAC}
-The public archive is EURAC Research, Zenodo DOI \href{https://doi.org/10.5281/zenodo.18316996}{10.5281/zenodo.18316996}. The source archive checksum used in R19 matched the published MD5. Four systems with defensible numeric total STC values were admitted: Trina poly-Si (2070~W), SunPower mono-Si (1200~W), Sanyo HJT (3870~W), and Wurth CIGS (1050~W). First Solar was excluded from the primary normalized analysis because a defensible total system STC could not be reconstructed from supplied metadata. Daily DC energy was based on common 15-minute $P_{mpp}$ timestamps and a 95\% common-irradiance support rule. Seven months passed the full-month gate. The supplied metadata do not fully establish identical mounting geometry, so results are described as observed-system decisions rather than intrinsic technology efficiency comparisons.
+The public archive is EURAC Research, Zenodo DOI \href{https://doi.org/10.5281/zenodo.18316996}{10.5281/zenodo.18316996}. The source archive checksum used in the original source audit matched the published MD5. Four systems with defensible numeric total STC values were admitted: Trina poly-Si (2070~W), SunPower mono-Si (1200~W), Sanyo HJT (3870~W), and Wurth CIGS (1050~W). First Solar was excluded from the primary normalized analysis because a defensible total system STC could not be reconstructed from supplied metadata. Daily DC energy was based on common 15-minute $P_{mpp}$ timestamps and a 95\% common-irradiance support rule. Seven months passed the full-month gate. The supplied metadata do not fully establish identical mounting geometry, so results are described as observed-system decisions rather than intrinsic technology efficiency comparisons.
 
 \subsection*{S2.3 MORE-EU}
 The public source is \href{https://github.com/MORE-EU/OpenData}{MORE-EU/OpenData}, file \texttt{Solar Park Data -INACCESS/Array Power.csv}, pinned Git blob \texttt{5611277efdd581bb839ec380239846a43ebe0ba7}. The source reports normalized output for 14 arrays. A calendar day is admitted only when it contains exactly 96 rows and 96 unique quarter-hour labels. A month is complete only when every source-calendar day passes that rule. Seventy-nine months are admitted. Source-clock days with 92 or 100 rows are excluded rather than rescaled or shifted. Arrays are not assigned technology labels.
@@ -117,7 +117,7 @@ $q$ & $L\le1$ & $L\le2$ & $L\le3$ & $L\le4$ & $L\le5$ & $L\le6$ & $L\le7$ \\
 
 \begin{table}[h]
 \centering
-\caption*{Table S4. Retrospective HKUST Library inverter decision surface (3 source-qualified months). Not part of the originally frozen R22 cohorts.}
+\caption*{Table S4. Retrospective HKUST Library inverter decision surface (3 source-qualified months). Not part of the original three-source cohorts.}
 \small
 \begin{tabular}{lrrrrrrr}
 \toprule
@@ -135,12 +135,12 @@ $q$ & $L\le1$ & $L\le2$ & $L\le3$ & $L\le4$ & $L\le5$ & $L\le6$ & $L\le7$ \\
 The three months are July 2022, May 2023 and July 2023. This table reproduces the 35 source-conditional cells from the frozen HKUST 2024-vintage time series; the separate independent verifier checked 105 month--$q$--$L$ decisions and nondecreasing fragility in $L$. Zero changes are observed-data-only outcomes, not a guarantee under uncertain module or instrument calibration.
 
 \section*{S4. Locked $q=5\%$ cross-stage verification}
-The R22 expansion was required to reproduce the preceding R21 structured-gap result at $q=5\%$ and $L\le3$ days. The cross-check is exact:
+The original grid expansion was required to reproduce the preceding single-margin structured-gap result at $q=5\%$ and $L\le3$ days. The cross-check is exact:
 
 \begin{center}
 \begin{tabular}{lrrl}
 \toprule
-Dataset & R21 locked count & R22 count & Status \\
+Dataset & Previous locked count & Expanded-grid count & Status \\
 \midrule
 PROPRE.MA & 3/25 & 3/25 & PASS \\
 EURAC & 1/7 & 1/7 & PASS \\
@@ -149,14 +149,14 @@ MORE-EU & 45/79 & 45/79 & PASS \\
 \end{tabular}
 \end{center}
 
-The MORE-EU surface was independently recomputed from the pinned public Git blob and reproduced the same 79 complete source-calendar months. The upstream EURAC and PROPRE.MA cohorts were not redefined for R22.
+The MORE-EU surface was independently recomputed from the pinned public Git blob and reproduced the same 79 complete source-calendar months. The upstream EURAC and PROPRE.MA cohorts were not redefined for the expanded grid.
 
 \section*{S4a. Paired site--inverter source-channel cross-check}
 The publisher archive provides \texttt{Site level dataset/<roof>.csv} with 15-minute \texttt{power(W)} and \texttt{generation(kWh)}, and distinct \texttt{Inverter level dataset/<roof>\_Inverter\_j.csv} with five-minute \texttt{totalActivePower(W)}. For source-qualified days with 96 finite 15-minute site samples and 144 finite five-minute inverter samples, the site channel is integrated as $\sum_t P_{\mathrm{site}}(t)(0.25~\mathrm{h})/1000$ and the inverter channels as $\sum_j\sum_t P_j(t)(1/12~\mathrm{h})/1000$. They are each calculated directly from observed source powers, without filling missing samples. A descriptive absolute disagreement percentage is $100|E_{\mathrm{site}}-\sum_j E_j|/\min(E_{\mathrm{site}},\sum_jE_j)$ on days with positive denominators. This cannot be interpreted as a bound on independent inverter bias.
 
 \begin{table}[h]
 \centering
-\caption*{Table S5. Source-channel consistency by same-roof group. Only Library is admitted to the R27 fourth-source decision comparison; other groups are source-audit diagnostics and are not pooled.}
+\caption*{Table S5. Source-channel consistency by same-roof group. Only Library is admitted to the retrospective fourth-source decision comparison; other groups are source-audit diagnostics and are not pooled.}
 \small
 \begin{tabular}{p{4.7cm}rrrl}
 \toprule
@@ -203,12 +203,12 @@ Zone D (HOLD) & 0/2 & 0/2 & 0/2 & 0/2 & 0/2 & 0/2 & 0/2 \\
 \end{tabular}
 \end{table}
 
-The strongest source-identity case (Library) thus has no observed-data gap change at $q=5\%$, $L\leq3$, but an existence witness under an \emph{assumed} relative gain envelope as small as $\varepsilon=0.5\%$ in one month. This is a non-calibrated feasibility result. A shared positive gain identical across inverters cancels in the relative shortlist inequality and leaves the recorded-data result unchanged. In the broader R26K source audit, 56 two-inverter month--gain cells were independently verified by ratio partitions and 15 positive three-inverter gain witnesses were independently recomputed; negative three-inverter LP claims were not given an independent symbolic certificate.
+The strongest source-identity case (Library) thus has no observed-data gap change at $q=5\%$, $L\leq3$, but an existence witness under an \emph{assumed} relative gain envelope as small as $\varepsilon=0.5\%$ in one month. This is a non-calibrated feasibility result. A shared positive gain identical across inverters cancels in the relative shortlist inequality and leaves the recorded-data result unchanged. In the broader secondary source audit, 56 two-inverter month--gain cells were independently verified by ratio partitions and 15 positive three-inverter gain witnesses were independently recomputed; negative three-inverter LP claims were not given an independent symbolic certificate.
 
 \section*{S4c. Supporting on-site weather, not a per-panel calibration}
 The original HKUST archive also provides on-campus irradiance at one-minute cadence. Across the four source-months involved in the wider source triage (July and August 2022; May and July 2023), all 144 five-minute daylight positions were available on every day except 30 July 2023, which lacked one irradiance value. If complete \emph{shared-weather} support is imposed as an auxiliary secondary rule, July 2023 would be excluded, despite complete source-inverter records. This rule was \emph{not} in the frozen R22 decision gate and is not used to revise the three original or HKUST main counts. Campus irradiance does not establish the plane-of-array illumination or metrological accuracy for an individual inverter.
 
-\section*{S4d. Baseline-preserving critical relative-gain radius (R28)}
+\section*{S4d. Baseline-preserving critical relative-gain radius}
 The seven predeclared $\varepsilon$ stress levels in Table~S6 show where a source-month can become conditionally fragile but are not themselves precision estimates of a threshold. For $q=5\%$ and a contiguous gap no longer than three whole days, we therefore computed the smallest \emph{assumed} symmetric per-inverter gain envelope that can change the gap-retained shortlist \emph{while preserving the observed-data full-month reference shortlist}:
 \[
 \varepsilon_m^{\mathrm{crit}}=\inf_{\boldsymbol{\eta},\,G}
@@ -277,8 +277,8 @@ The following statements are not supported by the present evidence:
 The manuscript deliberately distinguishes its applied decision object from established missing-data and robustness literatures. Koubli et al. infer missing PV monitoring data to recover performance metrics; Livera et al. develop data-quality filtering and reconstruction; IEA PVPS provides technical-KPI guidance; Quest et al. assess missing gaps in performance-loss estimation; and Wang and Zhang develop mask-only policies for repairing incomplete PV monitoring records. Outside PV, minimal removal and case-influence ideas are well established in decision reliability, AMIP, training-sample removal, and ranking stability. The present work therefore positions the contribution as a PV-domain audit of a declared set-valued downstream decision rather than a new generic robustness theorem. The retrospective fourth-source comparison draws on Lin et al. (2025), Scientific Data 12, 63, with original 2024 source at https://zenodo.org/records/10909062.
 
 \section*{S7. Reproducibility and rights boundary}
-Public reproducibility materials are available at \href{https://github.com/shaikhamalkawi-ux/pv-missing-day-decision-reliability}{GitHub: pv-missing-day-decision-reliability}. The repository releases derived surfaces, R22 claim/result locks, analysis and verification code, and manuscript/Supplement source; automated checks rebuild the surface figures and review PDFs. It does not redistribute PROPRE.MA donor raw data or third-party EURAC/MORE-EU raw data. EURAC and MORE-EU replay sources are identified by DOI or pinned Git blob, whereas PROPRE.MA raw-source replay requires authorized donor-archive access.
+Public reproducibility materials are available at \href{https://github.com/shaikhamalkawi-ux/pv-missing-day-decision-reliability}{GitHub: pv-missing-day-decision-reliability}. The repository releases derived surfaces, original scientific claim/result locks, analysis and verification code, and manuscript/Supplement source; automated checks rebuild the surface figures and review PDFs. It does not redistribute PROPRE.MA donor raw data or third-party EURAC/MORE-EU raw data. EURAC and MORE-EU replay sources are identified by DOI or pinned Git blob, whereas PROPRE.MA raw-source replay requires authorized donor-archive access.
 
-The three original R18--R22 source results and the public R25 release remain numerically unchanged. The retrospective HKUST Library subset uses the original public 2024 Zenodo archive (record 10909062, SHA-256 \texttt{610500cfda8309bcba85c4562a1406592882094638132c7ee478cd53e37e96ec}) and separately replayable development-only audit code. The R27 author-review deliverable includes its source-qualified 35-cell $q\times L$ table, the original-publisher paired site--inverter source audit (372 matched days in the wider source triage, including 93 Library source days), the 31 August 2022 published-example replay, and conditional relative-gain calculations with independent verification. The source-derived evidence must remain distinguishable from raw publisher telemetry, and the archived source version must not be silently replaced by the later Dryad release. No Qatar/QEERI telemetry enters this work. The R27 scientific candidate should not be presented as an accepted journal revision until its source admissibility and author-controlled declarations are approved.
+The three original source result records and the prior public release remain numerically unchanged. The retrospective HKUST Library subset uses the original public 2024 Zenodo archive (record 10909062, SHA-256 \texttt{610500cfda8309bcba85c4562a1406592882094638132c7ee478cd53e37e96ec}) and separately replayable development-only audit code. The author-review research package includes its source-qualified 35-cell $q\times L$ table, the original-publisher paired site--inverter source audit (372 matched days in the wider source triage, including 93 Library source days), the 31 August 2022 published-example replay, and conditional relative-gain calculations with independent verification. The source-derived evidence must remain distinguishable from raw publisher telemetry, and the archived source version must not be silently replaced by the later Dryad release. No Qatar/QEERI telemetry enters this work. This scientific candidate should not be presented as an accepted journal revision until its source admissibility and author-controlled declarations are approved.
 
 \end{document}
