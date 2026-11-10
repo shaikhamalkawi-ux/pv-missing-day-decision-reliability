@@ -4,6 +4,7 @@
 \usepackage[T1]{fontenc}
 \usepackage{microtype}
 \usepackage{graphicx}
+\usepackage{caption}
 \usepackage{booktabs}
 \usepackage{array}
 \usepackage{amsmath,amssymb}
@@ -48,7 +49,7 @@ For a contiguous gap $G_m(s,\ell)$, the month-level indicator is
 \[
 F_m(q,L)=\mathbf{1}[\exists\,\ell\le L,s: S_m(q;D_m\setminus G_m(s,\ell))\ne S_m(q;D_m)].
 \]
-No generic mathematical novelty is claimed for case-removal sensitivity or minimum deletion budgets.
+No generic mathematical novelty is claimed for case-removal sensitivity, minimum deletion budgets, or the classical shortest-path feasibility of difference constraints.
 
 \section*{S2. Dataset-specific admission details}
 \subsection*{S2.1 PROPRE.MA}
@@ -248,7 +249,26 @@ Zone D (HOLD) & Jul 2023 & -- & --\\
 \end{tabular}
 \end{table}
 
-The Library's three upper-witness margins are approximately $0.469\%$, $2.025\%$, and $1.827\%$. They are not calibrated error magnitudes and cannot be compared directly to the aggregate site-versus-inverter disagreement in Table~S5, which measures a different combination of sensors and processing effects. The primary computation covered 12 eligible source-months and 9,360 finite linear-program subproblems. Separate verification recomputed 8 two-inverter source-month thresholds by a direct gain-ratio partition that does not use the primary solver and validated 4 three-inverter positive witnesses against source-derived daily powers. A second independent proof of nonexistence for all three-inverter negative cases was not claimed. The original R22/PV main results are unchanged, and none of the reported source-month thresholds is interpreted probabilistically.
+\paragraph{R29 independent log-ratio graph certificate.}
+Let $x_j=\log\eta_j$ for each positive gain. For a fixed retained-day set $D$, a required comparison
+$\eta_aY_a(D)\ge(1-q)\eta_bY_b(D)$ is equivalent to
+\[
+  x_b-x_a\le
+  \log\left[\frac{Y_a(D)}{(1-q)Y_b(D)}\right].
+\]
+Full-month nonmembership and post-gap set changes contain finite disjunctions of alternative strict comparisons. We resolve each disjunction by enumerating its possible challenger and form a graph edge $a\to b$ of weight $c_{ab}$ for every selected inequality $x_b-x_a\le c_{ab}$. Strict exclusions are relaxed to non-strict inequalities in this separate \emph{lower-bound} calculation; strict change events are always supported separately by positive-margin witnesses.
+
+For any fixed alternative, a negative-weight directed cycle makes its closed comparison constraints infeasible for every positive gain vector. Otherwise let $d_{ab}$ be the minimum directed path weight from $a$ to $b$, over all connected vertex pairs, and define
+\[
+  \Delta=\max\bigl(0,-\min_{a,b}d_{ab}\bigr),
+  \qquad
+  \varepsilon_{\mathrm{closed}}=\tanh(\Delta/2).
+\]
+Here $\Delta$ is the minimum possible range $\max_jx_j-\min_jx_j$ subject to the closed comparison constraints. Necessity follows from $x_b-x_a\le d_{ab}$: every negative shortest-path weight forces some pair of log gains to be separated by at least $-d_{ab}$. For sufficiency, add all pairwise constraints $x_b-x_a\le\Delta$ to the original graph. Any closed walk that uses an added $\Delta$-weight edge can be divided into original paths of weight at least $-\Delta$, so no negative cycle is introduced. The standard difference-constraint feasibility criterion therefore supplies log gains with range at most $\Delta$. Because the candidate set is homogeneous in all $\eta_j$, a common positive scaling of every gain does not change membership. Such gains fit inside the symmetric box $[1-\varepsilon,1+\varepsilon]$ exactly when $\log[(1+\varepsilon)/(1-\varepsilon)]\ge\Delta$, which gives the displayed hyperbolic-tangent expression.
+
+This \emph{closed-graph} formula is a lower threshold for an individual enumerated alternative, not by itself a witness of strict exclusion. Taking the minimum across all finite alternatives and allowable gaps reproduces the original LP relaxation. A separately recomputed strict source-derived witness brackets each of the nine positive cases from above. The graph test also places the remaining three secondary/held cases outside the $0$--$5\%$ test box, without promoting any held source to the fourth-source comparison. The independent implementation enumerated 4,680 alternative graphs, compared with 9,360 original strict/relaxed LP subproblems. In the nine cases with a positive witness, the largest absolute difference between graph and LP relaxed gain-fraction lower thresholds was $3.6\times10^{-13}$. This is numerical cross-certification of a conditional model, not a new field-measurement or a general mathematical novelty claim.
+
+The Library's three upper-witness margins are approximately $0.469\%$, $2.025\%$, and $1.827\%$. They are not calibrated error magnitudes and cannot be compared directly to the aggregate site-versus-inverter disagreement in Table~S5, which measures a different combination of sensors and processing effects. The primary computation covered 12 eligible source-months and 9,360 finite linear-program subproblems. Separate verification recomputed 8 two-inverter source-month thresholds by a direct gain-ratio partition that does not use the primary solver and validated 4 three-inverter positive witnesses against source-derived daily powers. The new solver-independent closed log-ratio graph audit verifies every relaxed lower threshold; the positive-margin device witnesses separately verify shortlist changes, rather than treating a relaxed boundary equality as a strict event. The original R22/PV main results are unchanged, and none of the reported source-month thresholds is interpreted probabilistically.
 
 \section*{S5. Interpretation and claim boundaries}
 The following statements are retained:
