@@ -1,7 +1,7 @@
 Highlights
 
-• Missing-day gaps can change photovoltaic candidate shortlists without imputation.
-• Four field sources show different decision-reliability patterns.
-• At 5% margin, three HKUST Library months stayed stable under seven-day gaps.
-• Site and inverter power integrals agreed across 93 complete Library days.
-• Critical relative-gain envelopes expose conditional shortlist sensitivity.
+• At a 5% margin, up-to-three-day gaps changed 45 of 79 solar-park months.
+• The same gap stress changed 3 of 25 and 1 of 7 other-source months.
+• At a 5% margin, three Hong Kong library months stayed stable for seven-day gaps.
+• Across 93 days, site and inverter energy totals had a 0.428% median difference.
+• Critical hypothetical device-gain margins ranged from 0.469% to 2.025%.
