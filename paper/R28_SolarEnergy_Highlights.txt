@@ -1,0 +1,9 @@
+# Solar Energy Highlights — R28 author-review candidate
+
+• Missing-day gaps can change photovoltaic candidate shortlists without imputation.
+• Four field sources show different decision-reliability patterns.
+• At 5% margin, three HKUST Library months stayed stable under seven-day gaps.
+• Site and inverter power integrals agreed across 93 complete Library days.
+• Critical relative-gain envelopes expose conditional shortlist sensitivity.
+
+These statements are descriptive. Calibration stress is hypothetical, not field-certified.
