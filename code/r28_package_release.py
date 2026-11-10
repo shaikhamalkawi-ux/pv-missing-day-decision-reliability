@@ -30,6 +30,8 @@ qa=json.loads(Path("R28_SOURCE_TO_MANUSCRIPT_QA.json").read_text())
 assert qa["status"]=="PASS" and qa["R28_analytic_LPs"]==9360
 assert qa["R28_source_months"]==12 and qa["HKUST_Library_days"]==93
 assert qa["R22_frozen_count_check"] and not qa["Qatar_included"]
+assert (R/"r28_evidence/HKUST_R26I/DAILY_OBSERVED_INVERTER_SAMPLE_SUMS.csv").is_file()
+assert (R/"r28_evidence/HKUST_R26K/SOURCE_MONTH_EPSILON_BASELINE_GATE.csv").is_file()
 mp,sp,bp=pages(MAIN),pages(SUPP),pages(BOTH)
 assert mp>=17 and sp>=7 and bp==mp+sp
 for log in ("build/main.log","build/supplement.log"):
@@ -50,14 +52,14 @@ assert any("R27_HKUST_LIBRARY_SITE_VS_INVERTER" in p for p in figs)
 source=["paper/main.tex","paper/supplement.tex"]+figs
 archive(O/"106Amen_R28_Overleaf_Editable_Source.zip",source,
     {"OVERLEAF_README.md":"R28 source: select paper/main.tex for main PDF; paper/supplement.tex for supplement. Compile with pdfLaTeX. Keep figures directory. Author review only.\n"})
-dirs=["r28_evidence/R28_Primary","r28_evidence/R28_Independent","r28_evidence/HKUST_R26H","r28_evidence/HKUST_R26L"]
+dirs=["r28_evidence/R28_Primary","r28_evidence/R28_Independent","r28_evidence/HKUST_R26H","r28_evidence/HKUST_R26L","r28_evidence/HKUST_R26I","r28_evidence/HKUST_R26K"]
 evidence=sum((all_files(p) for p in dirs),[])
 repro=all_files("code")+all_files("results")+all_files("metadata")+evidence+source+[
     "requirements.txt","README.md","DATA_AVAILABILITY.md","LICENSE.md",
     "LICENSE_CODE_MIT.txt","R28_SOURCE_TO_MANUSCRIPT_QA.json",
     "R28_SCIENTIFIC_REVISION_REPORT.md","R28_SCIENTIFIC_CHANGELOG_AR.md"]
 archive(O/"106Amen_R28_SourceLinked_Reproducibility.zip",repro,
-    {"REPRO_README.md":"Derived R28 source-linked evidence and code, including HKUST original Zenodo 10909062 attribution and locked R22 certificates. Whole original HKUST and PROPRE.MA raw source archives are not included. Scientific thresholds are conditional, not measured calibration errors. Run python code/r28_verify_science.py from root. SciPy 1.16.3 used for solver.\n"})
+    {"REPRO_README.md":"# R28: complete replay from source-derived admission records\n\nThe R26I daily observed source-derived inverter sums and original R26K fixed-baseline epsilon grid are included under r28_evidence/HKUST_R26I and r28_evidence/HKUST_R26K. These are NOT raw publisher telemetry; original HKUST 2024 release is Zenodo 10909062 with SHA256 610500cfda8309bcba85c4562a1406592882094638132c7ee478cd53e37e96ec. The original restricted PROPRE.MA raw donor data are not redistributed.\n\nFrom archive root in Python 3.11+: python -m pip install -r requirements.txt ; python code/verify_publication_results.py ; python code/r28_verify_science.py ; python code/r28_replay_bundled.py . The final command builds source-derived LP inputs (including the R26K filename alias), executes all 9,360 LP subproblems and independently checks eight two-inverter months and four three-inverter positive witnesses. It compares 12 month-level outcomes to locked R28 outputs. The verified CI solver used SciPy 1.16.3.\n\nThis is a replay of archived derived measurements and quality gates, not an independent field calibration or an independently reproduced source ingestion from original third-party raw files. The threshold is a conditional mathematical sensitivity radius, not a failure probability. No Qatar/QEERI data are present.\n"})
 handoff=f"""# Project 106Amen / Solar Energy / R28 handoff
 Latest state: R28 author-review scientific candidate, not submitted.
 Repository: https://github.com/shaikhamalkawi-ux/pv-missing-day-decision-reliability
