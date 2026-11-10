@@ -1,7 +1,7 @@
 Highlights
 
-• At a 5% margin, up-to-three-day gaps changed 45 of 79 solar-park months.
-• The same gap stress changed 3 of 25 and 1 of 7 other-source months.
-• At a 5% margin, three Hong Kong library months stayed stable for seven-day gaps.
-• Across 93 days, site and inverter energy totals had a 0.428% median difference.
-• Critical hypothetical device-gain margins ranged from 0.469% to 2.025%.
+• Seven-day gaps of equal length changed decisions at 3 of 25 positions.
+• At the same missing-data rate, 22 other positions preserved the decision.
+• Four sources showed 3/25, 1/7, 45/79 and 0/3 fragile months at 5% margin.
+• An independent graph method verified critical relative-gain thresholds.
+• Site and inverter energy totals differed by a median 0.428% across 93 days.
