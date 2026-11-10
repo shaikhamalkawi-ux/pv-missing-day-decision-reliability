@@ -13,6 +13,7 @@
 \usepackage{siunitx}
 \usepackage{caption}
 \usepackage{url}
+\usepackage{seqsplit}
 \usepackage{multirow}
 \usepackage{float}
 \hypersetup{colorlinks=true,linkcolor=black,citecolor=black,urlcolor=blue}
@@ -78,15 +79,15 @@ Table~\ref{tab:data} summarizes the three original frozen cohorts and one retros
 \centering
 \caption{Source-specific cohorts and decision objects. Counts are source-months, not independent climate trials.}
 \label{tab:data}
-\small
-\begin{tabular}{p{2.2cm}p{1.5cm}p{4.2cm}p{6.0cm}}
+\footnotesize
+\begin{tabular}{p{2.0cm}p{1.2cm}p{3.0cm}p{5.4cm}}
 \toprule
 Source & Months & Decision object & Main admission/interpretation boundary \\
 \midrule
 PROPRE.MA & 25 & Three-technology normalized-yield shortlist & Complete, boundary-stable primary months from the source-locked counter reconstruction. Raw donor files remain restricted; no missing daily energy is filled. \\
 EURAC & 7 & Four observed-system DC specific-yield shortlist & Public 2015 data; four systems with defensible module count and STC capacity; common-timestamp DC $P_{mpp}$ integration and a 95\% daily irradiance-support gate. Mounting geometry is not fully specified, so the estimand is observed-system comparison, not intrinsic technology efficiency. \\
 MORE-EU & 79 & Normalized 14-array output shortlist & Public 15-minute normalized array output; a day is admitted only with exactly 96 rows and 96 unique quarter-hour labels. Source-clock 23/25-hour days are excluded rather than rescaled. \\
-HKUST (new) & 3 & Three observed co-roof inverter AC-yield/STC shortlist & One Library roof; complete 144-sample source-daylight records at five-minute cadence with source-traced DC-STC denominators; retrospective external check, not device calibration. \\
+HKUST Library & 3 & Three observed co-roof inverter AC-yield/STC shortlist & One Library roof; complete 144-sample source-daylight records at five-minute cadence with source-traced DC-STC denominators; retrospective external check, not device calibration. \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -112,9 +113,10 @@ At $q=5\%$, the three originally frozen sources show markedly different sensitiv
 \centering
 \caption{Primary continuity point $q=5\%$: cumulative months for which at least one contiguous gap of length $\leq L$ changes the shortlist.}
 \label{tab:q5}
+\footnotesize
 \begin{tabular}{lrrrr}
 \toprule
-Dataset & Admitted months & $L\leq1$ day & $L\leq3$ days & $L\leq7$ days \\
+Source & Months & $L\leq1$ d & $L\leq3$ d & $L\leq7$ d \\
 \midrule
 PROPRE.MA & 25 & 1 (4.0\%) & 3 (12.0\%) & 4 (16.0\%) \\
 EURAC & 7 & 1 (14.3\%) & 1 (14.3\%) & 1 (14.3\%) \\
@@ -178,7 +180,7 @@ The source-specific detailed analyses also illustrate why the full surface is pr
 \subsection{Retrospective fourth-source evidence: the HKUST Library roof}
 The HKUST Library subset contains three complete source-clock months, each with three simultaneously recorded inverter output streams. Under the \emph{unchanged} decision and deletion rule, $F_m(0.05,L)=0$ for each month at every $L\leq7$ days. This does not imply universal shortlist stability: at $q=10\%$, one of the same three months changes its shortlist for $L=7$ (Supplementary Table~S4). The subset adds a distinct source and an example of a stable observed-inverter decision, not a new field-wide probability or a blinded holdout test.
 
-We reconstructed daily site energy from recorded 15-minute \texttt{power(W)} values and compared it with the sum of all three five-minute inverter \texttt{totalActivePower(W)} integrations. All 93 days in the three admitted Library months have complete paired-source support. The median absolute relative site--inverter discrepancy was $0.428\%$ (95th percentile $0.994\%$). An additional 31 August 2022 record, independently identifiable as an example in the source data descriptor, gives $642.087$~kWh from site power and $641.559$~kWh from inverter power, a discrepancy of $0.0824\%$. By contrast, simply summing the separate site \texttt{generation(kWh)} column yields $651.32$~kWh on that day; its data meaning is not interchangeable with integrating the site power channel. This source audit checks \emph{aggregate logging consistency}, not independent calibration of individual inverter gains.
+We reconstructed daily site energy from recorded 15-minute \texttt{power(W)} values and compared it with the sum of all three five-minute inverter \texttt{\seqsplit{totalActivePower(W)}} integrations. All 93 days in the three admitted Library months have complete paired-source support. The median absolute relative site--inverter discrepancy was $0.428\%$ (95th percentile $0.994\%$). An additional 31 August 2022 record, independently identifiable as an example in the source data descriptor, gives $642.087$~kWh from site power and $641.559$~kWh from inverter power, a discrepancy of $0.0824\%$. By contrast, simply summing the separate site \texttt{\seqsplit{generation(kWh)}} column yields $651.32$~kWh on that day; its data meaning is not interchangeable with integrating the site power channel. This source audit checks \emph{aggregate logging consistency}, not independent calibration of individual inverter gains.
 
 \begin{figure}[H]
 \centering
@@ -215,7 +217,7 @@ The same device-gain vector must be used on the complete month and the retained-
 \small
 \begin{tabular}{lrrr}
 \toprule
-Source month & Relaxed lower (\%) & Feasible witness (\%) & Example gap (days)\\
+Month & Lower (\%) & Upper witness (\%) & Gap (d)\\
 \midrule
 July 2022 & 0.468732 & 0.468733 & 3 \\
 May 2023 & 2.025260 & 2.025261 & 3 \\
@@ -274,10 +276,10 @@ Across three frozen PV monitoring sources and a separately analyzed retrospectiv
 The practical implication is narrow but consequential: a rate-only missing-data threshold is not a decision-stability certificate for a discrete PV comparison. Monitoring studies that use data to retain or exclude candidates should report the decision rule and temporal missingness structure together. The proposed audit intentionally avoids imputation and does not claim technology superiority, causal climate effects, or a universal failure probability. The paired-channel audit distinguishes aggregate logger consistency from individual-device calibration. A new baseline-preserving critical-gain diagnostic yields month-specific hypothetical sensitivity bounds, rather than attaching a presumed physical error probability to a stable deletion result. The operational question remains: \emph{does the decision supported by the observed data survive the missing-day patterns the analysis is willing to tolerate?}
 
 \section*{Data and code availability}
-Public reproducibility materials are released in the \href{https://github.com/shaikhamalkawi-ux/pv-missing-day-decision-reliability}{public GitHub repository}. It contains analysis and verification code, derived publication tables, source registers, the original result certificate, manuscript and Supplementary Material source, and automated reproducibility checks. EURAC is available from Zenodo (DOI \href{https://doi.org/10.5281/zenodo.18316996}{10.5281/zenodo.18316996}); MORE-EU is available from \href{https://github.com/MORE-EU/OpenData}{MORE-EU/OpenData}, with the exact source blob pinned in the repository. HKUST's original 2024 public source archive is at \href{https://zenodo.org/records/10909062}{Zenodo record 10909062}, original ZIP SHA-256 \texttt{610500cfda8309bcba85c4562a1406592882094638132c7ee478cd53e37e96ec}. The fourth-source q--L result, paired-channel validation and hypothetical device-gain stress are preserved with source-derived evidence and independently verified scripts in the separately labeled four-source reproducibility package. PROPRE.MA raw donor files remain restricted and are not redistributed; replay of that branch requires authorized access. The first three datasets' locked R25 public release remains unchanged.
+Public reproducibility materials are released in the \href{https://github.com/shaikhamalkawi-ux/pv-missing-day-decision-reliability}{public GitHub repository}. It contains analysis and verification code, derived publication tables, source registers, the original result certificate, manuscript and Supplementary Material source, and automated reproducibility checks. EURAC is available from Zenodo (DOI \href{https://doi.org/10.5281/zenodo.18316996}{10.5281/zenodo.18316996}); MORE-EU is available from \href{https://github.com/MORE-EU/OpenData}{MORE-EU/OpenData}, with the exact source blob pinned in the repository. HKUST's original 2024 public source archive is at \href{https://zenodo.org/records/10909062}{Zenodo record 10909062}, original ZIP SHA-256 \texttt{\seqsplit{610500cfda8309bcba85c4562a1406592882094638132c7ee478cd53e37e96ec}}. The fourth-source q--L result, paired-channel validation and hypothetical device-gain stress are preserved with source-derived evidence and independently verified scripts in the separately labeled four-source reproducibility package. PROPRE.MA raw donor files remain restricted and are not redistributed; replay of that branch requires authorized access. The public release of the original three-source analysis remains unchanged.
 
 \section*{Author, funding, conflict, and AI-use statements}
-Author metadata, affiliations, CRediT roles, funding, conflicts of interest, acknowledgments, and any journal-required AI-use statement remain author-controlled placeholders in this journal-neutral author-review draft.
+Author metadata, affiliations, CRediT roles, funding, conflicts of interest, acknowledgments, and any journal-required AI-use statement remain author-controlled placeholders in this author-review manuscript.
 
 \begin{thebibliography}{99}
 \bibitem{bennouna2019}
