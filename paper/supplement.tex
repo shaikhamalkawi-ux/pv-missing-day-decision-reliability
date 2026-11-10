@@ -205,6 +205,9 @@ Zone D (HOLD) & 0/2 & 0/2 & 0/2 & 0/2 & 0/2 & 0/2 & 0/2 \\
 
 The strongest source-identity case (Library) thus has no observed-data gap change at $q=5\%$, $L\leq3$, but an existence witness under an \emph{assumed} relative gain envelope as small as $\varepsilon=0.5\%$ in one month. This is a non-calibrated feasibility result. A shared positive gain identical across inverters cancels in the relative shortlist inequality and leaves the recorded-data result unchanged. In the broader R26K source audit, 56 two-inverter month--gain cells were independently verified by ratio partitions and 15 positive three-inverter gain witnesses were independently recomputed; negative three-inverter LP claims were not given an independent symbolic certificate.
 
+\section*{S4c. Supporting on-site weather, not a per-panel calibration}
+The original HKUST archive also provides on-campus irradiance at one-minute cadence. Across the four source-months involved in the wider source triage (July and August 2022; May and July 2023), all 144 five-minute daylight positions were available on every day except 30 July 2023, which lacked one irradiance value. If complete \emph{shared-weather} support is imposed as an auxiliary secondary rule, July 2023 would be excluded, despite complete source-inverter records. This rule was \emph{not} in the frozen R22 decision gate and is not used to revise the three original or HKUST main counts. Campus irradiance does not establish the plane-of-array illumination or metrological accuracy for an individual inverter.
+
 \section*{S4d. Baseline-preserving critical relative-gain radius (R28)}
 The seven predeclared $\varepsilon$ stress levels in Table~S6 show where a source-month can become conditionally fragile but are not themselves precision estimates of a threshold. For $q=5\%$ and a contiguous gap no longer than three whole days, we therefore computed the smallest \emph{assumed} symmetric per-inverter gain envelope that can change the gap-retained shortlist \emph{while preserving the observed-data full-month reference shortlist}:
 \[
@@ -243,9 +246,6 @@ Zone D (HOLD) & Jul 2023 & -- & --\\
 \end{table}
 
 The Library's three upper-witness margins are approximately $0.469\%$, $2.025\%$, and $1.827\%$. They are not calibrated error magnitudes and cannot be compared directly to the aggregate site-versus-inverter disagreement in Table~S5, which measures a different combination of sensors and processing effects. The primary computation covered 12 eligible source-months and 9,360 finite linear-program subproblems. Separate verification recomputed 8 two-inverter source-month thresholds by a direct gain-ratio partition that does not use the primary solver and validated 4 three-inverter positive witnesses against source-derived daily powers. A second independent proof of nonexistence for all three-inverter negative cases was not claimed. The original R22/PV main results are unchanged, and none of the reported source-month thresholds is interpreted probabilistically.
-
-\section*{S4c. Supporting on-site weather, not a per-panel calibration}
-The original HKUST archive also provides on-campus irradiance at one-minute cadence. Across the four source-months involved in the wider source triage (July and August 2022; May and July 2023), all 144 five-minute daylight positions were available on every day except 30 July 2023, which lacked one irradiance value. If complete \emph{shared-weather} support is imposed as an auxiliary secondary rule, July 2023 would be excluded, despite complete source-inverter records. This rule was \emph{not} in the frozen R22 decision gate and is not used to revise the three original or HKUST main counts. Campus irradiance does not establish the plane-of-array illumination or metrological accuracy for an individual inverter.
 
 \section*{S5. Interpretation and claim boundaries}
 The following statements are retained:
