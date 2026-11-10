@@ -1,0 +1,137 @@
+name: R29 Solar Energy Independent Graph Certificate and Reproducibility QA
+on:
+  push:
+    branches: [r29-independent-logratio-graph-certificate]
+    paths:
+      - '.github/workflows/r29-independent-graph-build.yml'
+      - 'paper/main.tex'
+      - 'paper/supplement.tex'
+      - 'paper/R28_SolarEnergy_Highlights.txt'
+      - 'code/r28_verify_science.py'
+      - 'code/r29_independent_logratio_graph.py'
+      - 'code/r28_replay_bundled.py'
+      - 'code/r27_plot_hkust_crossmeter.py'
+  workflow_dispatch:
+permissions: {contents: read, actions: read}
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 55
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install publication tooling
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq zip unzip latexmk texlive-latex-base texlive-latex-recommended texlive-latex-extra texlive-fonts-recommended texlive-science texlive-publishers poppler-utils
+          python -m pip install -r requirements.txt matplotlib==3.10.6 python-docx==1.2.0
+      - uses: actions/download-artifact@v4
+        with:
+          name: r28-source-gated-critical-relative-gain
+          run-id: 42727321628
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: r28_download
+      - uses: actions/download-artifact@v4
+        with:
+          name: r28-independent-gain-ratio-qa
+          run-id: 42727613657
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: r28_indep_download
+      - uses: actions/download-artifact@v4
+        with:
+          name: r26h-hkust-library-development-only
+          run-id: 42483211887
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: r28_evidence/HKUST_R26H
+      - uses: actions/download-artifact@v4
+        with:
+          name: r26l-crossmeter-source-original-empirical-audit
+          run-id: 42641999899
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: r28_evidence/HKUST_R26L
+      - uses: actions/download-artifact@v4
+        with:
+          name: r26i-evidence-source-tiers-and-report
+          run-id: 42504128089
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: r28_evidence/HKUST_R26I
+      - uses: actions/download-artifact@v4
+        with:
+          name: r26k-baseline-preserved-inverter-sensitivity
+          run-id: 42513250336
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: r28_evidence/HKUST_R26K
+      - name: Prepare checked source evidence and original R22 result lock
+        run: |
+          mkdir -p r28_evidence/R28_Primary r28_evidence/R28_Independent
+          cp r28_download/R28_CriticalGainMargin/* r28_evidence/R28_Primary/
+          cp r28_indep_download/* r28_evidence/R28_Independent/
+          python code/verify_publication_results.py
+          python code/rebuild_released_surface.py
+          python code/r28_verify_science.py
+          python code/r28_replay_bundled.py
+          python code/r29_independent_logratio_graph.py
+          python code/r27_plot_hkust_crossmeter.py
+      - name: Compile journal main and supplementary sources
+        run: |
+          mkdir -p build
+          latexmk -pdf -interaction=nonstopmode -file-line-error -halt-on-error -output-directory=build paper/main.tex
+          latexmk -pdf -interaction=nonstopmode -file-line-error -halt-on-error -output-directory=build paper/supplement.tex
+          cp build/main.pdf 106Amen_R29_SolarEnergy_Main_AUTHOR_REVIEW.pdf
+          cp build/supplement.pdf 106Amen_R29_SolarEnergy_Supplement.pdf
+          pdfunite 106Amen_R29_SolarEnergy_Main_AUTHOR_REVIEW.pdf 106Amen_R29_SolarEnergy_Supplement.pdf 106Amen_R29_SolarEnergy_Main_PLUS_Supplement.pdf
+      - name: Basic output QA
+        run: |
+          set -euo pipefail
+          for f in 106Amen_R29_SolarEnergy_Main_AUTHOR_REVIEW.pdf 106Amen_R29_SolarEnergy_Supplement.pdf; do
+            pdffonts "$f" > "$f.fonts.txt"
+            if grep -Ei '(Type 3|Type3)' "$f.fonts.txt"; then echo "TYPE3 HOLD"; exit 1; fi
+            pdfinfo "$f" | grep -E '^Pages:|^Page size:|^File size:'
+            pdftotext -layout "$f" "${f%.pdf}.txt"
+          done
+          grep -qi 'Critical relative-gain margin' 106Amen_R29_SolarEnergy_Main_AUTHOR_REVIEW.txt
+          grep -qi 'Table S7' 106Amen_R29_SolarEnergy_Supplement.txt
+          ! grep -E 'Table [1-9]: \*' 106Amen_R29_SolarEnergy_Supplement.txt
+          ! grep -Ei 'Overfull \\hbox' build/*.log
+          grep -qi 'R29 independent log-ratio graph certificate' 106Amen_R29_SolarEnergy_Supplement.txt
+          grep -qi '0.468733' 106Amen_R29_SolarEnergy_Main_AUTHOR_REVIEW.txt
+          if grep -Ei 'undefined control sequence|Undefined citations|undefined references|Citation .* undefined|Reference .* undefined' build/*.log; then echo 'TEX REFERENCE HOLD'; exit 1; fi
+          echo 'R29_BUILD_QA_PASS'
+      - name: Assemble R29 author-review sources, checksummed PDFs, and reproducibility
+        run: |
+          set -euo pipefail
+          mkdir -p R29_DELIVERY
+          cp 106Amen_R29_SolarEnergy_*.pdf R29_DELIVERY/
+          cp paper/R28_SolarEnergy_Highlights.txt R29_DELIVERY/106Amen_R29_SolarEnergy_Highlights.txt
+          cp R29_SCIENTIFIC_REVISION.md R29_DELIVERY/
+          cp R28_SOURCE_TO_MANUSCRIPT_QA.json R29_DELIVERY/
+          cp results/R29_GRAPH_CERTIFICATE.json R29_DELIVERY/
+          zip -q R29_DELIVERY/106Amen_R29_Overleaf_Editable_Source.zip paper/main.tex paper/supplement.tex figures/R22_SURFACE_*.png figures/R27_HKUST_LIBRARY_SITE_VS_INVERTER.png
+          zip -q -r R29_DELIVERY/106Amen_R29_SourceLinked_Reproducibility.zip code results metadata r28_evidence paper/main.tex paper/supplement.tex figures requirements.txt README.md DATA_AVAILABILITY.md LICENSE.md LICENSE_CODE_MIT.txt R29_SCIENTIFIC_REVISION.md -x '*/__pycache__/*'
+          (cd R29_DELIVERY && sha256sum * > R29_SHA256SUMS.txt)
+          unzip -tqq R29_DELIVERY/106Amen_R29_Overleaf_Editable_Source.zip
+          unzip -tqq R29_DELIVERY/106Amen_R29_SourceLinked_Reproducibility.zip
+          echo 'R29_COMPLETE_AUTHOR_REVIEW_PACKAGE_PASS'
+      - uses: actions/upload-artifact@v4
+        if: success()
+        with:
+          name: r29-complete-solarenergy-author-review-delivery
+          path: R29_DELIVERY/
+          retention-days: 30
+      - uses: actions/upload-artifact@v4
+        if: success()
+        with:
+          name: r29-source-verified-manuscript-pdfs
+          path: |
+            106Amen_R29_SolarEnergy_*.pdf
+            results/R29_GRAPH_CERTIFICATE.json
+          retention-days: 30
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: r29-solarenergy-build-logs
+          path: build/*.log
+          if-no-files-found: warn
+          retention-days: 30
