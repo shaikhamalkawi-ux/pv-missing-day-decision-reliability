@@ -26,20 +26,20 @@
 \pagestyle{fancy}
 \setlength{\headheight}{14.5pt}
 \fancyhf{}
-\lhead{Journal-neutral revised scientific candidate -- R27}
+\lhead{R28 revised scientific candidate -- author review}
 \rhead{Missing-day decision reliability in PV monitoring}
 \cfoot{\thepage}
 
-\title{\textbf{When Missing Days Change a Photovoltaic Comparison Decision: No-Imputation Reliability Surfaces Across Four Field Sources}}
+\title{\textbf{When Missing Days Change Photovoltaic Decisions: Four-Source Reliability Surfaces and Critical Gain Sensitivity}}
 \author[1]{Anonymous authors for scientific review}
 \affil[1]{Affiliations and author metadata to be supplied before journal submission}
-\date{Four-source external audit candidate -- R27, 9 November 2026}
+\date{R28 scientific-extension author review, 10 November 2026}
 
 \begin{document}
 \maketitle
 
 \begin{abstract}
-Missing observations in photovoltaic (PV) monitoring are commonly summarized by a missing-data rate or reconstruction error. We instead audit whether a multi-candidate PV shortlist changes when contiguous whole days are deleted without imputation. Within each admitted calendar month, candidates within margin $q$ of the leader's normalized yield are retained; we stress $q\in\{0,2.5,5,7.5,10\%\}$ and gaps of up to seven days, retaining at least ten days. The original frozen design covers 25 PROPRE.MA, seven EURAC, and 79 MORE-EU source-months. A retrospective fourth-source check uses three complete months of three co-roof inverters from the public HKUST rooftop archive, with source-derived module capacities and paired site/inverter measurements. At $q=5\%$ and gaps no longer than three days, the corresponding fragile-month counts are 3/25, 1/7, 45/79, and 0/3; these nonexchangeable fractions are reported separately. The HKUST shortlist remained unchanged through seven-day omissions at $q=5\%$, whereas one of its three months changed at $q=10\%$ and $L\leq7$. Over 93 complete HKUST Library days, the site-power integral and sum of inverter-power integrals differed by a median absolute relative 0.428\% (95th percentile 0.994\%), supporting aggregate source consistency, not individual inverter calibration. In a separate hypothetical relative-gain stress that preserves the recorded full-month shortlist, deletion stability does not always survive assumed device-specific gain differences. No distribution or covariance of instrument errors is calibrated. The study shows why missing-data percentage alone cannot certify a discrete PV decision and why decision margin, omission structure, and source measurement boundaries must be reported together.
+Missing observations in photovoltaic (PV) monitoring are commonly summarized by a missing-data rate or reconstruction error. We instead audit whether a multi-candidate PV shortlist changes when contiguous whole days are deleted without imputation. Within each admitted calendar month, candidates within margin $q$ of the leader's normalized yield are retained; we stress $q\in\{0,2.5,5,7.5,10\%\}$ and gaps of up to seven days, retaining at least ten days. The original frozen design covers 25 PROPRE.MA, seven EURAC, and 79 MORE-EU source-months. A retrospective fourth-source check uses three complete months of three co-roof inverters from the public HKUST rooftop archive, with source-derived module capacities and paired site/inverter measurements. At $q=5\%$ and gaps no longer than three days, the corresponding fragile-month counts are 3/25, 1/7, 45/79, and 0/3; these nonexchangeable fractions are reported separately. The HKUST shortlist remained unchanged through seven-day omissions at $q=5\%$, whereas one of its three months changed at $q=10\%$ and $L\leq7$. Over 93 complete HKUST Library days, the site-power integral and sum of inverter-power integrals differed by a median absolute relative 0.428\% (95th percentile 0.994\%), supporting aggregate source consistency, not individual inverter calibration. A baseline-preserving hypothetical gain stress identifies critical per-inverter gain envelopes of 0.469\%, 2.025\%, and 1.827\% across the three HKUST Library months. No distribution or covariance of instrument errors is calibrated. The study shows why missing-data percentage alone cannot certify a discrete PV decision and why decision margin, omission structure, and source measurement boundaries must be reported together.
 \end{abstract}
 
 \textbf{Keywords:} photovoltaic monitoring; missing data; decision reliability; data quality; contiguous gaps; candidate shortlist; no imputation; sensitivity analysis
@@ -207,7 +207,38 @@ As a strictly analytical companion, let each inverter's yield be multiplied by o
 S_m(q;D,\boldsymbol{\eta})=\left\{j:\eta_jY_{m,j}(D)\ge(1-q)\max_k\eta_kY_{m,k}(D)\right\}.
 \label{eq:gain}
 \end{equation}
-We seek an admissible gap and gain vector that leave the full-month shortlist identical to its \emph{recorded-data} reference but change it after deletion. This stronger baseline-preservation condition prevents reclassifying a gain-only change as an effect of lost days. For the Library at $q=5\%$, $L\leq3$, source-month counts with such an existence witness are 0/3 at $\varepsilon=0$, 1/3 at $0.5\%$, 2/3 at $2\%$, and 3/3 at $3\%$ or $5\%$. They are mathematical possibilities under assumed relative gain bounds, \emph{not} measured calibration errors or likelihoods. If all inverters share the same positive factor, it cancels in Eq.~\eqref{eq:gain} and the original missing-day decision is exactly preserved. Source-level details, the seven-point gain grid and independent arithmetic verification are in Supplementary Table~S6.
+We seek an admissible gap and gain vector that leave the full-month shortlist identical to its \emph{recorded-data} reference but change it after deletion. This stronger baseline-preservation condition prevents reclassifying a gain-only change as an effect of lost days. For the Library at $q=5\%$, $L\leq3$, source-month counts with such an existence witness are 0/3 at $\varepsilon=0$, 1/3 at $0.5\%$, 2/3 at $2\%$, and 3/3 at $3\%$ or $5\%$. They are mathematical possibilities under assumed relative gain bounds, \emph{not} measured calibration errors or likelihoods. If all inverters share the same positive factor, it cancels in Eq.~\eqref{eq:gain} and the original missing-day decision is exactly preserved. Source-level details, the seven-point gain grid and independent arithmetic verification are in Supplementary Table~S6. These experiments motivate the more informative critical-gain threshold computed below.
+
+\subsection{Critical relative-gain margin before a missing-day decision changes}
+Instead of selecting one hypothetical gain envelope such as $\varepsilon=5\%$, we can ask for its smallest source-conditional value. Define
+\begin{equation}
+\varepsilon_m^{\mathrm{crit}}(q,L)=
+\inf_{\substack{\boldsymbol{\eta}>\boldsymbol{0},\;s,\;1\leq\ell\leq L\\
+S_m(q;D_m,\boldsymbol{\eta})=S_m(q;D_m,\boldsymbol{1})\\
+S_m(q;D_m\setminus G_m(s,\ell),\boldsymbol{\eta})
+\ne S_m(q;D_m,\boldsymbol{1})}}
+\max_j|\eta_j-1|.
+\label{eq:critical_gain}
+\end{equation}
+The same device-gain vector must be used on the complete month and the retained-day subset, and the complete-month candidate set must retain its \emph{observed-data} identity. Equation~\eqref{eq:critical_gain} is a decision-geometry sensitivity threshold, not a measurement-error estimate or a new general robustness theorem. Candidate-set membership conditions are linear inequalities in $\boldsymbol{\eta}$; we enumerated the finite competitor/exclusion alternatives and used bounded linear programming to obtain a lower relaxed threshold and a strictly separated feasible witness. Independent two-inverter ratio calculations and three-inverter witness recomputation provide separate checks (Supplementary Section~S4d).
+
+\begin{table}[H]
+\centering
+\caption{Retrospective HKUST Library critical hypothetical relative-gain envelopes at $q=5\%$, $L\leq3$ days, preserving the observed full-month shortlist. Reported percentages are upper endpoints with validated set-change witnesses, not measured device errors.}
+\label{tab:hkustcritical}
+\small
+\begin{tabular}{lrrr}
+\toprule
+Source month & Relaxed lower (\%) & Feasible witness (\%) & Example gap (days)\\
+\midrule
+July 2022 & 0.468732 & 0.468733 & 3 \\
+May 2023 & 2.025260 & 2.025261 & 3 \\
+July 2023 & 1.826765 & 1.826766 & 3 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+All three source months showed no observed-value shortlist change for $q=5\%$, $L\leq7$, yet their $\varepsilon_m^{\mathrm{crit}}(0.05,3)$ bounds differ substantially. The close lower and upper numerical bounds (width approximately $10^{-6}$ percentage points) reflect the linear feasibility calculation and its explicit positive-margin witness; they are \emph{not} confidence intervals. The minimum-bound witness need not be a one-day omission even when a larger assumed envelope permits one. If all gains are perfectly common-mode, $\eta_j=c>0$ for every device, the factors cancel, and no such gain-induced additional fragility occurs. Without instrument-specific calibration or dependence evidence, the $\varepsilon_m^{\mathrm{crit}}$ values must not be translated into field-failure probabilities or tested-technology superiority.
 
 \section{Discussion}
 \subsection{Decision reliability is not the same as reconstruction accuracy}
