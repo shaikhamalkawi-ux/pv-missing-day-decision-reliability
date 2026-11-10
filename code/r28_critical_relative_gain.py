@@ -114,9 +114,8 @@ def source_witness(full,gap,names,baseline,cap=EPS_CAP,slack=SLACK):
                 eps=max(0.,float(res.x[-1]))
                 eta={v:float(res.x[i]) for i,v in enumerate(names)}
                 base=shortlist(full,eta);post=shortlist(gap,eta)
-                if base!=baseline or post==baseline:
-                    # Reject optimizer boundary artifacts; never treat them
-                    # as certified witness.
+                if slack>0 and (base!=baseline or post==baseline):
+                    # Reject numerical boundary artifacts in certified positive witnesses.
                     continue
                 if not all(1-eps-1e-8<=x<=1+eps+1e-8 for x in eta.values()):
                     raise AssertionError("Out-of-box factor")
@@ -144,8 +143,8 @@ for (group,month),raw in sorted(records.items()):
             reduced=sums(raw,keep,names)
             positive,calls,_=source_witness(full,reduced,names,ref,slack=SLACK)
             search_calls+=calls
-            # Relax all strict margins to equality. This is a LOWER
-            # feasibility bound on the true infimum; it can be loose.
+            # Relax strict margins to non-strict linear constraints, and
+            # deliberately allow equality-only solutions as a lower bound.
             relaxed,calls2,_=source_witness(full,reduced,names,ref,slack=0.)
             search_calls+=calls2
             if relaxed is not None:lower_bounds.append(relaxed["epsilon"])
