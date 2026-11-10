@@ -1,0 +1,96 @@
+name: R28 Solar Energy Scientific Build and Reproducibility QA
+on:
+  push:
+    branches: [r28-critical-relative-gain-margin]
+    paths:
+      - '.github/workflows/r28-solarenergy-build.yml'
+      - 'paper/main.tex'
+      - 'paper/supplement.tex'
+      - 'code/r28_verify_science.py'
+  workflow_dispatch:
+permissions: {contents: read, actions: read}
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 55
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install publication tooling
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq latexmk texlive-latex-base texlive-latex-recommended texlive-latex-extra texlive-fonts-recommended texlive-science texlive-publishers poppler-utils
+          python -m pip install -r requirements.txt matplotlib==3.10.6
+      - uses: actions/download-artifact@v4
+        with:
+          name: r28-source-gated-critical-relative-gain
+          run-id: 42727321628
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: r28_download
+      - uses: actions/download-artifact@v4
+        with:
+          name: r28-independent-gain-ratio-qa
+          run-id: 42727613657
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: r28_indep_download
+      - uses: actions/download-artifact@v4
+        with:
+          name: r26h-hkust-library-development-only
+          run-id: 42483211887
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: r28_evidence/HKUST_R26H
+      - uses: actions/download-artifact@v4
+        with:
+          name: r26l-crossmeter-source-original-empirical-audit
+          run-id: 42641999899
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: r28_evidence/HKUST_R26L
+      - name: Prepare checked source evidence and original R22 result lock
+        run: |
+          mkdir -p r28_evidence/R28_Primary r28_evidence/R28_Independent
+          cp r28_download/R28_CriticalGainMargin/* r28_evidence/R28_Primary/
+          cp r28_indep_download/R28_IndependentCriticalQA/* r28_evidence/R28_Independent/
+          python code/verify_publication_results.py
+          python code/rebuild_released_surface.py
+          python code/r28_verify_science.py
+          python code/r27_plot_hkust_crossmeter.py
+      - name: Compile journal main and supplementary sources
+        run: |
+          mkdir -p build
+          latexmk -pdf -interaction=nonstopmode -file-line-error -halt-on-error -output-directory=build paper/main.tex
+          latexmk -pdf -interaction=nonstopmode -file-line-error -halt-on-error -output-directory=build paper/supplement.tex
+          cp build/main.pdf 106Amen_R28_SolarEnergy_Main_AUTHOR_REVIEW.pdf
+          cp build/supplement.pdf 106Amen_R28_SolarEnergy_Supplement.pdf
+          pdfunite 106Amen_R28_SolarEnergy_Main_AUTHOR_REVIEW.pdf 106Amen_R28_SolarEnergy_Supplement.pdf 106Amen_R28_SolarEnergy_Main_PLUS_Supplement.pdf
+      - name: Basic output QA
+        run: |
+          set -euo pipefail
+          for f in 106Amen_R28_SolarEnergy_Main_AUTHOR_REVIEW.pdf 106Amen_R28_SolarEnergy_Supplement.pdf; do
+            pdffonts "$f" > "$f.fonts.txt"
+            if grep -Ei '(Type 3|Type3)' "$f.fonts.txt"; then echo "TYPE3 HOLD"; exit 1; fi
+            pdfinfo "$f" | grep -E '^Pages:|^Page size:|^File size:'
+            pdftotext -layout "$f" "${f%.pdf}.txt"
+          done
+          grep -qi 'Critical relative-gain margin' 106Amen_R28_SolarEnergy_Main_AUTHOR_REVIEW.txt
+          grep -qi 'Table S7' 106Amen_R28_SolarEnergy_Supplement.txt
+          grep -qi '0.468733' 106Amen_R28_SolarEnergy_Main_AUTHOR_REVIEW.txt
+          if grep -Ei 'undefined control sequence|Undefined citations|undefined references|Citation .* undefined|Reference .* undefined' build/*.log; then echo 'TEX REFERENCE HOLD'; exit 1; fi
+          echo 'R28_BUILD_QA_PASS'
+      - uses: actions/upload-artifact@v4
+        if: success()
+        with:
+          name: r28-solarenergy-manuscript-supplement-preview
+          path: |
+            106Amen_R28_SolarEnergy_*.pdf
+            R28_SOURCE_TO_MANUSCRIPT_QA.json
+            figures/R27_HKUST_LIBRARY_SITE_VS_INVERTER.png
+          retention-days: 30
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: r28-solarenergy-build-logs
+          path: build/*.log
+          if-no-files-found: warn
+          retention-days: 30
