@@ -1,0 +1,50 @@
+name: R28 Critical Relative Gain Radius — Source-Gated LP
+on:
+  push:
+    branches: [r28-critical-relative-gain-margin]
+    paths:
+      - '.github/workflows/r28-critical-relative-gain.yml'
+      - 'code/r28_critical_relative_gain.py'
+  workflow_dispatch:
+permissions: {contents: read, actions: read}
+jobs:
+  source_margin:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install pinned numerical solver
+        run: python -m pip install scipy==1.16.3
+      - name: Read source-verified R26I daily and device data
+        uses: actions/download-artifact@v4
+        with:
+          name: r26i-evidence-source-tiers-and-report
+          run-id: 42504128089
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: input
+      - name: Read independent R26K baseline-preserving epsilon grid
+        uses: actions/download-artifact@v4
+        with:
+          name: r26k-baseline-preserved-inverter-sensitivity
+          run-id: 42513250336
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: r26k
+      - name: Run exhaustive LP lower/upper critical margin gate
+        run: |
+          cp r26k/SOURCE_MONTH_EPSILON_BASELINE_GATE.csv input/R26K_SOURCE_MONTH_EPSILON_BASELINE_GATE.csv
+          python code/r28_critical_relative_gain.py | tee R28_critical_computation.log
+          test -s R28_CriticalGainMargin/R28_CRITICAL_EPSILON_MONTHS.csv
+          grep -q R28_CRITICAL_MARGIN_PRIMARY_PASS R28_critical_computation.log
+      - name: Preserve all original derivative and complete audit reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: r28-source-gated-critical-relative-gain
+          path: |
+            R28_CriticalGainMargin/
+            R28_critical_computation.log
+          if-no-files-found: warn
+          retention-days: 30
