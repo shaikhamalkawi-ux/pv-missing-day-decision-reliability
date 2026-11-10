@@ -1,0 +1,51 @@
+name: R33 MORE-EU Original Pinned Blob Exact-q Evidence Gate
+on:
+  push:
+    branches: [r33-three-source-exactq-evidence-gate]
+    paths:
+      - '.github/workflows/r33-more-eu-source-exactq.yml'
+      - 'code/r33_more_eu_exactq_source.py'
+  workflow_dispatch:
+permissions: {contents: read}
+jobs:
+  source_exactq:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Download pinned original CC-BY-NC MORE-EU source without redistribution
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/r33_original
+          curl --fail --location --silent --show-error --retry 4 --max-time 420 \
+            'https://raw.githubusercontent.com/MORE-EU/OpenData/e0811c29c524a11b4d0421a0b59c826f23a20a36/Solar%20Park%20Data%20-INACCESS/Array%20Power.csv' \
+            -o '/tmp/r33_original/Array Power.csv'
+          test "$(git hash-object '/tmp/r33_original/Array Power.csv')" = '5611277efdd581bb839ec380239846a43ebe0ba7'
+          echo "MORE_EU_PINNED_SOURCE_IDENTITY_PASS"
+      - name: Recompute all 79-month continuous exact-q fragility bands and original 35 R22 cells
+        run: |
+          python code/r33_more_eu_exactq_source.py '/tmp/r33_original/Array Power.csv' | tee R33_MORE_EU_SCIENCE_QA.log
+          grep -q 'MORE_EU_EXACT_Q_PASS' R33_MORE_EU_SCIENCE_QA.log
+          python - <<'PY'
+          import json
+          p=json.load(open('R33_MORE_EU_EXACTQ_SOURCE_CERTIFICATE.json'))
+          assert p['status']=='MORE_EU_EXACT_Q_SOURCE_LOCK_PASS'
+          assert p['admitted_months']==79 and p['qgrid_r22_cells_matching']==35
+          assert p['q5_L3_fragile_months']==45
+          assert p['no_qatar_qeeri'] and not p['imputation']
+          print('R33_MORE_EU_ASSERTIONS_PASS')
+          PY
+      - name: Delete third-party raw source after verification
+        if: always()
+        run: rm -rf /tmp/r33_original
+      - uses: actions/upload-artifact@v4
+        if: success()
+        with:
+          name: r33-more-eu-original-pinned-exactq-derived-certificates-only
+          path: |
+            R33_MORE_EU_EXACTQ_SOURCE_CERTIFICATE.json
+            R33_MORE_EU_SCIENCE_QA.log
+          retention-days: 30
