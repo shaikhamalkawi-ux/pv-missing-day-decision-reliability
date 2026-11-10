@@ -1,5 +1,4 @@
-\documentclass[11pt]{article}
-\usepackage[a4paper,margin=2.15cm]{geometry}
+\documentclass[preprint,12pt]{elsarticle}
 \usepackage{lmodern}
 \usepackage[T1]{fontenc}
 \usepackage{microtype}
@@ -12,37 +11,24 @@
 \usepackage{subcaption}
 \usepackage{enumitem}
 \usepackage{siunitx}
-\usepackage{authblk}
 \usepackage{caption}
-\usepackage{fancyhdr}
-\usepackage{setspace}
 \usepackage{url}
 \usepackage{multirow}
 \usepackage{float}
 \hypersetup{colorlinks=true,linkcolor=black,citecolor=black,urlcolor=blue}
-\setlength{\parindent}{0pt}
-\setlength{\parskip}{0.55em}
-\onehalfspacing
-\pagestyle{fancy}
-\setlength{\headheight}{14.5pt}
-\fancyhf{}
-\lhead{R28 revised scientific candidate -- author review}
-\rhead{Missing-day decision reliability in PV monitoring}
-\cfoot{\thepage}
-
-\title{\textbf{When Missing Days Change Photovoltaic Decisions: Four-Source Reliability Surfaces and Critical Gain Sensitivity}}
-\author[1]{Anonymous authors for scientific review}
-\affil[1]{Affiliations and author metadata to be supplied before journal submission}
-\date{R28 scientific-extension author review, 10 November 2026}
+\biboptions{numbers,sort&compress}
 
 \begin{document}
-\maketitle
-
+\begin{frontmatter}
+\title{When Missing Days Change Photovoltaic Decisions: Four-Source Reliability Surfaces and Critical Gain Sensitivity}
+\author{Anonymous for pre-submission author review}
 \begin{abstract}
 Missing observations in photovoltaic (PV) monitoring are commonly summarized by a missing-data rate or reconstruction error. We instead audit whether a multi-candidate PV shortlist changes when contiguous whole days are deleted without imputation. Within each admitted calendar month, candidates within margin $q$ of the leader's normalized yield are retained; we stress $q\in\{0,2.5,5,7.5,10\%\}$ and gaps of up to seven days, retaining at least ten days. The original frozen design covers 25 PROPRE.MA, seven EURAC, and 79 MORE-EU source-months. A retrospective fourth-source check uses three complete months of three co-roof inverters from the public HKUST rooftop archive, with source-derived module capacities and paired site/inverter measurements. At $q=5\%$ and gaps no longer than three days, the corresponding fragile-month counts are 3/25, 1/7, 45/79, and 0/3; these nonexchangeable fractions are reported separately. The HKUST shortlist remained unchanged through seven-day omissions at $q=5\%$, whereas one of its three months changed at $q=10\%$ and $L\leq7$. Over 93 complete HKUST Library days, the site-power integral and sum of inverter-power integrals differed by a median absolute relative 0.428\% (95th percentile 0.994\%), supporting aggregate source consistency, not individual inverter calibration. A baseline-preserving hypothetical gain stress identifies critical per-inverter gain envelopes of 0.469\%, 2.025\%, and 1.827\% across the three HKUST Library months. No distribution or covariance of instrument errors is calibrated. The study shows why missing-data percentage alone cannot certify a discrete PV decision and why decision margin, omission structure, and source measurement boundaries must be reported together.
 \end{abstract}
-
-\textbf{Keywords:} photovoltaic monitoring; missing data; decision reliability; data quality; contiguous gaps; candidate shortlist; no imputation; sensitivity analysis
+\begin{keyword}
+photovoltaic monitoring \sep missing data \sep decision reliability \sep contiguous gaps \sep set-valued decisions \sep critical gain margin \sep no imputation
+\end{keyword}
+\end{frontmatter}
 
 \section{Introduction}
 Field PV monitoring is intrinsically incomplete. Communication outages, logger failures, inverter downtime, sensor faults, time-base irregularities, and maintenance can remove or invalidate observations before a performance indicator is computed. Established PV data-quality work therefore emphasizes detection, filtering, reconstruction, and careful treatment of missing values. Koubli et al. reconstructed missing PV monitoring data to recover performance-ratio information \cite{koubli2016}; Livera et al. developed a structured data-quality and reconstruction pipeline and showed that performance and reliability analytics can be sensitive to missingness rate and treatment \cite{livera2021}; IEA PVPS guidance similarly treats missing-data handling as a prerequisite for credible technical key performance indicators \cite{ieapvps2024}. More recent work has continued to develop mask-aware repair policies for incomplete PV records \cite{wang2026}, while long-term performance-loss studies have explicitly tested the effect of sporadic gaps on continuous estimands such as performance loss rate \cite{quest2025}.
