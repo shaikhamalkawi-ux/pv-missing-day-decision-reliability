@@ -20,14 +20,14 @@
 \pagestyle{fancy}
 \setlength{\headheight}{14.5pt}
 \fancyhf{}
-\lhead{Supplementary Material -- R27 revised author-review candidate}
+\lhead{Supplementary Material -- R28 critical-margin author-review candidate}
 \rhead{PV decision reliability under missing-day gaps}
 \cfoot{\thepage}
 
 \title{\textbf{Supplementary Material}\\[0.4em]
-\large When Missing Days Change a Photovoltaic Comparison Decision: No-Imputation Reliability Surfaces Across Four Field Sources}
+\large When Missing Days Change Photovoltaic Decisions: Four-Source Reliability Surfaces and Critical Gain Sensitivity}
 \author{Anonymous authors for scientific review}
-\date{9 November 2026}
+\date{10 November 2026}
 
 \begin{document}
 \maketitle
@@ -205,6 +205,45 @@ Zone D (HOLD) & 0/2 & 0/2 & 0/2 & 0/2 & 0/2 & 0/2 & 0/2 \\
 
 The strongest source-identity case (Library) thus has no observed-data gap change at $q=5\%$, $L\leq3$, but an existence witness under an \emph{assumed} relative gain envelope as small as $\varepsilon=0.5\%$ in one month. This is a non-calibrated feasibility result. A shared positive gain identical across inverters cancels in the relative shortlist inequality and leaves the recorded-data result unchanged. In the broader R26K source audit, 56 two-inverter month--gain cells were independently verified by ratio partitions and 15 positive three-inverter gain witnesses were independently recomputed; negative three-inverter LP claims were not given an independent symbolic certificate.
 
+\section*{S4d. Baseline-preserving critical relative-gain radius (R28)}
+The seven predeclared $\varepsilon$ stress levels in Table~S6 show where a source-month can become conditionally fragile but are not themselves precision estimates of a threshold. For $q=5\%$ and a contiguous gap no longer than three whole days, we therefore computed the smallest \emph{assumed} symmetric per-inverter gain envelope that can change the gap-retained shortlist \emph{while preserving the observed-data full-month reference shortlist}:
+\[
+\varepsilon_m^{\mathrm{crit}}=\inf_{\boldsymbol{\eta},\,G}
+\max_j |\eta_j-1|,\quad
+S_m(q;D_m,\boldsymbol{\eta})=S_m(q;D_m,\mathbf{1}),
+\quad
+S_m(q;D_m\setminus G,\boldsymbol{\eta})\ne S_m(q;D_m,\mathbf{1}).
+\]
+The same $\boldsymbol{\eta}$ is held fixed throughout a source-month, including in both counterfactuals. The physical instrument calibration is unknown; this $\varepsilon_m^{\mathrm{crit}}$ is a source-conditional decision-geometry diagnostic, not a measurement uncertainty interval or a proven covariance parameter.
+
+For each original full-month inclusion member $j$, all pairwise inequalities $\eta_jY_j(D_m)\ge(1-q)\eta_kY_k(D_m)$ must hold. For a nonmember $j$, exclusion is a \emph{disjunction}: at least one other candidate $k$ must satisfy $\eta_jY_j(D_m)<(1-q)\eta_kY_k(D_m)$. A gap change likewise is a finite union of inclusion/exclusion inequalities. We enumerate these competitor choices and all 1--3-day deletion positions; with a fixed choice, minimizing $\varepsilon$ subject to $\eta_j\in[1-\varepsilon,1+\varepsilon]$ becomes a linear program. Since strict exclusions involve open inequalities, a non-strict relaxed program provides a lower bound, whereas a feasible program with a positive normalized separation yields a verified upper witness. We report both, not an unjustified exact floating-point equality.
+
+\begin{table}[htbp]
+\centering
+\caption*{Table S7. Source-conditioned critical relative-gain envelope under $q=5\%$, gap length $\ell\leq3$. Four groups other than Library are secondary source-screening diagnostics, not new primary fourth-source cohorts. A dash indicates no positive-margin flip witness within the studied $0$--$5\%$ envelope.}
+\small
+\begin{tabular}{p{4.4cm}lrr}
+\toprule
+HKUST group & Source month & Lower (\%) & Feasible upper (\%) \\
+\midrule
+Library & Jul 2022 & 0.468732 & 0.468733\\
+Library & May 2023 & 2.025260 & 2.025261\\
+Library & Jul 2023 & 1.826765 & 1.826766\\
+S H Ho Sports Hall & Jul 2022 & 0 & 0\\
+S H Ho Sports Hall & May 2023 & 0.623996 & 0.623997\\
+S H Ho Sports Hall & Jul 2023 & 2.506853 & 2.506854\\
+Wong Check She Research Centre & Jul 2022 & 1.610532 & 1.610533\\
+Wong Check She Research Centre & Aug 2022 & 1.827069 & 1.827071\\
+Wong Check She Research Centre & May 2023 & -- & --\\
+Zone A2 & Jul 2023 & 0.296290 & 0.296292\\
+Zone D (HOLD) & May 2023 & -- & --\\
+Zone D (HOLD) & Jul 2023 & -- & --\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The Library's three upper-witness margins are approximately $0.469\%$, $2.025\%$, and $1.827\%$. They are not calibrated error magnitudes and cannot be compared directly to the aggregate site-versus-inverter disagreement in Table~S5, which measures a different combination of sensors and processing effects. The primary computation covered 12 eligible source-months and 9,360 finite linear-program subproblems. Separate verification recomputed 8 two-inverter source-month thresholds by a direct gain-ratio partition that does not use the primary solver and validated 4 three-inverter positive witnesses against source-derived daily powers. A second independent proof of nonexistence for all three-inverter negative cases was not claimed. The original R22/PV main results are unchanged, and none of the reported source-month thresholds is interpreted probabilistically.
+
 \section*{S4c. Supporting on-site weather, not a per-panel calibration}
 The original HKUST archive also provides on-campus irradiance at one-minute cadence. Across the four source-months involved in the wider source triage (July and August 2022; May and July 2023), all 144 five-minute daylight positions were available on every day except 30 July 2023, which lacked one irradiance value. If complete \emph{shared-weather} support is imposed as an auxiliary secondary rule, July 2023 would be excluded, despite complete source-inverter records. This rule was \emph{not} in the frozen R22 decision gate and is not used to revise the three original or HKUST main counts. Campus irradiance does not establish the plane-of-array illumination or metrological accuracy for an individual inverter.
 
@@ -217,7 +256,8 @@ The following statements are retained:
     \item a missing-rate threshold alone is not a certificate of shortlist stability for this decision object;
     \item the three frozen datasets and a separate retrospective HKUST roof provide source-diverse qualitative comparison without supporting a pooled probability;
     \item the HKUST observed-inverter subset passes a direct paired site--inverter power-integral consistency check, while its small size and post-freeze selection limit inference;
-    \item source-deletion stability and hypothetical relative device-gain sensitivity are distinct and must be reported with separate assumptions.
+    \item source-deletion stability and hypothetical relative device-gain sensitivity are distinct and must be reported with separate assumptions;
+    \item the critical gain-margin calculation provides a bounded, interpretable hypothetical break-even sensitivity rather than selecting a single arbitrary error band; it is not field metrology.
 \end{itemize}
 
 The following statements are not supported by the present evidence:
