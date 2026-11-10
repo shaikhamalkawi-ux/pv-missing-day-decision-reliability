@@ -7,6 +7,7 @@ on:
       - 'paper/main.tex'
       - 'paper/supplement.tex'
       - 'code/r28_verify_science.py'
+      - 'code/r27_plot_hkust_crossmeter.py'
   workflow_dispatch:
 permissions: {contents: read, actions: read}
 jobs:
