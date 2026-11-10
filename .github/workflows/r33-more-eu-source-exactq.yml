@@ -30,7 +30,7 @@ jobs:
         run: |
           python code/r33_more_eu_exactq_source.py '/tmp/r33_original/Array Power.csv' | tee R33_MORE_EU_SCIENCE_QA.log
           grep -q 'MORE_EU_EXACT_Q_PASS' R33_MORE_EU_SCIENCE_QA.log
-          python code/r33_more_eu_independent_verify.py | tee R33_MORE_EU_INDEPENDENT_QA.log
+          python code/r33_more_eu_independent_verify.py '/tmp/r33_original/Array Power.csv' | tee R33_MORE_EU_INDEPENDENT_QA.log
           grep -q 'R33_MORE_EU_INDEPENDENT_PASS' R33_MORE_EU_INDEPENDENT_QA.log
           python - <<'PY'
           import json
