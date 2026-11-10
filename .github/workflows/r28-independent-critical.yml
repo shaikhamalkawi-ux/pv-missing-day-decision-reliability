@@ -1,0 +1,40 @@
+name: R28 Independent Analytic Relative-Gain Critical Margin QA
+on:
+  push:
+    branches: [r28-critical-relative-gain-margin]
+    paths:
+      - '.github/workflows/r28-independent-critical.yml'
+      - 'code/r28_independent_gain_ratio_qa.py'
+  workflow_dispatch:
+permissions: {contents: read, actions: read}
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: r26i-evidence-source-tiers-and-report
+          run-id: 42504128089
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: source
+      - uses: actions/download-artifact@v4
+        with:
+          name: r28-source-gated-critical-relative-gain
+          run-id: 42727321628
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: download
+      - name: Normalize artifact folder for independent verifier
+        run: |
+          mkdir -p primary
+          cp download/R28_CriticalGainMargin/* primary/
+      - name: Independent two-device ratio threshold and 3-device source witness replay
+        run: python3 code/r28_independent_gain_ratio_qa.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: r28-independent-gain-ratio-qa
+          path: R28_IndependentCriticalQA/
+          if-no-files-found: warn
+          retention-days: 30
