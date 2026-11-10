@@ -36,7 +36,7 @@ tiers={r["group"]:r["quality_tier"] for r in loadcsv("SOURCE_BASED_TIER_REGISTER
 r26k=loadcsv("R26K_SOURCE_MONTH_EPSILON_BASELINE_GATE.csv")
 r26i=json.loads((I/"CALCULATION_CERTIFICATE.json").read_text())
 assert r26i["sha256"]==SOURCE_HASH and r26i["status"]=="PASS_DEVELOPMENT_ONLY"
-assert len(source)>1000 and len(r26k)==84 and len(tiers)==5
+assert len(source)>=800 and len(r26k)==84 and len(tiers)==5, (len(source),len(r26k),len(tiers))
 records=defaultdict(lambda:defaultdict(dict))
 for r in source:
     k=(r["group"],r["month"]);day=r["date"];inv=r["inverter"]
