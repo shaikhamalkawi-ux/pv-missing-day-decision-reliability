@@ -95,7 +95,7 @@ jobs:
           grep -qi 'Table S7' 106Amen_R29_SolarEnergy_Supplement.txt
           ! grep -E 'Table [1-9]: \*' 106Amen_R29_SolarEnergy_Supplement.txt
           ! grep -Ei 'Overfull \\hbox' build/*.log
-          grep -qi 'R29 independent log-ratio graph certificate' 106Amen_R29_SolarEnergy_Supplement.txt
+          grep -qi 'Independent log-ratio graph certificate' 106Amen_R29_SolarEnergy_Supplement.txt
           grep -qi '0.468733' 106Amen_R29_SolarEnergy_Main_AUTHOR_REVIEW.txt
           if grep -Ei 'undefined control sequence|Undefined citations|undefined references|Citation .* undefined|Reference .* undefined' build/*.log; then echo 'TEX REFERENCE HOLD'; exit 1; fi
           echo 'R29_BUILD_QA_PASS'
