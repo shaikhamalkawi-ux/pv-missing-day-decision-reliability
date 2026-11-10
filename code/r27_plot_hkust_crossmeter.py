@@ -10,7 +10,7 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
-data=Path("r27_evidence/R26L/R26L_MATCHED_SOURCE_DAY_AUDIT.csv")
+data=Path("r28_evidence/HKUST_R26L/R26L_MATCHED_SOURCE_DAY_AUDIT.csv")
 out=Path("figures/R27_HKUST_LIBRARY_SITE_VS_INVERTER.png")
 with data.open(newline="",encoding="utf8") as f: rows=list(csv.DictReader(f))
 library=[r for r in rows if r["group"]=="Library" and r["source_cohort"]=="1" and r["crossmeter_admitted"]=="1"]
