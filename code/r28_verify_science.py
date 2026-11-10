@@ -53,7 +53,7 @@ assert R22["datasets"]=={"PROPRE.MA":25,"EURAC":7,"MORE-EU":79}
 assert R22["r21_q5_gap_le3_crosscheck_all_pass"] is True
 for x in ("3/25","1/7","45/79"):
     assert x in MAIN and x in SUPP
-assert MAIN.count("\\bibitem{")==14
+assert MAIN.count("\\bibitem{")==15
 keys=set(re.findall(r"\\bibitem\{([^}]+)\}",MAIN))
 cited=set()
 for group in re.findall(r"\\cite(?:\[[^\]]+\])?\{([^}]+)\}",MAIN):
