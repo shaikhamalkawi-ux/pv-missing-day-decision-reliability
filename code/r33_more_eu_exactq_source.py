@@ -110,7 +110,7 @@ def month_audit(month,observed):
             "selected_exact_endpoints_verified":len(tests),
             "intervals":[{"lower_pct":pct(a),"upper_pct":pct(b),
                           "upper_at_domain_cap":b==QMAX,
-                          "grid_blind":not any(a<=q<b for q in GRID)}
+                          "grid_blind":not any(a<=q<b or (q==QMAX and b==QMAX and any(choose(v,q)!=choose(tot,q) for _,_,v in windows)) for q in GRID)}
                          for a,b in merged]},status
 def main():
     days,source=parse(DATA);months,rejected=accepted(days)
