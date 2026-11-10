@@ -38,7 +38,7 @@ for log in ("build/main.log","build/supplement.log"):
     assert "Undefined control sequence" not in s,log
 text=subprocess.check_output(["pdftotext",MAIN,"-"],text=True)
 assert all(x in text for x in ("0.468733","2.025261","1.826766","3/25","1/7","45/79"))
-highlights=[x.strip().lstrip("-").strip() for x in Path("paper/R28_SolarEnergy_Highlights.txt").read_text().splitlines() if x.strip()]
+highlights=[x.strip().lstrip("-•").strip() for x in Path("paper/R28_SolarEnergy_Highlights.txt").read_text().splitlines() if x.strip().startswith(("-", "•"))]
 assert len(highlights)==5 and all(0<len(x)<=85 for x in highlights)
 doc=Document();doc.add_heading("Highlights",1)
 for item in highlights: doc.add_paragraph(item,style="List Bullet")
@@ -109,4 +109,5 @@ transfer=["R28_HANDOFF_NEW_CHAT.md","R28_AUTHOR_SUBMISSION_GATES.md",
           "R28_SCIENTIFIC_REVISION_REPORT.md","SHA256_MANIFEST.json"]
 archive(O/"106Amen_R28_NewChat_Transfer.zip",
         ["R28_DELIVERY/"+p for p in transfer])
+(O/"R28_FINAL_SHA256SUMS.txt").write_text("\n".join(sha(p)+"  "+p.name for p in sorted(O.iterdir()) if p.is_file() and p.name!="R28_FINAL_SHA256SUMS.txt")+"\n")
 print("R28_AUTHOR_PACKAGE_PASS",json.dumps(report),flush=True)
