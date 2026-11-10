@@ -51,7 +51,7 @@ jobs:
         run: |
           mkdir -p r28_evidence/R28_Primary r28_evidence/R28_Independent
           cp r28_download/R28_CriticalGainMargin/* r28_evidence/R28_Primary/
-          cp r28_indep_download/R28_IndependentCriticalQA/* r28_evidence/R28_Independent/
+          cp r28_indep_download/* r28_evidence/R28_Independent/
           python code/verify_publication_results.py
           python code/rebuild_released_surface.py
           python code/r28_verify_science.py
