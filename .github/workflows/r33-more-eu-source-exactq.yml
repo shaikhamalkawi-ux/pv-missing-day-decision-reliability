@@ -5,6 +5,7 @@ on:
     paths:
       - '.github/workflows/r33-more-eu-source-exactq.yml'
       - 'code/r33_more_eu_exactq_source.py'
+      - 'code/r33_more_eu_independent_verify.py'
   workflow_dispatch:
 permissions: {contents: read}
 jobs:
@@ -29,6 +30,8 @@ jobs:
         run: |
           python code/r33_more_eu_exactq_source.py '/tmp/r33_original/Array Power.csv' | tee R33_MORE_EU_SCIENCE_QA.log
           grep -q 'MORE_EU_EXACT_Q_PASS' R33_MORE_EU_SCIENCE_QA.log
+          python code/r33_more_eu_independent_verify.py | tee R33_MORE_EU_INDEPENDENT_QA.log
+          grep -q 'R33_MORE_EU_INDEPENDENT_PASS' R33_MORE_EU_INDEPENDENT_QA.log
           python - <<'PY'
           import json
           p=json.load(open('R33_MORE_EU_EXACTQ_SOURCE_CERTIFICATE.json'))
@@ -48,4 +51,6 @@ jobs:
           path: |
             R33_MORE_EU_EXACTQ_SOURCE_CERTIFICATE.json
             R33_MORE_EU_SCIENCE_QA.log
+            R33_MORE_EU_INDEPENDENT_QA.json
+            R33_MORE_EU_INDEPENDENT_QA.log
           retention-days: 30
