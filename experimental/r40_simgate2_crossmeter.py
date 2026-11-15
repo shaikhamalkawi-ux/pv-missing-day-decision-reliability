@@ -78,11 +78,14 @@ for month in MONTHS:
         stamps=[dt.datetime.strptime(f"{name} {h:02d}:{min_:02d}","%Y-%m-%d %H:%M")
                 for h in range(6,18) for min_ in range(0,60,5)]
         vals=[]
-        for d in [*stream,site]:
-            vv=[d.get(t) for t in stamps]
-            assert all(v is not None for v in vv),("incomplete_legacy_month",month,day)
-            assert all(v>=0 for v in vv),("negative_source_P",month,day)
-            vals.append(float(sum(vv)))
+        for ch,d in enumerate([*stream,site]):
+            # Original HKUST publication: SITE 15-minute; INVERTER 5-minute.
+            # Convert 15-min site rectangle integral to 5-min sample-equivalents.
+            native_stamps=stamps if ch<3 else stamps[::3]
+            vv=[d.get(t) for t in native_stamps]
+            assert all(v is not None for v in vv),("incomplete_native_channel",month,day,ch)
+            assert all(v>=0 for v in vv),("negative_source_P",month,day,ch)
+            vals.append(float(sum(vv))*(1.0 if ch<3 else 3.0))
         source_days[name]={"p_inverters":np.array(vals[:3]),"p_site":vals[3]}
 for month in MONTHS:
     sums=[sum(source_days[f"{month}-{d:02d}"]["p_inverters"][i]/DC[i] for d in range(1,32)) for i in range(3)]
