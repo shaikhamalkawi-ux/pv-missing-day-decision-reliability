@@ -43,6 +43,9 @@ def hfile(path):
         for chunk in iter(lambda:fd.read(8*1024*1024),b""):sha.update(chunk)
     return sha.hexdigest()
 def parse_time(s):
+    # Distinct native formats: meteorology YYYY/M/D H:MM; inverter YYYY-MM-DD HH:MM:SS.
+    if "-" in s[:10]:
+        return dt.datetime.strptime(s,"%Y-%m-%d %H:%M:%S")
     return dt.datetime.strptime(s,"%Y/%m/%d %H:%M")
 def finite_f(s):
     try:
