@@ -59,10 +59,10 @@ def source_series(z, path, key, wanted):
         assert "Time" in reader.fieldnames and key in reader.fieldnames,(path,reader.fieldnames)
         for row in reader:
             t=row["Time"]
-            ym=parse_month(t)
-            if ym not in wanted:continue
             try: tt=parse_time(t)
             except ValueError:continue
+            ym=f"{tt.year:04d}-{tt.month:02d}"
+            if ym not in wanted:continue
             if not (6<=tt.hour<18 and tt.minute%5==0): continue
             if tt in d: duplicates+=1; d[tt]=None;continue
             value=finite_f(row[key]); d[tt]=value
