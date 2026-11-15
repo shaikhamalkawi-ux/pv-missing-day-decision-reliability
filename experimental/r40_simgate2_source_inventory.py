@@ -83,3 +83,7 @@ for item in selected:
     print("SCHEMA", item["name"], "bytes", item["size"],
           "header", json.dumps(item.get("header", [])))
 print("OUTPUT", ROOT/"SOURCE_INVENTORY.json")
+
+for record in context:
+    if record["term"] in ("library","se50k","solaredge","tilt","azimuth","orientation","angle"):
+        print("TTL_CONTEXT", json.dumps(record, ensure_ascii=False))
