@@ -1,0 +1,39 @@
+name: R40 SIM-GATE2 HKUST redundant-site-power decision audit
+on:
+  push:
+    branches: [r40-simgate2-hkust-source-audit]
+    paths:
+      - ".github/workflows/r40-simgate2-crossmeter.yml"
+      - "experimental/r40_simgate2_crossmeter.py"
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  sitepower:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Retrieve exact-source HKUST data
+        uses: actions/download-artifact@v4
+        with:
+          name: hkust-zenodo-10909062-original-zip
+          run-id: 42481283218
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: source
+      - name: Install numeric dependencies
+        run: pip install --disable-pip-version-check numpy==2.3.4
+      - name: Replay source and test site-feed conditional decision bounds
+        run: python3 experimental/r40_simgate2_crossmeter.py
+      - name: Preserve derived research-only evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: r40-simgate2-site-power-derived-only
+          path: R40_SIM_GATE2_CrossMeter/
+          if-no-files-found: warn
+          retention-days: 30
