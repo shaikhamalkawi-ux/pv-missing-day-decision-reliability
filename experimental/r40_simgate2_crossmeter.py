@@ -56,6 +56,16 @@ def records(z,path,column):
     return d,{"name":path,"retained_timestamps":len(d),"duplicates":duplicate}
 with zipfile.ZipFile(SRC) as z:
     stream=[];file_schema=[]
+    with z.open(SITE) as sf:
+        reader=csv.DictReader(io.TextIOWrapper(sf,encoding="utf-8-sig",newline=""))
+        first=[];recent=[];monthly_stats=defaultdict(int)
+        for src_row in reader:
+            raw=src_row["Time"]
+            if len(first)<3:first.append(raw)
+            if raw.startswith("2022-07") or raw.startswith("2023"):
+                if len(recent)<15:recent.append(raw)
+            monthly_stats[raw[:7]]+=1
+        print("SITE_NATIVE_TIMESTAMP_AUDIT",json.dumps({"first":first,"selected":recent,"month_prefix":dict(monthly_stats)},sort_keys=True),flush=True)
     for f in FILES:
         data,report=records(z,f,"totalActivePower(W)")
         stream.append(data);file_schema.append(report)
