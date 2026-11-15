@@ -1,0 +1,34 @@
+name: R40 SIM-GATE2 HKUST source-only integrity and schema audit
+on:
+  push:
+    branches: [r40-simgate2-hkust-source-audit]
+    paths:
+      - ".github/workflows/r40-simgate2-hkust-source.yml"
+      - "experimental/r40_simgate2_source_inventory.py"
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  source:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - name: Retrieve upstream HKUST data from existing immutable CI artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: hkust-zenodo-10909062-original-zip
+          run-id: 42481283218
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: source
+      - name: Independently verify SHA-256 and inspect source schema
+        run: python3 experimental/r40_simgate2_source_inventory.py
+      - name: Keep only compact provenance and schema evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: r40-simgate2-hkust-source-inventory
+          path: R40_SIM_GATE2_SourceInventory/
+          if-no-files-found: warn
+          retention-days: 14
