@@ -1,0 +1,39 @@
+name: R40 SIM-GATE2 HKUST pvlib conditional weather and decision study
+on:
+  push:
+    branches: [r40-simgate2-hkust-source-audit]
+    paths:
+      - ".github/workflows/r40-simgate2-physics.yml"
+      - "experimental/r40_simgate2_pvlib.py"
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  pvlib:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Download byte-locked HKUST upstream dataset
+        uses: actions/download-artifact@v4
+        with:
+          name: hkust-zenodo-10909062-original-zip
+          run-id: 42481283218
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: source
+      - name: Set up pinned physical model
+        run: pip install --disable-pip-version-check pvlib==0.16.1 pandas numpy
+      - name: Replay R30 from exact source and run conditional pvlib experiments
+        run: python3 experimental/r40_simgate2_pvlib.py
+      - name: Preserve derived audit only, not original HKUST archive
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: r40-simgate2-pvlib-derived-results-only
+          path: R40_SIM_GATE2_PhysicsAudit/
+          if-no-files-found: warn
+          retention-days: 30
