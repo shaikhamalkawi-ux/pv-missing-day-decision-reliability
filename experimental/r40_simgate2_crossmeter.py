@@ -87,6 +87,40 @@ for month in MONTHS:
             assert all(v>=0 for v in vv),("negative_source_P",month,day,ch)
             vals.append(float(sum(vv))*(1.0 if ch<3 else 3.0))
         source_days[name]={"p_inverters":np.array(vals[:3]),"p_site":vals[3]}
+# Explicitly test whether each 15-minute site power sample can be
+# reconstructed from 3 native 5-minute inverter samples. Numerical identity
+# makes this source channel NOT independent evidence of missing-inverter power.
+lineage_report={}
+for month in MONTHS:
+    direct=[];forward=[];backward=[];sumsite=[];suminv=[]
+    for day in range(1,32):
+        label=f"{month}-{day:02d}"
+        for hour in range(6,18):
+            for minute in range(0,60,15):
+                t=dt.datetime.strptime(f"{label} {hour:02d}:{minute:02d}","%Y-%m-%d %H:%M")
+                site_val=site[t]
+                at_t=sum(v[t] for v in stream)
+                mean_forward=sum(sum(v[t+dt.timedelta(minutes=k)] for v in stream) for k in (0,5,10))/3.0
+                direct.append(site_val-at_t)
+                forward.append(site_val-mean_forward)
+                sumsite.append(site_val)
+                suminv.append(mean_forward)
+                if hour>6 or minute>=10:
+                    prev=t-dt.timedelta(minutes=10)
+                    mean_back=sum(sum(v[prev+dt.timedelta(minutes=k)] for v in stream) for k in (0,5,10))/3.0
+                    backward.append(site_val-mean_back)
+    lineage_report[month]={
+       "n_15min":len(forward),
+       "site_minus_same_inverter_instant_MAE_W":float(np.mean(np.abs(direct))),
+       "site_minus_forward_three_sample_mean_MAE_W":float(np.mean(np.abs(forward))),
+       "site_minus_forward_three_sample_mean_maxabs_W":float(np.max(np.abs(forward))),
+       "forward_within_0p01W":int(sum(abs(x)<=0.01 for x in forward)),
+       "forward_within_0p1W":int(sum(abs(x)<=0.1 for x in forward)),
+       "forward_within_1W":int(sum(abs(x)<=1 for x in forward)),
+       "site_minus_backward_three_sample_mean_MAE_W":float(np.mean(np.abs(backward))),
+       "integrated_15min_site_vs_5min_inverter_rel_pct":float(100*(sum(sumsite)-sum(suminv))/max(1,sum(suminv))),
+    }
+print("SITE_FEED_LINEAGE",json.dumps(lineage_report,sort_keys=True),flush=True)
 for month in MONTHS:
     sums=[sum(source_days[f"{month}-{d:02d}"]["p_inverters"][i]/DC[i] for d in range(1,32)) for i in range(3)]
     expect={"2022-07":[1163.758524,1590.833339,1534.450622],
@@ -119,7 +153,7 @@ for month in MONTHS:
         "above_2pct_days":int(sum(abs(d)>.02 for d in deltas)),
         "above_5pct_days":int(sum(abs(d)>.05 for d in deltas))}
 train_max=max(abs(source_days[f"2022-07-{d:02d}"]["p_site"]-float(sum(source_days[f"2022-07-{d:02d}"]["p_inverters"])))/max(1.,source_days[f"2022-07-{d:02d}"]["p_site"]) for d in range(1,32))
-print("SOURCE_SITE_POWER_AGREEMENT",json.dumps({"monthly":month_eval,"training_maxabs_ratio":train_max}),flush=True)
+print("SOURCE_SITE_POWER_AGREEMENT",json.dumps({"monthly":month_eval,"site_lineage":lineage_report,"training_maxabs_ratio":train_max}),flush=True)
 
 rows=[]
 for q in Q_VALUES:
