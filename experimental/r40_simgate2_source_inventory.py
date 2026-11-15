@@ -87,3 +87,7 @@ print("OUTPUT", ROOT/"SOURCE_INVENTORY.json")
 for record in context:
     if record["term"] in ("library","se50k","solaredge","tilt","azimuth","orientation","angle"):
         print("TTL_CONTEXT", json.dumps(record, ensure_ascii=False))
+
+for row in selected:
+    if "Library_Inverter_" in row["name"] or "Irradiance_2022" in row["name"]:
+        print("SOURCE_FIRST_ROWS",json.dumps({"file":row["name"],"rows":row.get("sample_rows",[])},ensure_ascii=False))
