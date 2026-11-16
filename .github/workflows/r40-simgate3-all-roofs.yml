@@ -1,0 +1,44 @@
+name: R40 SIM-GATE3B all HKUST roof integration and lineage audit
+on:
+  push:
+    branches: [r40-simgate3-site-lineage-timebase]
+    paths:
+      - ".github/workflows/r40-simgate3-all-roofs.yml"
+      - "experimental/r40_simgate3_all_roofs.py"
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  allroofs:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Fetch checksum-pinned original HKUST archive
+        uses: actions/download-artifact@v4
+        with:
+          name: hkust-zenodo-10909062-original-zip
+          run-id: 42481283218
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: source
+      - name: Fetch previously frozen R26I admissible roof-month cohorts
+        uses: actions/download-artifact@v4
+        with:
+          name: r26i-evidence-source-tiers-and-report
+          run-id: 42504128089
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: r26i
+      - name: Reproduce Table S5 and correct support/lineage for all five cohorts
+        run: python3 experimental/r40_simgate3_all_roofs.py
+      - name: Preserve tiny derived summaries, not source data
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: r40-simgate3b-all-roofs-derived-only
+          path: R40_SIM_GATE3B_AllRoofs/
+          retention-days: 30
+          if-no-files-found: warn
