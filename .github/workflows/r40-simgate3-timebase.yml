@@ -1,0 +1,37 @@
+name: R40 SIM-GATE3 HKUST timebase and shared-lineage source replay
+on:
+  push:
+    branches: [r40-simgate3-site-lineage-timebase]
+    paths:
+      - ".github/workflows/r40-simgate3-timebase.yml"
+      - "experimental/r40_simgate3_timebase.py"
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  timebase:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Rehydrate exact SHA-locked HKUST archive from prior GitHub run
+        uses: actions/download-artifact@v4
+        with:
+          name: hkust-zenodo-10909062-original-zip
+          run-id: 42481283218
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: source
+      - name: Independently replay old versus aligned integration and feed identity
+        run: python3 experimental/r40_simgate3_timebase.py
+      - name: Upload only derived summaries (never raw HKUST data)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: r40-simgate3-timebase-derived-evidence-only
+          path: R40_SIM_GATE3_Timebase/
+          retention-days: 30
+          if-no-files-found: warn
