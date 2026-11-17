@@ -40,7 +40,7 @@ multiplied by 12 daylight hours and gap length.
 
 At q=5%:
 
-| Month / stage | Method | Stable interval-list outcomes | Wrong stable outcomes | Energy interval violations | Naive wrong | Wrong naive outcomes corrected by validly predicted set (not certified if envelope violated) |
+| Month / stage | Method | Stable interval-list outcomes | Wrong stable outcomes | Energy interval violations | Naive wrong | Naive decision errors corrected by the predicted set (NOT certified when envelope violated) |
 |---|---|---:|---:|---:|---:|---:|
 | 2023-05 validation | Physical capacity | 2 | 0 | 0 | 313 | 0 |
 | 2023-05 validation | Global peer ratio | 551 | 21 | 588 | 313 | 263 |
