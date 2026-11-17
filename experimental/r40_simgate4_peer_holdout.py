@@ -68,7 +68,7 @@ for month in MONTHS:
   for j,ch in enumerate(iv):
    assert all(t in ch for t in times),("missing_daily",j,month,day)
    obs[day-1,j]=sum(ch[t] for t in times)/12./DC[j]
- assert all(abs(a-b)<.000004 for a,b in zip(obs.sum(axis=0),expected[month])),("R30_totals_fail",month,obs.sum(axis=0))
+ assert all(abs(12*a-b)<.000004 for a,b in zip(obs.sum(axis=0),expected[month])),("R30_totals_fail",month,obs.sum(axis=0))
  Y[month]=obs
 print("R30_INVERTER_ONLY_REPLAY_PASS",SHA,flush=True)
 
