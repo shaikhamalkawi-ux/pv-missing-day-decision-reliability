@@ -1,0 +1,28 @@
+name: R44 PVDAQ 2107 observed-gap and meter-source inventory
+on:
+  push:
+    branches: [r44-pvdaq2107-external-source-eligibility]
+    paths:
+      - ".github/workflows/r44-pvdaq2107-real-gap.yml"
+      - "experimental/r44_pvdaq2107_real_gap_inventory.py"
+  workflow_dispatch:
+permissions: {contents: read}
+jobs:
+  inventory:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Check actual 2025 missing inverter channels and site-meter provenance
+        run: python3 experimental/r44_pvdaq2107_real_gap_inventory.py
+      - name: Upload only derived inventory (no meter/electrical raw)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: r44-pvdaq2107-real-gap-and-meter-derived-only
+          path: R44_REAL_GAP_DERIVED_ONLY/
+          retention-days: 30
+          if-no-files-found: warn
