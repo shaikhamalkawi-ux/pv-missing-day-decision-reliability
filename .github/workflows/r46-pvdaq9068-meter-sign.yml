@@ -1,0 +1,28 @@
+name: R46 PVDAQ9068 meter polarity and inverter module boundary gate
+on:
+  push:
+    branches: [r46-pvdaq9068-honda-paired-meter-gate]
+    paths:
+      - ".github/workflows/r46-pvdaq9068-meter-sign.yml"
+      - "experimental/r46_pvdaq9068_sign_gate.py"
+  workflow_dispatch:
+permissions: {contents: read}
+jobs:
+  signcheck:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Run signed AC-power consistency comparison on pinned source
+        run: python3 experimental/r46_pvdaq9068_sign_gate.py
+      - name: Upload derived measurement diagnostics only
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: r46-9068-meter-sign-and-module-derived
+          path: R46_PVDAQ9068_SIGN_GATE/
+          retention-days: 30
+          if-no-files-found: warn
