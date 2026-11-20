@@ -1,0 +1,28 @@
+name: R46 PVDAQ 2105 actual kWh counter persistence/source gate
+on:
+  push:
+    branches: [r46-pvdaq9068-honda-paired-meter-gate]
+    paths:
+      - ".github/workflows/r46-2105-counter-gate.yml"
+      - "experimental/r46_pvdaq2105_kwh_counter_gate.py"
+  workflow_dispatch:
+permissions: {contents: read}
+jobs:
+  counter:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Inspect original 2105 kWh signal increments, resets and calendar gaps
+        run: python3 experimental/r46_pvdaq2105_kwh_counter_gate.py
+      - name: Upload derived counter-semantic summary only
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: r46-2105-counter-semantic-derived-only
+          path: R46_2105_COUNTER_SEMANTICS/
+          retention-days: 30
+          if-no-files-found: warn
