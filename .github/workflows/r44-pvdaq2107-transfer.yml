@@ -1,0 +1,28 @@
+name: R44 frozen R43 transfer to NREL PVDAQ2107 (strict source gate)
+on:
+  push:
+    branches: [r44-pvdaq2107-external-source-eligibility]
+    paths:
+      - ".github/workflows/r44-pvdaq2107-transfer.yml"
+      - "experimental/r44_pvdaq2107_external_transfer.py"
+  workflow_dispatch:
+permissions: {contents: read}
+jobs:
+  independent_site_replay:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Check immutable sources, equipment and no-leak retained-only transfer
+        run: python3 experimental/r44_pvdaq2107_external_transfer.py
+      - name: Store only aggregate reviewer information
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: r44-nrel-pvdaq2107-original-source-frozen-transfer-derived
+          path: R44_EXTERNAL_DERIVED_ONLY/
+          retention-days: 30
+          if-no-files-found: warn
