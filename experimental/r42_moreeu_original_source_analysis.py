@@ -39,9 +39,9 @@ def input_months(path):
             ds,clock=parts[0].split()
             d,m,y=map(int,ds.split("/"))
             date=f"{2000+y:04d}-{m:02d}-{d:02d}"
-            record=daily.setdefault(date,dict(n=0,clocks=set(),tot=np.zeros(14,dtype=float)))
+            record=daily.setdefault(date,dict(n=0,clocks=set(),duplicated=False,tot=np.zeros(14,dtype=float)))
             record["n"]+=1
-            assert clock not in record["clocks"], ("duplicate_clock",date,clock)
+            if clock in record["clocks"]: record["duplicated"]=True
             record["clocks"].add(clock)
             vals=np.array([float(t) for t in parts[1:]],dtype=float)
             assert np.isfinite(vals).all()
@@ -53,7 +53,7 @@ def input_months(path):
     for m,d in months.items():
         year,month=map(int,m.split("-"))
         ndays=calendar.monthrange(year,month)[1]
-        if len(d)!=ndays or any(r["n"]!=96 or len(r["clocks"])!=96 for _,r in d):
+        if len(d)!=ndays or any(r["n"]!=96 or len(r["clocks"])!=96 or r["duplicated"] for _,r in d):
             continue
         arr=np.stack([r["tot"] for _,r in sorted(d)])
         full=arr.sum(axis=0)
