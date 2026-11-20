@@ -1,0 +1,32 @@
+name: R43 independent pure-Python original-data confirmation
+on:
+  push:
+    branches: [r43-moreeu-retained-margin-timeholdout]
+    paths:
+      - ".github/workflows/r43-independent-validation.yml"
+      - "experimental/r43_independent_purepy_validation.py"
+  workflow_dispatch:
+permissions: {contents: read}
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - name: Clone original pinned MORE-EU source
+        run: |
+          git clone --depth 1 https://github.com/MORE-EU/OpenData.git pinned_upstream
+          test "$(git -C pinned_upstream hash-object 'Solar Park Data -INACCESS/Array Power.csv')" = "5611277efdd581bb839ec380239846a43ebe0ba7"
+      - name: Verify original data independently, recompute holdout scores and counts
+        run: |
+          python3 experimental/r43_independent_purepy_validation.py \
+           --source "pinned_upstream/Solar Park Data -INACCESS/Array Power.csv" \
+           --out R43_INDEPENDENT_DERIVED_ONLY
+      - name: Preserve verification JSON only
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: r43-independent-qa-derived-only
+          path: R43_INDEPENDENT_DERIVED_ONLY/
+          if-no-files-found: error
+          retention-days: 30
