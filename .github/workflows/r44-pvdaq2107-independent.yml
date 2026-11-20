@@ -1,0 +1,28 @@
+name: R44 independent OEDI 2107 source-to-decision validator
+on:
+  push:
+    branches: [r44-pvdaq2107-external-source-eligibility]
+    paths:
+      - ".github/workflows/r44-pvdaq2107-independent.yml"
+      - "experimental/r44_pvdaq2107_independent_replay.py"
+  workflow_dispatch:
+permissions: {contents: read}
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Recompute original 2024 PVDAQ month-to-deletion labels independently
+        run: python3 experimental/r44_pvdaq2107_independent_replay.py
+      - name: Upload derived verification JSON ONLY
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: r44-nrel-pvdaq2107-independent-derived-QA-only
+          path: R44_INDEPENDENT_DERIVED_ONLY/R44_INDEPENDENT_REPLAY_REPORT.json
+          retention-days: 30
+          if-no-files-found: warn
