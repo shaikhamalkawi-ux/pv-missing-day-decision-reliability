@@ -17,8 +17,9 @@ SHA_SRC="bb2e9f7495e471503daa2c4b4ae9aa053ca4c779d63665afb1c2270daaa243a5"
 SHA_MET="17e4f7f448fcb2bec43f7610b40c1f7f4fc794ccc185e41dcde0514afba73ae5"
 THRESH=-0.001077879123675074
 OUT=Path("R44_INDEPENDENT_DERIVED_ONLY");OUT.mkdir(exist_ok=True)
+SOURCE_CACHE=Path("R44_INDEPENDENT_SOURCE_CACHE");SOURCE_CACHE.mkdir(exist_ok=True)
 def get(url,expected):
- target=OUT/Path(url).name
+ target=SOURCE_CACHE/Path(url).name
  if not target.exists():
   with urllib.request.urlopen(url,timeout=120) as s,target.open("wb") as d:
    for b in iter(lambda:s.read(1<<20),b""):d.write(b)
