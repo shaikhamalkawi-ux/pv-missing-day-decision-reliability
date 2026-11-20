@@ -1,0 +1,28 @@
+name: R46 official PVDAQ 9068 paired-meter and Honda access source gate
+on:
+  push:
+    branches: [r46-pvdaq9068-honda-paired-meter-gate]
+    paths:
+      - ".github/workflows/r46-pvdaq9068-honda-source.yml"
+      - "experimental/r46_pvdaq9068_honda_access.py"
+  workflow_dispatch:
+permissions: {contents: read}
+jobs:
+  verify_pair:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Verify original source data, paired meter telemetry and Honda public-file access
+        run: python3 experimental/r46_pvdaq9068_honda_access.py
+      - name: Upload aggregate source/evidence JSON only
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: r46-9068-honda-source-aggregate-evidence
+          path: R46_PVDAQ9068_HONDA_SOURCE_EVIDENCE/R46_SOURCE_AND_PAIR_EVIDENCE.json
+          retention-days: 30
+          if-no-files-found: warn
