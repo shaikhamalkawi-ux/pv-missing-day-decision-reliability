@@ -1,0 +1,25 @@
+name: R46 fallback site 2105 original-source eligibility check
+on:
+  push:
+    branches: [r46-pvdaq9068-honda-paired-meter-gate]
+    paths:
+      - ".github/workflows/r46-pvdaq2105-eligibility.yml"
+      - "experimental/r46_pvdaq2105_eligibility.py"
+  workflow_dispatch:
+permissions: {contents: read}
+jobs:
+  provenance:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fetch provider metadata and bounded CSV headers only
+        run: python3 experimental/r46_pvdaq2105_eligibility.py
+      - name: Upload source eligibility notes only
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: r46-2105-public-source-eligibility
+          path: R46_PVDAQ2105_SOURCE_SCAN/
+          retention-days: 30
+          if-no-files-found: warn
