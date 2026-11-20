@@ -1,0 +1,38 @@
+name: R42 MORE-EU full candidate-subset and equal-gap source audit
+on:
+  push:
+    branches: [r42-moreeu-candidate-count-rateonly-audit]
+    paths:
+      - ".github/workflows/r42-moreeu-subset.yml"
+      - "experimental/r42_moreeu_original_source_analysis.py"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  source_locked_analysis:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install numerical dependency
+        run: python -m pip install --disable-pip-version-check numpy==2.3.4
+      - name: Fetch original CC-BY-NC MORE-EU source without redistributing source rows
+        run: |
+          git clone --depth 1 https://github.com/MORE-EU/OpenData.git pinned_upstream
+          test "$(git -C pinned_upstream hash-object 'Solar Park Data -INACCESS/Array Power.csv')" = "5611277efdd581bb839ec380239846a43ebe0ba7"
+      - name: Replay frozen R22 35 cells then run candidate-count and missing-position tests
+        run: |
+          python experimental/r42_moreeu_original_source_analysis.py \
+            --source "pinned_upstream/Solar Park Data -INACCESS/Array Power.csv" \
+            --out R42_DERIVED_ONLY
+      - name: Upload aggregate results only, never original CSV
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: r42-moreeu-exhaustive-subsets-derived-only
+          path: R42_DERIVED_ONLY/
+          if-no-files-found: warn
+          retention-days: 30
