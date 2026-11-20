@@ -47,8 +47,23 @@ def main():
  except Exception as e:
   out["metadata_error"]=repr(e)
   print("R46_2105_META_ERROR",repr(e),flush=True)
+ try:
+  alt_body,alt_info=fetch(ROOT+"/"+PREFIX+"metadata/2105_system_metadata_v1.json",2<<20)
+  alt=json.loads(alt_body)
+  out["metadata_v1"]={"original_sha256":hashlib.sha256(alt_body).hexdigest(),
+     "n_inverter_metadata":len(alt.get("Inverters",{})),
+     "n_meter_metadata":len(alt.get("Meters",{})),
+     "n_module_metadata":len(alt.get("Modules",{}))}
+  print("R46_2105_META_V1",json.dumps(out["metadata_v1"]),flush=True)
+ except Exception as e:
+  out["metadata_v1_error"]=repr(e)
+  print("R46_2105_META_V1_ERROR",repr(e),flush=True)
+ # NOTE legacy except block below from replaced try starts a new syntactic unit
+ try:
+  pass
+ except Exception:pass
  targets=[k for k,size in files if k and k.endswith(".csv") and "/data/" in k and
-   any(w in k.lower() for w in ("power","meter","inverter","electrical"))]
+   (any(w in k.lower() for w in ("power","meter","inverter","electrical")) or bool(re.search(r"/2105_inv\\d\\d_data\\.csv$",k)))]
  for key in targets[:10]:
   url=ROOT+"/"+urllib.parse.quote(key,safe="/")
   try:
