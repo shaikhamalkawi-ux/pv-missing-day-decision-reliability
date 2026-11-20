@@ -1,0 +1,28 @@
+name: R44 PVDAQ2107 revenue meter vs inverter shared-lineage gate
+on:
+  push:
+    branches: [r44-pvdaq2107-external-source-eligibility]
+    paths:
+      - ".github/workflows/r44-pvdaq2107-meter-lineage.yml"
+      - "experimental/r44_pvdaq2107_meter_lineage.py"
+  workflow_dispatch:
+permissions: {contents: read}
+jobs:
+  consistency:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Verify separate revenue meter vs inverter-power channels without imputation
+        run: python3 experimental/r44_pvdaq2107_meter_lineage.py
+      - name: Upload derived measurement-lineage diagnostics only
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: r44-pvdaq2107-meter-lineage-derived-only
+          path: R44_METER_LINEAGE_DERIVED_ONLY/
+          retention-days: 30
+          if-no-files-found: warn
