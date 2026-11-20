@@ -51,14 +51,26 @@ def check_equipment(m):
          "module_groups":len(modules),"panel_models_and_counts":list(map(list,panels)),
          "module_inverter_id_states":sorted({str(z.get("inverter_id")) for z in modules})},
          sort_keys=True),flush=True)
- assert len(models)==1 and len(panels)==1,"unequal capacity: cannot use equal-normalizer analysis"
- assert str(modules[0].get("quantity"))=="120"
+ assert len(models)==1, "Different inverter models; AC normalizer not comparable"
+ assert len({(z.get("manufacturer"),z.get("model")) for z in modules})==1, "Different PV module types"
+ counts=[int(z["quantity"]) for z in modules]
+ assert len(counts)==24 and min(counts)>0
+ # The metadata uses matching name suffixes, but "inverter_id" is string None.
+ # This is a conditional nominal-module allocation, NOT verified wiring.
+ site_kw=float(m["System"]["power(kW DC)"])
+ derived_kw=sum(counts)*.310 # manufacturer's 310W module label; rounded site rating
+ assert abs(derived_kw-site_kw)<2.0, ("STC count does not close to site nameplate",derived_kw,site_kw)
  return {"n_inverters":24,"inverter_model_and_count":list(map(list,models)),
  "n_module_groups":24,"module_model_and_count":list(map(list,panels)),
  "module_inverter_id_states":sorted({str(z.get("inverter_id")) for z in modules}),
- "equal_dc_normalizer_is_conditional":True,
- "source_explicit_inverter_to_module_edge":"NOT_PROVIDED",
- "justification":"Source specifies identical module model/count on all 24 enumerated groups and same inverter model; common positive DC normalization cancels from relative rule."}
+ "module_counts_by_name_suffix":counts,
+ "module_count_total":sum(counts), "nominal_site_DC_kW_from_310W_label":derived_kw,
+ "metadata_site_power_DC_kW":site_kw,
+ "equal_dc_normalizer_supported":False,
+ "nominal_DC_normalizer_is_CONDITIONAL":True,
+ "source_explicit_inverter_to_module_edge":"NOT_PROVIDED; labels mod_fss_i/inv_fss_i matched by suffix as assumption",
+ "source_module_semantic_conflict":"PVDAQ meta labels mono-Si; manufacturer/CEC model HiS-M310TI lists polycrystalline; do not infer tech ranking",
+ "justification":"Hypothesized one-to-one name-suffix matching plus 310W/model; analysis is conditional on actual wiring."}
 def read_year(key):
  source=download(key)
  byday=defaultdict(dict); seen=set();n=0
@@ -85,7 +97,7 @@ def read_year(key):
   "year_filtered_records":len(seen),"n_days":len(byday),
   "first_day":min(byday) if byday else None,"last_day":max(byday) if byday else None}),flush=True)
  return byday,cols
-def qualified_months(year,byday):
+def qualified_months(year,byday,normalizers):
  valid={};reasons=Counter();qa=defaultdict(dict)
  for ym in sorted({day[:7] for day in byday}):
   y,m=map(int,ym.split('-'))
@@ -103,7 +115,7 @@ def qualified_months(year,byday):
    values=[rows[t] for t in window]
    if not all(math.isfinite(v) and v>=0 for item in values for v in item):
     reason="MISSING_NONFINITE_OR_NEGATIVE_CHANNEL";break
-   sums=tuple(sum(item[j] for item in values)/12 for j in range(24)) # 5-min power(kW) -> kWh
+   sums=tuple(sum(item[j] for item in values)/(12*normalizers[j]) for j in range(24)) # common daylight integration, conditional name-matched module count
    daily.append(sums)
   if reason is None:
    total=[sum(day[j] for day in daily) for j in range(24)]
@@ -166,11 +178,15 @@ def main():
  allres={}
  for year in ("2024","2025"):
   byday,columns=read_year(year)
-  months,qa=qualified_months(year,byday)
+  module_counts=equipment["module_counts_by_name_suffix"]
+  months,qa=qualified_months(year,byday,module_counts)
+  ac_months,acqa=qualified_months(year,byday,[1]*24)
+  assert list(months)==list(ac_months) and qa==acqa
   allres[year]={"clock_gate":qa,
-       "primary":evaluate(year,months,PRIMARY_CANDIDATES,f"{year}_all24_fixed_R43"),
-       "sensitivity":evaluate(year,months,SENSITIVITY_CANDIDATES,f"{year}_first14_predeclared")}
-  for k in ("primary","sensitivity"):
+       "primary":evaluate(year,months,PRIMARY_CANDIDATES,f"{year}_all24_CONDITIONAL_NAME_MATCHED_DC_R43"),
+       "sensitivity":evaluate(year,months,SENSITIVITY_CANDIDATES,f"{year}_first14_PREDECLARED_CONDITIONAL_DC"),
+       "ac_nameplate_negative_control":evaluate(year,ac_months,PRIMARY_CANDIDATES,f"{year}_all24_EQUAL_AC_INVERTER_RATING_DISTINCT_ESTIMAND")}
+  for k in ("primary","sensitivity","ac_nameplate_negative_control"):
    r=allres[year][k]
    print("R44_EXTERNAL_RESULT",json.dumps({z:v for z,v in r.items() if z!="month_results"},sort_keys=True),flush=True)
  result={"gate":"R44_EXTERNAL_SITE_RETROSPECTIVE_QA","source":"NREL-OEDI PVDAQ 2107",
@@ -180,7 +196,7 @@ def main():
   "zero_external_training":True,
   "no_source_rows_redistributed":True,
   "years":allres,
-  "review_state":"SOURCE_LIMITED_RETROSPECTIVE; DO_NOT_CLAIM_FIELD_VALIDATION"}
+  "review_state":"SOURCE_LIMITED_RETROSPECTIVE; CONDITIONAL NAME-MATCHED DC; DO NOT CLAIM FIELD VALIDATION"}
  (OUT/"R44_PVDAQ2107_EXTERNAL_REPLICATION.json").write_text(json.dumps(result,indent=2,sort_keys=True))
  print("R44_EXTERNAL_GATE_COMPLETE",json.dumps({"years":{k:{s:z[s]["n_months"] for s in ("primary","sensitivity")} for k,z in allres.items()},"frozen_threshold":R43_THRESHOLD},sort_keys=True),flush=True)
 if __name__=="__main__":main()
