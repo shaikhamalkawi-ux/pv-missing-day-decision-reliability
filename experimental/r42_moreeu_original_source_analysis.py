@@ -175,4 +175,4 @@ if __name__=="__main__":
             for L in (3,7):
                 for key in ("median","p10","p90","min","max"):z[f"L{L}_{key}"]=r[f"L{L}"][key]
             w.writerow(z)
-    print("R42_COMPLETE_SOURCE_VERIFIED",json.dumps({"source":GIT_BLOB,"baseline35":True,"n_months":79,"n_subsets":5799,"n_checks":result["slow_independent_assertions"],"same_rate_3day_mixed":rate[3]["mixed_months"]}),flush=True)
+    print("R42_COMPLETE_SOURCE_VERIFIED",json.dumps({"source":GIT_BLOB,"baseline35":True,"n_months":79,"n_subsets":5799,"n_checks":result["slow_independent_assertions"],"same_rate_3day_mixed":result["same_missing_rate_retro_audit"][3]["mixed_months"]}),flush=True)
