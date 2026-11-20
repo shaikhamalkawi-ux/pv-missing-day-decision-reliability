@@ -63,7 +63,7 @@ def main():
   pass
  except Exception:pass
  targets=[k for k,size in files if k and k.endswith(".csv") and "/data/" in k and
-   (any(w in k.lower() for w in ("power","meter","inverter","electrical")) or bool(re.search(r"/2105_inv\\d\\d_data\\.csv$",k)))]
+   (any(w in k.lower() for w in ("power","meter","inverter","electrical")) or ("/data/2105_inv" in k))]
  for key in targets[:10]:
   url=ROOT+"/"+urllib.parse.quote(key,safe="/")
   try:
