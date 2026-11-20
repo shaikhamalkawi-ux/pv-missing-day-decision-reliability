@@ -97,7 +97,7 @@ def read_year(key):
   "year_filtered_records":len(seen),"n_days":len(byday),
   "first_day":min(byday) if byday else None,"last_day":max(byday) if byday else None}),flush=True)
  return byday,cols
-def qualified_months(year,byday,normalizers):
+def qualified_months(year,byday,normalizers,allow_zero_device=False):
  valid={};reasons=Counter();qa=defaultdict(dict)
  for ym in sorted({day[:7] for day in byday}):
   y,m=map(int,ym.split('-'))
@@ -119,7 +119,8 @@ def qualified_months(year,byday,normalizers):
    daily.append(sums)
   if reason is None:
    total=[sum(day[j] for day in daily) for j in range(24)]
-   if min(total)<=0:reason="NONPOSITIVE_DEVICE_MONTH_ENERGY"
+   if max(total)<=0:reason="NONPOSITIVE_WHOLE_PLANT_ENERGY"
+   elif not allow_zero_device and min(total)<=0:reason="NONPOSITIVE_DEVICE_MONTH_ENERGY"
   if reason is None:
    valid[ym]=daily;qa[ym]={"state":"ADMITTED","calendar_days":len(daily),"source_window":TIME_WINDOWS[year]}
   else:
@@ -181,12 +182,14 @@ def main():
   module_counts=equipment["module_counts_by_name_suffix"]
   months,qa=qualified_months(year,byday,module_counts)
   ac_months,acqa=qualified_months(year,byday,[1]*24)
+  zero_months,zero_qa=qualified_months(year,byday,module_counts,allow_zero_device=True)
   assert list(months)==list(ac_months) and qa==acqa
-  allres[year]={"clock_gate":qa,
+  allres[year]={"clock_gate":qa,"zero_inclusive_clock_gate":zero_qa,
+       "zero_inclusive_secondary":evaluate(year,zero_months,PRIMARY_CANDIDATES,f"{year}_ALL24_POST_SOURCE_AUDIT_ZERO_INCLUSIVE"),
        "primary":evaluate(year,months,PRIMARY_CANDIDATES,f"{year}_all24_CONDITIONAL_NAME_MATCHED_DC_R43"),
        "sensitivity":evaluate(year,months,SENSITIVITY_CANDIDATES,f"{year}_first14_PREDECLARED_CONDITIONAL_DC"),
        "ac_nameplate_negative_control":evaluate(year,ac_months,PRIMARY_CANDIDATES,f"{year}_all24_EQUAL_AC_INVERTER_RATING_DISTINCT_ESTIMAND")}
-  for k in ("primary","sensitivity","ac_nameplate_negative_control"):
+  for k in ("primary","sensitivity","ac_nameplate_negative_control","zero_inclusive_secondary"):
    r=allres[year][k]
    print("R44_EXTERNAL_RESULT",json.dumps({z:v for z,v in r.items() if z!="month_results"},sort_keys=True),flush=True)
  result={"gate":"R44_EXTERNAL_SITE_RETROSPECTIVE_QA","source":"NREL-OEDI PVDAQ 2107",
@@ -196,7 +199,7 @@ def main():
   "zero_external_training":True,
   "no_source_rows_redistributed":True,
   "years":allres,
-  "review_state":"SOURCE_LIMITED_RETROSPECTIVE; CONDITIONAL NAME-MATCHED DC; DO NOT CLAIM FIELD VALIDATION"}
+  "review_state":"SOURCE_LIMITED_RETROSPECTIVE; name-match conditional; zero-inclusive check explicitly post initial source gate; DO NOT CLAIM FIELD VALIDATION"}
  (OUT/"R44_PVDAQ2107_EXTERNAL_REPLICATION.json").write_text(json.dumps(result,indent=2,sort_keys=True))
  print("R44_EXTERNAL_GATE_COMPLETE",json.dumps({"years":{k:{s:z[s]["n_months"] for s in ("primary","sensitivity")} for k,z in allres.items()},"frozen_threshold":R43_THRESHOLD},sort_keys=True),flush=True)
 if __name__=="__main__":main()
