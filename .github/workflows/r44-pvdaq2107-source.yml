@@ -1,0 +1,29 @@
+name: R44 PVDAQ 2107 source/metadata admission (2024+2025)
+on:
+  push:
+    branches: [r44-pvdaq2107-external-source-eligibility]
+    paths:
+      - ".github/workflows/r44-pvdaq2107-source.yml"
+      - "experimental/r44_pvdaq2107_source_gate.py"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  inventory:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Verify publisher identity, 24-inverter channel support and time coverage
+        run: python3 experimental/r44_pvdaq2107_source_gate.py
+      - name: Upload only original-source inventory; never electrical observations
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: r44-pvdaq2107-derived-inventory-only
+          path: R44_PVDAQ2107_SOURCE_GATE/
+          retention-days: 30
+          if-no-files-found: warn
