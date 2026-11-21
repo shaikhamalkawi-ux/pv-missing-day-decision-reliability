@@ -1,0 +1,661 @@
+\documentclass[11pt]{article}
+\usepackage[a4paper,margin=2.0cm]{geometry}
+\usepackage{lmodern}
+\usepackage[T1]{fontenc}
+\usepackage{microtype}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{caption}
+\usepackage{booktabs}
+\usepackage{array}
+\newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}}
+\usepackage{amsmath,amssymb}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{longtable}
+\usepackage{fancyhdr}
+\usepackage{setspace}
+\usepackage{url}
+\usepackage{seqsplit}
+\hypersetup{colorlinks=true,linkcolor=black,urlcolor=blue,pdfauthor={},pdftitle={Supplementary Material - When Missing Days Change Photovoltaic Screening Decisions},pdfsubject={Supplementary Methods and Source-Evidence Audit},pdfkeywords={photovoltaic monitoring, source-evidence audit}}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.5em}
+\onehalfspacing
+\pagestyle{fancy}
+\setlength{\headheight}{14.5pt}
+\fancyhf{}
+\lhead{Supplementary Methods and Source-Evidence Audit}
+\rhead{PV decision reliability under missing-day gaps}
+\cfoot{\thepage}
+
+\title{\textbf{Supplementary Material}\\[0.4em]
+\large When Missing Monitoring Days Change Photovoltaic Screening Shortlists: A Four-Source Retrospective Audit}
+\author{Anonymous}
+\date{}
+
+\begin{document}
+\maketitle
+
+\section*{How to read the mathematics}
+The main equations define the near-best yield shortlist, test whether a common-day deletion changes its membership, and summarize changed months within each source. Tables S1--S4 report the five-margin grid; Tables S9--S11 give exact tolerance intervals; Tables S12--S15 document candidate-subset and review-score analyses; Table S16 maps the 2020--2026 literature. Section S9 explains how to apply the retrospective audit to complete, qualified daily records. Source-channel and hypothetical-gain calculations remain in Sections S4a--S4d.
+
+\section*{S1. Protocol freeze and notation}
+The original three-source reliability surface used in the manuscript was frozen before inspection of its combined result. The fourth-source HKUST Library subset was acquired and source-qualified retrospectively, after that protocol freeze; the same frozen $q,L$ rule was reused without retuning, but this later cohort must not be represented as a prospectively predeclared external test. The declared grid was
+\[
+q\in\{0,0.025,0.05,0.075,0.10\},\qquad L\in\{1,2,3,4,5,6,7\}\;\text{whole days},
+\]
+with at least ten retained days. All candidates in each source-month lose the same observed source-calendar days; asynchronous candidate-specific gaps are not modeled. Deleted days were counterfactually removed from otherwise complete source-months, not inferred from an observed logger-outage sample, and were not reconstructed. A source-month is counted as fragile at $(q,L)$ if at least one contiguous gap of length no greater than $L$ changes the candidate set relative to the full admitted month. The source-level surface is descriptive and months are not assumed independent.
+
+The main-text shortlist is
+\[
+S_m(q;D)=\{j:Y_{m,j}(D)\ge (1-q)\max_kY_{m,k}(D)\}.
+\]
+For a contiguous gap $G_m(s,\ell)$, the month-level indicator is
+\[
+F_m(q,L)=\mathbf{1}[\exists\,\ell\le L,s: S_m(q;D_m\setminus G_m(s,\ell))\ne S_m(q;D_m)].
+\]
+No generic mathematical novelty is claimed for case-removal sensitivity, minimum deletion budgets, or the classical shortest-path feasibility of difference constraints.
+
+\section*{S2. Dataset-specific admission details}
+\subsection*{S2.1 PROPRE.MA}
+The manuscript uses the exact 25 complete, boundary-stable source-months retained after the original source-identity and boundary gate. These months descend from source-locked cumulative-counter and date-identity work and preserve site/configuration-specific STC denominators. The cohort is not the entire 20-site historical dataset and does not re-admit historically excluded sites merely because a numerical record exists. Raw donor files are not redistributed. The source decision object is a three-technology normalized-yield shortlist.
+
+\subsection*{S2.2 EURAC}
+The public archive is EURAC Research, Zenodo DOI \href{https://doi.org/10.5281/zenodo.18316996}{10.5281/zenodo.18316996}. The source archive checksum used in the original source audit matched the published MD5. Four systems with defensible numeric total STC values were admitted: Trina poly-Si (2070~W), SunPower mono-Si (1200~W), Sanyo HJT (3870~W), and Wurth CIGS (1050~W). First Solar was excluded from the primary normalized analysis because a defensible total system STC could not be reconstructed from supplied metadata. Daily DC energy was based on common 15-minute $P_{mpp}$ timestamps and a 95\% common-irradiance support rule. Seven months passed the full-month gate. The supplied metadata do not fully establish identical mounting geometry, so results are described as observed-system decisions rather than intrinsic technology efficiency comparisons.
+
+\subsection*{S2.3 MORE-EU}
+The public source is \href{https://github.com/MORE-EU/OpenData}{MORE-EU/OpenData}, file \texttt{Solar Park Data -INACCESS/Array Power.csv}, pinned Git blob \texttt{\seqsplit{5611277efdd581bb839ec380239846a43ebe0ba7}}. The source reports normalized output for 14 arrays. A calendar day is admitted only when it contains exactly 96 rows and 96 unique quarter-hour labels. A month is complete only when every source-calendar day passes that rule. Seventy-nine months are admitted. Source-clock days with 92 or 100 rows are excluded rather than rescaled or shifted. Arrays are not assigned technology labels.
+
+\subsection*{S2.4 HKUST retrospective Library subset}
+Original source: HKUST, Zenodo 10909062, published 2 April 2024, original \texttt{dataset.zip} SHA-256 \texttt{\seqsplit{610500cfda8309bcba85c4562a1406592882094638132c7ee478cd53e37e96ec}}; data descriptor Lin et al., \emph{Scientific Data} 12, 63 (2025), DOI \href{https://doi.org/10.1038/s41597-025-04397-y}{10.1038/s41597-025-04397-y}. The published archive contains electrical telemetry already resampled to five-minute intervals, with \texttt{NA} recorded rather than source-imputed missing values. The Library roof has three inverter data files. The stored Brick/RDF module configuration traces each device to 156, 152, and 152 modules of 370~W DC-STC each, respectively. The sum (170.2~kW) matches the source Library site rating. This exact equality is a useful provenance check, \emph{not} proof that the independent devices were metrologically calibrated.
+
+One observed inverter-day is complete only with exactly 144 unique source-clock timestamps from 06:00 through 17:55 at five-minute cadence, and finite reported inverter \texttt{totalActivePower(W)} at every position. The three inverters must share every source-clock position on every day of a complete calendar month. Only July 2022, May 2023 and July 2023 pass this gate for the selected Library group (3 months, 93 days). The analysis retains the source's observed equal-cadence AC power records and divides each device's accumulated integrated power by its own DC-STC module sum, without imputing any measurements. Other roofs may be valuable but their station-rating and module-STC semantics or electrical-source flags were not fully reconciled in the primary analysis; no other HKUST roof group is included in the main four-source comparison. Each site/month belongs to a dependent history, not an independent PV technology trial.
+
+\section*{S3. Full decision-reliability surfaces}
+Tables S1--S3 report the cumulative fraction of admitted months for which at least one contiguous gap of length $\le L$ changes the shortlist.
+
+\begin{table}[h]
+\centering
+\caption*{Table S1. PROPRE.MA surface (25 admitted months).}
+\begin{tabular}{lrrrrrrr}
+\toprule
+$q$ & $L\le1$ & $L\le2$ & $L\le3$ & $L\le4$ & $L\le5$ & $L\le6$ & $L\le7$ \\
+\midrule
+0\% & 0\% & 0\% & 0\% & 0\% & 0\% & 0\% & 0\% \\
+2.5\% & 0\% & 4\% & 4\% & 4\% & 4\% & 8\% & 12\% \\
+5\% & 4\% & 8\% & 12\% & 12\% & 12\% & 16\% & 16\% \\
+7.5\% & 12\% & 12\% & 16\% & 16\% & 16\% & 16\% & 20\% \\
+10\% & 4\% & 4\% & 4\% & 4\% & 8\% & 16\% & 16\% \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[h]
+\centering
+\caption*{Table S2. EURAC surface (7 admitted months).}
+\begin{tabular}{lrrrrrrr}
+\toprule
+$q$ & $L\le1$ & $L\le2$ & $L\le3$ & $L\le4$ & $L\le5$ & $L\le6$ & $L\le7$ \\
+\midrule
+0\% & 0\% & 0\% & 0\% & 0\% & 14.3\% & 14.3\% & 14.3\% \\
+2.5\% & 0\% & 0\% & 0\% & 0\% & 0\% & 0\% & 0\% \\
+5\% & 14.3\% & 14.3\% & 14.3\% & 14.3\% & 14.3\% & 14.3\% & 14.3\% \\
+7.5\% & 0\% & 0\% & 0\% & 0\% & 0\% & 0\% & 0\% \\
+10\% & 0\% & 0\% & 0\% & 0\% & 0\% & 0\% & 0\% \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[h]
+\centering
+\caption*{Table S3. MORE-EU surface (79 admitted months).}
+\begin{tabular}{lrrrrrrr}
+\toprule
+$q$ & $L\le1$ & $L\le2$ & $L\le3$ & $L\le4$ & $L\le5$ & $L\le6$ & $L\le7$ \\
+\midrule
+0\% & 6.3\% & 7.6\% & 8.9\% & 11.4\% & 11.4\% & 11.4\% & 11.4\% \\
+2.5\% & 51.9\% & 64.6\% & 69.6\% & 73.4\% & 73.4\% & 77.2\% & 82.3\% \\
+5\% & 44.3\% & 51.9\% & 57.0\% & 62.0\% & 62.0\% & 63.3\% & 64.6\% \\
+7.5\% & 17.7\% & 29.1\% & 31.6\% & 35.4\% & 35.4\% & 39.2\% & 39.2\% \\
+10\% & 11.4\% & 12.7\% & 15.2\% & 16.5\% & 19.0\% & 19.0\% & 20.3\% \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[h]
+\centering
+\caption*{Table S4. Retrospective HKUST Library inverter decision surface (3 source-qualified months). Not part of the original three-source cohorts.}
+\small
+\begin{tabular}{lrrrrrrr}
+\toprule
+$q$ & $L\le1$ & $L\le2$ & $L\le3$ & $L\le4$ & $L\le5$ & $L\le6$ & $L\le7$ \\
+\midrule
+0\% & 0/3 & 0/3 & 0/3 & 0/3 & 0/3 & 0/3 & 0/3 \\
+2.5\% & 0/3 & 0/3 & 0/3 & 0/3 & 0/3 & 0/3 & 0/3 \\
+5\% & 0/3 & 0/3 & 0/3 & 0/3 & 0/3 & 0/3 & 0/3 \\
+7.5\% & 0/3 & 0/3 & 0/3 & 0/3 & 0/3 & 0/3 & 0/3 \\
+10\% & 0/3 & 0/3 & 0/3 & 0/3 & 0/3 & 0/3 & 1/3 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The three months are July 2022, May 2023 and July 2023. This table reproduces the 35 source-conditional cells from the frozen HKUST 2024-vintage time series; the separate independent verifier checked 105 month--$q$--$L$ decisions and nondecreasing fragility in $L$. Zero changes are observed-data-only outcomes, not a guarantee under uncertain module or instrument calibration.
+
+\section*{S4. Locked $q=5\%$ cross-stage verification}
+The original grid expansion was required to reproduce the preceding single-margin structured-gap result at $q=5\%$ and $L\le3$ days. The cross-check is exact:
+
+\begin{center}
+\begin{tabular}{lrrl}
+\toprule
+Dataset & Previous locked count & Expanded-grid count & Status \\
+\midrule
+PROPRE.MA & 3/25 & 3/25 & PASS \\
+EURAC & 1/7 & 1/7 & PASS \\
+MORE-EU & 45/79 & 45/79 & PASS \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+The MORE-EU surface was independently recomputed from the pinned public Git blob and reproduced the same 79 complete source-calendar months. The upstream EURAC and PROPRE.MA cohorts were not redefined for the expanded grid.
+
+\section*{S4a. Source-channel time-support correction and numerical lineage}
+The publisher archive supplies site-level power at 15-minute cadence, including \texttt{power(W)} and a separate \texttt{generation(kWh)} field. Inverter level files contain five-minute \texttt{totalActivePower(W)}. The earlier source audit integrated all 96 site-power samples from 00:00--24:00, but only 144 five-minute inverter-power samples from 06:00--18:00. This \emph{unequal-time-support} comparison produced the former Table~S5 discrepancies, which cannot be treated as a same-window metrology check. The source replay reproduced all five former medians and percentiles from the SHA-256-pinned original HKUST archive and the frozen R26I roof/month admission records, then restricted both integrations to 06:00--18:00 (48 native 15-minute site samples and 144 five-minute inverter samples per day), without imputing samples:
+\[
+E_{\mathrm{site,day}}=\frac{0.25}{1000}\sum_{t\in\mathcal{T}_{15,\mathrm{day}}}P_{\mathrm{site}}(t),\qquad
+E_{\mathrm{inv,day}}=\frac{1}{12000}\sum_j\sum_{t\in\mathcal{T}_{5,\mathrm{day}}}P_j(t).
+\]
+Here both time sets cover the same 06:00--18:00 period. The daily descriptive difference is $100|E_{\mathrm{site,day}}-E_{\mathrm{inv,day}}|/\min(E_{\mathrm{site,day}},E_{\mathrm{inv,day}})$ for positive energy totals. The corrected values in Table~S5 are close to stored-output rounding and \emph{are not} independently calibrated sensor-error estimates.
+
+\begin{table}[htbp]
+\centering
+\caption*{Table S5. Historical unequal-hour site/inverter difference versus identical 06:00--18:00 energy-integration support. Values are daily absolute relative differences in percent; the former values are preserved only for source-lineage audit. Library alone contributes to the main fourth-source PV decision analysis.}
+\small
+\setlength{\tabcolsep}{5.0pt}
+\begin{tabular}{@{}p{5.9cm}r r r r@{}}
+\toprule
+HKUST roof & Days & \shortstack{Former\\median (\%)} & \shortstack{Aligned\\median (\%)} & \shortstack{Aligned\\P95 (\%)} \\
+\midrule
+Library & 93 & 0.427578 & $3.81\times10^{-7}$ & $1.12\times10^{-6}$ \\
+S H Ho Sports Hall & 93 & 0.358252 & $5.21\times10^{-6}$ & $1.69\times10^{-5}$ \\
+Wong Check She Research Centre & 93 & 0.310830 & $4.55\times10^{-7}$ & $1.12\times10^{-6}$ \\
+Zone A2 & 31 & 0.753140 & $3.50\times10^{-7}$ & $7.21\times10^{-7}$ \\
+Zone D & 62 & 0.347836 & $4.31\times10^{-6}$ & $1.36\times10^{-5}$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The source-admission states have not changed: Library is the only retrospective fourth-source decision extension; Sports Hall, Wong Check She Research Centre and Zone A2 are conditional source-channel diagnostics; Zone D remains on electrical-data HOLD.
+
+The historical unmatched-hour P95 values were 0.993528\%, 0.827865\%, 0.785398\%, 1.147053\% and 0.904919\%, respectively; these too must not be interpreted as metrological disagreement. Across the five source-audited rooftops, the 15-minute site-power record is almost exactly reconstructible as the \emph{forward three-sample mean} of the summed five-minute inverter streams:
+\[
+P_{\mathrm{site}}(t)\simeq\frac{1}{3}\sum_j\left[P_j(t)+P_j(t+5\,\mathrm{min})+P_j(t+10\,\mathrm{min})\right].
+\]
+All 17,856 daylight site samples across 372 roof-days differ by at most 0.1~W from this computed mean, with a maximum absolute sample residual of 0.046667~W. These are finite original-source observations, not a claim of physical wiring topology, individual instrument accuracy or independent acquisition. In an \emph{upstream} inverter telemetry loss, the source-derived site aggregate cannot be counted as independently surviving evidence of the missing stream. A hypothetical \emph{downstream export-only} failure is a different, unvalidated scenario requiring proof that the aggregate continues to exist and is accessible. None of the corrected site-source calculations enters the three-inverter decision-yield totals or the main paper's admitted $q,L$ surfaces.
+
+For the publisher's 31 August 2022 Library example (\emph{not} a decision-admitted month), the 24-hour site integral is 642.087334791~kWh, the same-window 06:00--18:00 site integral is 641.558751458~kWh, and the three-inverter sum is 641.558750000~kWh. Of the former 0.528584791~kWh difference, 0.528583333~kWh comes from site energy outside the inverter window. The distinct site \texttt{generation(kWh)} entries sum to 651.32~kWh and are not assigned the same integration semantics. The source-pinned replay, QA limitations and scope of these corrected comparisons are documented in the separately archived time-support source-audit records; the original measured inverter records and all main decision outcomes are unchanged.
+
+\section*{S4b. Analytical measurement-gain stress with fixed full-month reference}
+This analytical extension applies an \emph{assumed} per-inverter constant relative gain $\eta_j\in[1-\varepsilon,1+\varepsilon]$, with the \emph{same} $\boldsymbol{\eta}$ used in the full-month reference and in all gap-retained variants. The formally gain-adjusted shortlist, retained here rather than in the main engineering narrative, is
+\[
+S_m(q;D,\boldsymbol{\eta})=\{j:\eta_jY_{m,j}(D)\ge(1-q)\max_k\eta_kY_{m,k}(D)\}.
+\]
+It reduces exactly to the observed-data shortlist when every $\eta_j=1$. Define the baseline-preserving event
+\[
+\begin{aligned}
+A_m(q,L,\varepsilon)&=\mathbf{1}\!\big[
+\exists\,\boldsymbol{\eta},s,\ell\leq L:
+\\[-0.15em]
+&\quad S_m(q;D_m,\boldsymbol{\eta})
+=S_m(q;D_m,\mathbf{1}),\\[-0.1em]
+&\quad S_m(q;D_m\setminus G_m(s,\ell),\boldsymbol{\eta})
+\ne S_m(q;D_m,\mathbf{1})\big].
+\end{aligned}
+\]
+The full-month shortlist is required to retain its \emph{recorded-data identity}, so a gain-only reference-set change is not counted as a missing-day effect. A positive solver margin and independent ratio/exact-witness arithmetic checks were used to avoid boundary-only numerical claims. Gain bounds are \emph{not} probabilities, measured calibration uncertainties, or actual inverter-error covariance.
+
+\begin{table}[h]
+\centering
+\caption*{Table S6. Baseline-preserving conditional gain sensitivity at $q=5\%$, gaps no longer than three days; source-specific month counts, NOT independent-trial failure probabilities.}
+\small
+\begin{tabular}{p{3.8cm}rrrrrrr}
+\toprule
+Roof & $\varepsilon=0$ & 0.25\% & 0.5\% & 1\% & 2\% & 3\% & 5\% \\
+\midrule
+Library & 0/3 & 0/3 & 1/3 & 1/3 & 2/3 & 3/3 & 3/3 \\
+S H Ho Sports Hall & 1/3 & 1/3 & 1/3 & 2/3 & 2/3 & 3/3 & 3/3 \\
+Wong Check She Research Centre & 0/3 & 0/3 & 0/3 & 0/3 & 2/3 & 2/3 & 2/3 \\
+Zone A2 & 0/1 & 0/1 & 1/1 & 1/1 & 1/1 & 1/1 & 1/1 \\
+Zone D (HOLD) & 0/2 & 0/2 & 0/2 & 0/2 & 0/2 & 0/2 & 0/2 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The strongest source-identity case (Library) thus has no observed-data gap change at $q=5\%$, $L\leq3$, but an existence witness under an \emph{assumed} relative gain envelope as small as $\varepsilon=0.5\%$ in one month. This is a non-calibrated feasibility result. A shared positive gain identical across inverters cancels in the relative shortlist inequality and leaves the recorded-data result unchanged. In the broader secondary source audit, 56 two-inverter month--gain cells were independently verified by ratio partitions and 15 positive three-inverter gain witnesses were independently recomputed; negative three-inverter LP claims were not given an independent symbolic certificate.
+
+\section*{S4c. Supporting on-site weather, not a per-panel calibration}
+The original HKUST archive also provides on-campus irradiance at one-minute cadence. Across the four source-months involved in the wider source triage (July and August 2022; May and July 2023), all 144 five-minute daylight positions were available on every day except 30 July 2023, which lacked one irradiance value. If complete \emph{shared-weather} support is imposed as an auxiliary secondary rule, July 2023 would be excluded, despite complete source-inverter records. This rule was \emph{not} in the original frozen decision gate and is not used to revise the three original or HKUST main counts. Campus irradiance does not establish the plane-of-array illumination or metrological accuracy for an individual inverter.
+
+\section*{S4d. Baseline-preserving critical relative-gain radius}
+The seven predeclared $\varepsilon$ stress levels in Table~S6 show where a source-month can become conditionally fragile but are not themselves precision estimates of a threshold. For $q=5\%$ and a contiguous gap no longer than three whole days, the analysis therefore computed the smallest \emph{assumed} symmetric per-inverter gain envelope that can change the gap-retained shortlist \emph{while preserving the observed-data full-month reference shortlist}:
+\[
+\varepsilon_m^{\mathrm{crit}}=\inf_{\boldsymbol{\eta},\,G}
+\max_j |\eta_j-1|,\quad
+S_m(q;D_m,\boldsymbol{\eta})=S_m(q;D_m,\mathbf{1}),
+\quad
+S_m(q;D_m\setminus G,\boldsymbol{\eta})\ne S_m(q;D_m,\mathbf{1}).
+\]
+The same $\boldsymbol{\eta}$ is held fixed throughout a source-month, including in both counterfactuals. The physical instrument calibration is unknown; this $\varepsilon_m^{\mathrm{crit}}$ is a source-conditional decision-geometry diagnostic, not a measurement uncertainty interval or a proven covariance parameter.
+
+For each original full-month inclusion member $j$, all pairwise inequalities $\eta_jY_j(D_m)\ge(1-q)\eta_kY_k(D_m)$ must hold. For a nonmember $j$, exclusion is a \emph{disjunction}: at least one other candidate $k$ must satisfy $\eta_jY_j(D_m)<(1-q)\eta_kY_k(D_m)$. A gap change likewise is a finite union of inclusion/exclusion inequalities. The computation enumerates these competitor choices and all 1--3-day deletion positions; with a fixed choice, minimizing $\varepsilon$ subject to $\eta_j\in[1-\varepsilon,1+\varepsilon]$ becomes a linear program. Since strict exclusions involve open inequalities, a non-strict relaxed program provides a lower bound, whereas a feasible program with a positive normalized separation yields a verified upper witness. Both are reported, rather than an unjustified exact floating-point equality.
+
+\begin{table}[htbp]
+\centering
+\caption*{Table S7. Source-conditioned critical relative-gain envelope under $q=5\%$, gap length $\ell\leq3$. Four groups other than Library are secondary source-screening diagnostics, not new primary fourth-source cohorts. A dash indicates no positive-margin flip witness within the studied $0$--$5\%$ envelope.}
+\small
+\begin{tabular}{p{4.4cm}lrr}
+\toprule
+HKUST group & Source month & Lower (\%) & Feasible upper (\%) \\
+\midrule
+Library & Jul 2022 & 0.468732 & 0.468733\\
+Library & May 2023 & 2.025260 & 2.025261\\
+Library & Jul 2023 & 1.826765 & 1.826766\\
+S H Ho Sports Hall & Jul 2022 & 0 & 0\\
+S H Ho Sports Hall & May 2023 & 0.623996 & 0.623997\\
+S H Ho Sports Hall & Jul 2023 & 2.506853 & 2.506854\\
+Wong Check She Research Centre & Jul 2022 & 1.610532 & 1.610533\\
+Wong Check She Research Centre & Aug 2022 & 1.827069 & 1.827071\\
+Wong Check She Research Centre & May 2023 & -- & --\\
+Zone A2 & Jul 2023 & 0.296290 & 0.296292\\
+Zone D (HOLD) & May 2023 & -- & --\\
+Zone D (HOLD) & Jul 2023 & -- & --\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Independent log-ratio graph certificate.}
+Let $x_j=\log\eta_j$ for each positive gain. For a fixed retained-day set $D$, a required comparison
+$\eta_aY_a(D)\ge(1-q)\eta_bY_b(D)$ is equivalent to
+\[
+  x_b-x_a\le
+  \log\left[\frac{Y_a(D)}{(1-q)Y_b(D)}\right].
+\]
+Full-month nonmembership and post-gap set changes contain finite disjunctions of alternative strict comparisons. Each disjunction is resolved by enumerating its possible challenger and form a graph edge $a\to b$ of weight $c_{ab}$ for every selected inequality $x_b-x_a\le c_{ab}$. Strict exclusions are relaxed to non-strict inequalities in this separate \emph{lower-bound} calculation; strict change events are always supported separately by positive-margin witnesses.
+
+For any fixed alternative, a negative-weight directed cycle makes its closed comparison constraints infeasible for every positive gain vector. Otherwise let $d_{ab}$ be the minimum directed path weight from $a$ to $b$, over all connected vertex pairs, and define
+\[
+  \Delta=\max\bigl(0,-\min_{a,b}d_{ab}\bigr),
+  \qquad
+  \varepsilon_{\mathrm{closed}}=\tanh(\Delta/2).
+\]
+Here $\Delta$ is the minimum possible range $\max_jx_j-\min_jx_j$ subject to the closed comparison constraints. Necessity follows from $x_b-x_a\le d_{ab}$: every negative shortest-path weight forces some pair of log gains to be separated by at least $-d_{ab}$. For sufficiency, add all pairwise constraints $x_b-x_a\le\Delta$ to the original graph. Any closed walk that uses an added $\Delta$-weight edge can be divided into original paths of weight at least $-\Delta$, so no negative cycle is introduced. The standard difference-constraint feasibility criterion therefore supplies log gains with range at most $\Delta$. Because the candidate set is homogeneous in all $\eta_j$, a common positive scaling of every gain does not change membership. Such gains fit inside the symmetric box $[1-\varepsilon,1+\varepsilon]$ exactly when $\log[(1+\varepsilon)/(1-\varepsilon)]\ge\Delta$, which gives the displayed hyperbolic-tangent expression.
+
+This \emph{closed-graph} formula is a lower threshold for an individual enumerated alternative, not by itself a witness of strict exclusion. Taking the minimum across all finite alternatives and allowable gaps reproduces the original LP relaxation. A separately recomputed strict source-derived witness brackets each of the nine positive cases from above. The graph test also places the remaining three secondary/held cases outside the $0$--$5\%$ test box, without promoting any held source to the fourth-source comparison. The independent implementation enumerated 4,680 alternative graphs, compared with 9,360 original strict/relaxed LP subproblems. In the nine cases with a positive witness, the largest absolute difference between graph and LP relaxed gain-fraction lower thresholds was $3.6\times10^{-13}$. This is numerical cross-certification of a conditional model, not a new field-measurement or a general mathematical novelty claim.
+
+The Library's three upper-witness margins are approximately $0.469\%$, $2.025\%$, and $1.827\%$. They are not calibrated error magnitudes and cannot be inferred from the source-aggregated, time-aligned site/inverter numerical relationship in Table~S5; that relationship supplies no independent device-gain calibration. The primary computation covered 12 eligible source-months and 9,360 finite linear-program subproblems. Separate verification recomputed 8 two-inverter source-month thresholds by a direct gain-ratio partition that does not use the primary solver and validated 4 three-inverter positive witnesses against source-derived daily powers. The new solver-independent closed log-ratio graph audit verifies every relaxed lower threshold; the positive-margin device witnesses separately verify shortlist changes, rather than treating a relaxed boundary equality as a strict event. The original source-comparison results remain unchanged, and none of the reported source-month thresholds is interpreted probabilistically.
+
+\section*{S4e. Matched missing-day fraction with different decision outcomes}
+
+The July 2023 HKUST Library source month contains 31 fully observed admitted inverter days and three co-roof devices. At the declared decision margin $q=10\%$, the full-month shortlist contains inverters 1, 2 and 3. The analysis enumerated \emph{all 25} contiguous deletion placements with exactly seven omitted days and 24 retained days. Three placements drop inverter 3; the remaining 22 preserve the full-month three-inverter shortlist. Every placement has precisely the same deleted-day fraction, $7/31$, with no imputation or probabilistic weighting. The two independently written aggregation paths (retained-day sum and full-month sum minus omitted-day sum) give identical candidate sets for all 25 placements.
+
+\begin{table}[ht]
+\centering
+\caption*{Table S8. A fixed missing-day fraction does not determine the candidate shortlist: source-derived HKUST Library July 2023, $q=10\%$. Exactly seven complete days are removed in every row; 22/25 locations preserve the shortlist, and the three changing locations are shown.}
+\small
+\begin{tabular}{lccp{5.5cm}}
+\toprule
+Omitted seven-day window & Change? & Retained days & Retained candidate set \\
+\midrule
+1--7 July 2023 & No & 24 & Inverters 1, 2, 3 \\
+5--11 July 2023 & Yes & 24 & Inverters 1, 2 \\
+7--13 July 2023 & Yes & 24 & Inverters 1, 2 \\
+8--14 July 2023 & Yes & 24 & Inverters 1, 2 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The remaining 21 unchanged windows, in addition to the displayed 1--7 July example, are listed in the machine-readable 25-window audit. This is a finite counterfactual enumeration within one dependent month: the 25 overlapping windows are neither independent trials nor observed outage histories. The result provides a direct same-source, same-margin, same-deletion-length example for the paper's rate-only insufficiency claim; it does not assign a probability to actual future data loss.
+
+\section*{S4f. Exact decision-margin fragility intervals (retrospective HKUST only)}
+
+For the three admitted Library source-months, the analysis first inspected the entire declared margin domain $q\in[0,0.10]$, rather than only the original five-point grid. This calculation uses the same admitted source days, candidate-specific AC-yield/DC-STC denominators, complete-month reference sets, $10$-day retention rule and all contiguous gaps of length $1$--$7$ days. As these are three months of a single roof examined retrospectively, the calculation is an internal source-specific sensitivity diagnostic, not a new validation cohort. A subsequent separate source-specific application to the original three cohorts appears in Section~S4g.
+
+For each candidate $j$ and retained day set $D$ with positive maximum yield, set
+\[
+  t_j(D)=1-\frac{Y_j(D)}{\max_kY_k(D)},\qquad
+  j\in S(q,D)\ \Longleftrightarrow\ q\ge t_j(D).
+\]
+For any admissible gap $G$, the membership of $j$ differs from its complete-month membership precisely for
+\[
+  q\in\left[\min\{t_j(D_m),t_j(D_m\setminus G)\},
+  \max\{t_j(D_m),t_j(D_m\setminus G)\}\right).
+\]
+In plain terms, each candidate can change membership only when $q$ crosses its observed yield gap relative to the leader. Comparing that boundary before and after a permitted day deletion identifies exactly which tolerances alter the shortlist. The finite union over all candidate--gap pairs, intersected with $[0,0.10]$, is therefore the \emph{complete fragility set} for this decision and gap family. It can be disconnected and need not be monotone in $q$. An upper endpoint inside the domain is excluded, while $q=0.10$ is included if an underlying interval extends beyond the domain edge. This is elementary threshold arithmetic, not a new universal robustness theorem.
+
+\begin{table}[ht]
+\centering
+\caption*{Table S9. Exact source-conditioned HKUST Library $q$ intervals producing at least one changed shortlist for a contiguous $1$--$7$-day deletion. Values are percent and rounded for display; the archive contains exact rational boundaries, a 588-gap enumeration and the fully replayed original 105 $q\times L$ cells. All unlisted margins in $[0,10\%]$ are stable under this declared deletion family.}
+\small
+\begin{tabular}{p{1.9cm}p{3.1cm}p{2.3cm}p{3.6cm}}
+\toprule
+Source month & Fragile $q$ interval (\%) & Sample-grid status & One-day example \\
+\midrule
+July 2022 & $[2.8458,4.4414)$ & Missed by grid & 10 July at $q=3.6436\%$ \\
+May 2023 & $[0.3865,1.0725)$ & Missed by grid & 3 May at $q=0.7295\%$ \\
+July 2023 & $[0.2346,0.9728)$ & Missed by grid & 6 July at $q=0.6037\%$ \\
+July 2023 & $[8.0293,10]$ & Detected at 10\% & 5 July at $q=9.015\%$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The one-day examples in Table S9 are displayed values of the source-certified gap witnesses stored in \texttt{R32\_EXACT\_Q\_INTERVALS.csv}; for the July 2022 worked record, the unrounded illustrated margin is $q=3.643601088\%$, and the July 10 omission changes the two-inverter shortlist to Inverter 2 only. The three original source-months contribute 196 eligible contiguous deletions each, yielding 588 source-month/gap scenarios. The exact-boundary audit and a second event-partition verifier independently reproduced all four interval endpoints from the source-derived daily power sums and all 105 previously published HKUST grid cells. The additional verifier checked 791 exact breakpoints and 1,391 direct rational decision comparisons, including cell interiors and exterior grid points. At $q=5\%$ the three months remain stable through seven-day deletions, so this extension does not modify the established $0/3$ comparison. None of these threshold bands estimates a field-failure frequency, an instrument-calibration bound or an independent monthly replication. The six-decimal archival endpoints express arithmetic precision of the admitted records, not physical measurement accuracy.
+
+
+\section*{S4g. Original three-source exact-$q$ extension (post hoc)}
+
+The HKUST-specific S4f event-partition construction was independently replayed on the exact original source-month memberships, without retuning the decision rule. For each candidate $j$ in a full month $D_m$ or retained set $D_m\setminus G$, membership changes exactly at $t_j(D)=1-Y_j(D)/\max_k Y_k(D)$. Each pair of thresholds therefore gives a half-open interval of $q$ on which that candidate's inclusion differs, intersected with the declared $[0,0.10]$ domain. The analysis enumerated all gaps of lengths one through seven days with at least ten retained days and merged the intervals. A range is called \emph{grid-invisible} when no tested margin from $\{0,2.5,5,7.5,10\%\}$ lies within that fragile interval, treating the clipped $q=10\%$ endpoint by direct source-record evaluation rather than automatically including it. The mathematical claim is exact for the admitted finite-precision daily \emph{point} yields, not physical meter certainty.
+
+\begin{table}[ht]
+\centering
+\caption*{Table S10. Retrospective exact-$q$ fragility by source under the source-specific admitted point-yield definitions ($0\leq q\leq10\%$, contiguous gaps $1$--$7$ days). Bands are disjoint within each source-month; no row is a population failure rate, and the source rows are not pooled.}
+\small
+\begin{tabular}{p{2.6cm}rrrrp{3.1cm}}
+\toprule
+Source & Months & Candidates & All bands & Grid-invisible & Months with invisible band \\
+\midrule
+PROPRE.MA & 25 & 3 & 45 & 33 & 23/25 \\
+EURAC & 7 & 4 & 14 & 12 & 7/7 \\
+MORE-EU & 79 & 14 & 275 & 175 & 63/79 \\
+HKUST Library & 3 & 3 & 4 & 3 & 3/3 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{PROPRE.MA source bounds.}
+The 25 frozen site-months were reconstructed from the authorized private R17 daily counter-interval records and the original site/technology STC denominators, including the stabilized amorphous rating. The R17 source has per-day lower/upper timing envelopes around each recorded interval. A separate sensitivity check asked whether a shortlist change would be \emph{forced} at each of the 33 grid-invisible band midpoints even if every daily reconstructed counter interval were allowed to range independently over its R17 lower/upper bounds. None passed that deliberately conservative sufficient proof. The lack of such a witness is \emph{not} a no-change result: the independent box ignores shared counter-endpoint constraints and is wider than the physically correlated set. Therefore the 33 bands are admitted as exact arithmetic of the archived point reconstructions, not as guaranteed robust intervals under source-timing uncertainty. The underlying donor data and site-level daily rows remain private.
+
+\paragraph{EURAC source support.}
+The seven original complete R19 months were retained after the same 95\% irradiance-support gate for common 15-minute DC $P_{mpp}$ samples and the identical four system-specific STC normalizers. The computed exact-$q$ extension replays the R19 source-derived daily energy table, not an independent re-download or re-processing of the original Zenodo RAR in this revision. The independent second-implementation check covered all 245 original EURAC month-level grid cases and all 14 interval midpoints.
+
+\paragraph{MORE-EU pinned public source.}
+The primary replay re-downloaded the original 280,512-row 15-minute \texttt{Array Power.csv} from the immutable Git commit with blob SHA-1 \texttt{\seqsplit{5611277efdd581bb839ec380239846a43ebe0ba7}}, verified its Git object identity, retained 79 complete source-calendar months (18 others failed the month gate), and tested the original 14 normalized arrays. It reproduced 35/35 locked source-level $q\times L$ cells and the 45/79 fragility count at $q=5\%$, $L\leq3$. A separate float-based re-aggregation directly summed retained days independently of the exact-fraction implementation: 2,765/2,765 original month-grid states, 275/275 interval midpoints, and all 175 grid-invisible intervals passed. The licensed CC BY-NC original third-party CSV was not placed in the distribution archive.
+
+\paragraph{Claim boundary.}
+Across these datasets an untested interval between two grid margins can be fragile even when both sampled endpoints appear stable, but the size of the effect depends strongly on the number and nature of candidates. These numbers are descriptive within source-admitted observational histories, with gaps deliberately imposed on complete source months. They are neither independent outage trials nor instrument-error probabilities, and cannot establish intrinsic technology rankings. At each unclipped individual candidate boundary, membership may change at a one-sided threshold; the upper threshold itself is excluded unless the original interval continues past the imposed $q=10\%$ domain limit.
+
+\section*{S4h. Width of exact-$q$ intervals missed by the original grid}
+The source-specific complete-margin audit reports disjoint fragile bands on the $q$ domain $[0,10\%]$ for each admitted source-month. An interval is \emph{grid-invisible} if none of $q=0,2.5,5,7.5,10\%$ belongs to that interval; endpoint membership at the domain cap is checked directly. Its width is its upper minus lower endpoint, expressed in \emph{percentage points of the declared tolerance}, not measured PV yield error or an outage-risk interval. For each source, the median is taken over its grid-invisible intervals only, and the mean invisible span per month is the sum of those widths divided by its number of admitted months. All bands within one source-month are disjoint, so this sum does not double-count overlapping ranges; source-level numbers are not pooled into a single population claim.
+
+\begin{table}[ht]
+\centering
+\caption*{Table S11. Source-specific extent of fragile decision-margin ranges not seen by the five original $q$ values. Counts and width statistics describe only the source-conditional, retrospective $q$ domain; PROPRE.MA uses restricted reconstructed point yields and has no forced-change guarantee across all meter-timing envelopes.}
+\scriptsize
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{p{2.7cm}rrrrr}
+\toprule
+Source & \shortstack{Invisible\\bands} & \shortstack{Median width\\(pp)} & \shortstack{$\geq0.5$\\pp} & \shortstack{$\geq1.0$\\pp} & \shortstack{Mean span/month\\(pp)} \\
+\midrule
+PROPRE.MA & 33 & 0.531 & 17 & 6 & 0.783 \\
+EURAC & 12 & 0.322 & 2 & 2 & 0.756 \\
+MORE-EU & 175 & 0.409 & 69 & 16 & 1.142 \\
+HKUST Library & 3 & 0.738 & 3 & 1 & 1.007 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The median MORE-EU invisible-band width is $0.4085844092$ percentage points, and its mean invisible span is $1.1417208968$ percentage points per admitted month over the $10$-percentage-point tested tolerance range. This does \emph{not} mean an 11.4\% chance of a future screening mistake; it is merely the average proportion of the arbitrarily declared $q$ axis covered by these source-record fragility intervals. The four HKUST bands are visualized in the HKUST margin-interval map in the main manuscript without using uncertainty distributions. The figure is illustrative; only the Library contributes to the fourth-source main comparison.
+
+\paragraph{Retrospective versus real missing-data decisions.}
+The complete-month candidate set $S(q;D_m)$ is observable here only because the source month was complete before the analysis deliberately removed common-day blocks. In a naturally incomplete month, $S(q;D_m)$ is generally unavailable, and neither a low deletion-fragility fraction nor an empty exact-$q$ band certifies that the observed-day shortlist matches it. A prospective certificate would need independently defensible bounds for each unobserved candidate yield, a specified missingness process or new complete observations; no such bounds, process or validation are supplied by the present evidence. Table S11 is therefore interpreted as a reproducible retrospective decision-sensitivity diagnostic and not a field-operational correctness guarantee.
+
+
+\section*{S4i. Independent within-source candidate-subset and fixed-gap diagnostic}
+This extension responds to two limitations of the original four-source comparison without modifying its samples or decision rule. The publicly available MORE-EU normalized array-power source is the 280,512-row original CSV, verified against immutable Git blob SHA-1 \texttt{\seqsplit{5611277efdd581bb839ec380239846a43ebe0ba7}}. Its CC BY-NC-licensed source rows are not redistributed. The source-time admission gate requires 96 unique quarter-hour clock readings for every calendar day of a month. The original 79 complete months and all 35 published $q\times L$ MORE-EU cells are reproduced \emph{before} the new calculations. Arrays have no justified technology identity and are not cross-site replications.
+
+\paragraph{All candidate subsets.} For $k\in\{3,4,7,10,14\}$, every distinct $k$-subset of the 14 original arrays is evaluated using the unchanged $q=5\%$ shortlist, each month's complete recorded daily sums and all common-day deletions of lengths one through seven. The 5,799 subsets arise as $\binom{14}{3}+\binom{14}{4}+\binom{14}{7}+\binom{14}{10}+\binom{14}{14}=364+1{,}001+3{,}432+1{,}001+1$. A subset's count is the number (out of the same 79 months) for which any allowed deletion of length up to $L$ changes its full-month shortlist. Table~S12 reports the distribution of these counts across distinct subsets. All such subsets share the same underlying source plant; their membership differs, and the statistics are neither independent-trial confidence intervals nor a causal treatment effect.
+
+\begin{table}[htbp]
+\centering
+\caption*{Table S12. Exhaustive MORE-EU candidate-subset screening: number of months (out of 79) with at least one changed shortlist at $q=5\%$, for gaps up to three or seven days. Percentiles are across subsets, not across observed plants; the single 14-array subset is the original full shortlist.}
+\scriptsize
+\setlength{\tabcolsep}{5pt}
+\begin{tabular}{rrrrrrrr}
+\toprule
+$k$ & Subsets & $L\leq3$ P10 & Median & P90 & $L\leq7$ P10 & Median & P90 \\
+\midrule
+3 & 364 & 5 & 9 & 16.7 & 7 & 13 & 21 \\
+4 & 1,001 & 8 & 14 & 23 & 11 & 19 & 29 \\
+7 & 3,432 & 18 & 27 & 35 & 24 & 34 & 42 \\
+10 & 1,001 & 27 & 38 & 41 & 35 & 45 & 48 \\
+14 & 1 & 45 & 45 & 45 & 51 & 51 & 51 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Exact equal-length missingness.} Fix the complete original fourteen-array set and $q=5\%$. For each of the 79 admitted months, all contiguous omissions of \emph{exactly} $L=1$, 3 or 7 common calendar days are enumerated. The missing fraction $L/\lvert D_m\rvert$ is identical for every placement within a month. Table~S13 distinguishes months with mixed changed/unchanged outcomes from those for which all or none of the positions change the shortlist. A deliberately nonoperational comparison reports how many errors even a month-specific constant-label rule would make if its label were chosen after looking at all outcomes: $\sum_m\min(n_m^{\rm change},n_m^{\rm stable})$. It is an oracle in-sample lower bound for this restricted \emph{rate-only constant-label class}, not a model prediction, economic saving, statistical loss estimate, or independent field observation.
+
+\begin{table}[htbp]
+\centering
+\caption*{Table S13. Same-length MORE-EU omission counterfactuals for the full fourteen-array set at $q=5\%$. Mixed months contain both changed and unchanged shortlists for different starts of the same fixed-length gap; all windows overlap within source histories. Oracle errors count the least possible errors by a hindsight-fitted constant label per month, not forecast error.}
+\scriptsize
+\setlength{\tabcolsep}{5pt}
+\begin{tabular}{rrrrrrr}
+\toprule
+Gap days & Positions & Changed & Unchanged & Mixed months & All-change months & Oracle errors \\
+\midrule
+1 & 2,395 & 208 & 2,187 & 35 & 0 & 174 \\
+3 & 2,237 & 430 & 1,807 & 43 & 2 & 271 \\
+7 & 1,921 & 605 & 1,316 & 44 & 6 & 298 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Source and implementation gate.} The analysis was run independently on the original pinned source in GitHub Actions, not on the manuscript's figure pixels. Both the original 35 grid cells and $45/79$ (gaps $\leq3$ days) were reproduced identically. The vectorized subset implementation additionally passed 52 prespecified checks against a separate direct-loop evaluation over selected subset positions and source months. This is \emph{internal independent-code-route verification}, not independent-field replication. Derived-only result JSON and CSV, executable code and logs are linked by the R42 development run at \url{https://github.com/shaikhamalkawi-ux/pv-missing-day-decision-reliability/actions/runs/44676668170}. Do not merge results from these subset and gap-position enumerations into the original cross-source denominators.
+
+
+\section*{S4j. Chronology-fixed retained-data boundary review signal}
+\paragraph{Question and source.} This subsequent sensitivity analysis uses the same original 280,512-row MORE-EU CSV, pinned Git blob \texttt{5611277efdd581bb839ec380239846a43ebe0ba7}; the unchanged 79 complete-month admission rule and the full fourteen-array panel are retained. The deletion target is the full-month shortlist at $q=5\%$, and each scenario removes \emph{exactly three} consecutive common days. The retained records are the only inputs to the review signal. The complete-month data are used solely to score whether the retained list differs from its known retrospectively complete reference.
+
+\paragraph{Prespecified observable score.} With the sum of observed normalized array outputs over all retained days denoted by $Y_j(R)$, let $r_j(R)=Y_j(R)/\max_k Y_k(R)$. The review-risk score is $s(R)=-\min_j |r_j(R)-0.95|$. Smaller distance to the declared boundary means larger $s$ and higher review priority. This score is not an imputation and contains neither the deleted intervals nor their sum. A one-sided, upper-quartile threshold estimated solely on the earliest 55 qualified months (February 2016--July 2021) was frozen before evaluating the later 24 months (August 2021--December 2023). The illustrative quarter-of-training-windows review setting is a capacity scenario, not a scientifically optimized utility weight. The resulting score threshold was $s\ge-0.001077879123675074$ (dimensionless).
+
+\begin{table}[htbp]
+\centering
+\caption*{Table S14. Time-held-out observed-only boundary-score review pilot, fixed $q=5\%$ and exactly three common missing days. A ``change'' is a retrospective disagreement between the retained-day and complete-month shortlists; it is not a recorded field outage.}
+\footnotesize
+\begin{tabular}{lrrrrrr}
+\toprule
+Split & Windows & Changed & TP & FP & FN & TN \\
+\midrule
+Early 55-month training & 1,557 & 263 & 168 & 222 & 95 & 1,072 \\
+Late 24-month test & 680 & 167 & 106 & 100 & 61 & 413 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Interpretation and independent checks.} The held-out AUC is 0.777089 (versus a rate-percentage-only global AUC of 0.429941 on this fixed three-day setup). That rate-only AUC is not a comparative model benchmark because the percentage is constant within each calendar month; it cannot distinguish individual three-day deletion positions in a month. Among the 18 held-out months that contain both changed and unchanged outcomes, median within-month AUC is 0.652524; 14 of the 18 are above 0.5 and four below. The review flag captures 106/167 changed lists, while 61 remain unflagged; its precision is 106/206 and it flags 30.3\% of the held-out positions, versus 25.0\% during threshold development. The windows are highly overlapping, and the months share a single plant. None of the numbers is an independent-trial accuracy guarantee, a prospective meter-loss prediction or a deterministic certificate.
+
+An independently written pure-Python reader aggregated the original CSV by source calendar day and recomputed each retained window directly, without relying on the primary NumPy full-minus-gap path. Its source-hash, 79-month admission, 680 held-out windows, 106/100/61/413 confusion counts, frozen threshold and AUC matched. Executable scripts and source-only GitHub Actions logs are in the research evidence archive; the licensed original CSV is not redistributed. Source check: \url{https://github.com/shaikhamalkawi-ux/pv-missing-day-decision-reliability/tree/r43-moreeu-retained-margin-timeholdout}.
+
+
+\section*{S4k. Conditional independent-site transfer and negative cutoff result}
+\paragraph{Source and frozen rule.} NREL PVDAQ site 2107, a separately operated agricultural-site PV plant in Arbuckle, California, has 24 recorded ABB TRIO-27.6-TL-OUTD-S1B inverter-power channels and 24 Hyundai HiS-M310TI module-group entries. The source lists aggregate DC nameplate power of 893.0~kW, but the module groups have different recorded module counts (three groups of 80, nineteen of 120, one of 160 and one of 200 modules). The provider's module entries do \emph{not} contain a populated inverter-ID association; pairing module and inverter names with matching suffixes is therefore a conditional analytical assumption, not verified wiring \href{https://doi.org/10.25984/1846021}{NREL PVDAQ/OEDI dataset}. Source identity was pinned to the original 2024 electrical CSV SHA-256 \texttt{\seqsplit{bb2e9f7495e471503daa2c4b4ae9aa053ca4c779d63665afb1c2270daaa243a5}} and equipment metadata SHA-256 \texttt{\seqsplit{17e4f7f448fcb2bec43f7610b40c1f7f4fc794ccc185e41dcde0514afba73ae5}}.
+
+The \emph{unchanged} retained-data score from S4j, with its $s\geq -0.001077879123675074$ cutoff, $q=5\%$ and exactly three deleted common calendar days, was applied to 2024 PVDAQ source-clock days. For primary admission, all 288 five-minute samples per day were required, and all 24 candidate monthly energies had to be positive; six months passed. No source records, actual labels or historical PVDAQ statistics were used to reselect the threshold. The complete PVDAQ months provide the reference shortlist only for a retrospective deletion test, not a natural outage. All source years were filtered by their actual timestamps, because the published 2025 increment also includes overlapping 2024 records.
+
+\begin{table}[htbp]
+\centering
+\caption*{Table S15. Frozen review cutoff transfer to PVDAQ 2107. Counts represent dependent retrospective three-day deletion placements. The two DC-normalized analyses assume unverified source name-suffix mapping. The equal-AC case represents a \emph{different} screening estimand, not a sensitivity to a calibrated DC measurement.}
+\footnotesize
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{p{4.1cm}rrrrrr}
+\toprule
+2024 cohort / normalization & Months & Windows & Changed & TP & FP & FN \\
+\midrule
+All 24, strict conditional DC & 6 & 169 & 14 & 0 & 0 & 14 \\
+All 24, zero-inclusive DC sensitivity & 8 & 227 & 14 & 0 & 0 & 14 \\
+First 14, conditional DC (fixed subset) & 6 & 169 & 14 & 0 & 1 & 14 \\
+All 24, equal AC-nameplate alternative & 6 & 169 & 4 & 1 & 11 & 3 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The strict all-24 test contained 155 true negatives and no flagged records; its pooled AUC was 0.9976958525. All 14 changed shortlist placements came from October 2024 (14/29 placements in that month); the remaining five strict months had no changes. Because the training-site cutoff never triggered, the observed recall of changed decisions was 0/14 even though pooled score ordering was high. In the zero-inclusive eight-month variant, allowing July and August 2024 with reported zero-device monthly outputs produced the same 14 missed changes, no flags, 213 true negatives and AUC 0.9983232730. The first-14-device conditional subset had one false-positive review flag and AUC 0.59355, while the equal-inverter-AC-nameplate alternative changed the comparator itself (four changed shortlists, one captured). These are not independent corroborating replications; they illustrate source and normalization dependence.
+
+\paragraph{Independent numerical replay and real-gap boundary.} A second original-CSV reader independently computed the primary and zero-inclusive 2024 confusion matrices, using month-minus-gap subtraction rather than direct retained-day summation; source hashes, AUC values and outcome counts matched. Under a distinct 2025 fixed local 10:00--14:00 source-window admission, only February and July had complete eligible months (55 deletion positions, no changed shortlists, AUC undefined). Separately, the 2025 original electrical files contained 9,899 missing midday five-minute inverter slots and 170 device-days without any complete midday reading across 24 channels. Missing values were \emph{not} treated as zero electrical output. Although a nominal revenue-grade site-meter stream continued, its all-inverter-complete time-aligned residual against the inverter sum had median absolute 14.068~kW and 95th percentile 139.065~kW across 3,568 daylight points. Without validated measurement boundaries, losses, uncertainty and common failure-path checks, this is \emph{not} an independently bounded missing-inverter reference. Therefore the test does not validate correctness in the genuinely incomplete 2025 records.
+
+\paragraph{Audit and admission conclusion.} The source-only runs are available in the \href{https://github.com/shaikhamalkawi-ux/pv-missing-day-decision-reliability/tree/r44-pvdaq2107-external-source-eligibility}{source-audit branch} (source inventory run 44811312579; frozen transfer 44812253923; independent 2024 replay 44812534612; observed-gap audit 44812816406; meter alignment 44813059913). The raw PVDAQ files are obtained separately from the original public OEDI archive and are not packaged here. The independent-site, original-source \emph{retrospective threshold transfer} is admitted as a conditional negative result, while a field-safe operating alarm and a true missing-month shortlist reference remain on HOLD. Its failure must not be erased by refitting the threshold on the already inspected PVDAQ cases and calling the resulting fit external validation.
+
+
+\section*{S4l. Same-cohort matched-review-budget reference for the retained-data signal}
+\paragraph{Purpose and frozen inputs.} This addition compares quantities on the \emph{same} held-out MORE-EU outcome, not accuracy measures borrowed from differently defined PV problems. It reads only the original R43 later-24-month aggregate ledger (source \texttt{R43\_TIME\_HOLDOUT\_EVIDENCE.json}) that was already produced from the pinned original 280,512-row MORE-EU source. The original score, its $s\geq-0.001077879123675074$ cutoff, all daily deletion outcomes, its 55/24-month chronological division and all 680 held-out outcome labels remain unchanged. Exactly three \emph{common} days are removed from fourteen arrays for every candidate test case; thus all candidate deletion placements within one calendar month have the same missing-day fraction. The full-month reference is known only retrospectively.
+
+\paragraph{Conditional tie-break calculation.} For month $m$, let $N_m$ be the number of admissible three-day deletion placements, $K_m$ the number for which the retained-day shortlist changes, and $f_m$ the actual number of placements flagged by the retained-data score. A rate-only input $3/|D_m|$ is constant across placements within the month. To make the comparison conservative with respect to review burden, the hypothetical tie-breaker is \emph{given the exact monthly review quota $f_m$ of the tested score}, then distributes those $f_m$ review slots uniformly among $N_m$ placements. Its expected changed lists reviewed, conditional on the retrospective $K_m$, are
+\[
+\mathbb{E}_{\rm tie}[\mathrm{TP}\mid \{N_m,K_m,f_m\}]
+    = \sum_{m=1}^{24}\frac{f_mK_m}{N_m}
+    = 89.42838196286472.
+\]
+This expectation uses knowledge of $K_m$ and the score's review allocation \emph{solely to describe a counterfactual allocation baseline}. It is neither an implementable stand-alone missing-fraction policy nor a new trained model, and no random experiment was run. On the same 680 deletion positions, the score actually flagged 206 cases and detected 106 of 167 changed shortlists, while missing 61; 100 of its review flags were on unchanged lists. The conditional expected recall is $89.42838/167=53.55\%$, versus observed $106/167=63.47\%$ for the score, an arithmetic difference of 16.57 detected placements or 9.92 percentage points. No $p$-value, confidence interval, operating cost saving or causal improvement is inferred, because the 680 deletion positions overlap heavily within one serially dependent plant and the tie baseline is conditioned on observed quotas.
+
+\paragraph{Independent arithmetic gate and provenance.} The 24 inherited per-month records sum exactly to $680$ held-out windows, $167$ changes, $206$ review flags and $106$ changed-list flags. The archived derived-only monthly CSV preserves $N_m$, $K_m$, $f_m$, flagged changes and the term $f_mK_m/N_m$ for all 24 months; no third-party raw data are republished. One calculation uses the archived time-held-out ledger; the independent verification uses rational-number summation and checks the frozen totals. The purpose is to make the rate-only limitation visible on an unchanged outcome and review budget, \emph{not} to establish a successful prospective alarm, especially given the conditional external-site cutoff failure.
+
+
+\section*{S5. Interpretation and claim boundaries}
+These analyses describe changes to a specified shortlist after enumerated common-day deletions from complete admitted records. The dependence among months and overlapping gap placements precludes interpreting source fractions as independent outage-event probabilities. Different measurement definitions and candidate sets also preclude pooled hardware-reliability comparisons.
+
+Three qualifications matter when reusing the results. The HKUST site-power series shares numerical lineage with inverter readings and supplies no independent device calibration. The gain-envelope checks use assumed device factors rather than measured uncertainty. Finally, an actually incomplete month has no observed complete-month shortlist; deciding its membership would require recovered data or defensible bounds on missing yields. The PVDAQ cutoff result and the source-specific admissibility rules should be read with those distinctions in mind.
+
+\section*{S6. Relation to prior work}
+The main manuscript places this study alongside PV reconstruction, performance-loss estimation, abnormal-operation detection and maintenance-prioritization research. Those strands evaluate signal recovery, continuous estimates or labelled equipment events; this audit measures changes in membership of a fixed near-best-yield shortlist. Previous work on case removal and ranking stability provides the mathematical background. Table S16 records the endpoints and sources of the selected 2020--2026 literature. Because the outcomes differ, the published RMSE, PR, F1 and PLR intervals are not treated as comparable algorithm scores.
+
+\medskip
+\noindent\textbf{Table S16 --- Study-level 2020--2026 literature crosswalk.} This targeted comparison covers source quality, reconstruction, performance estimation, anomaly detection and decision support. The sources are mapped by their published endpoint and role in the present shortlist audit.
+\begingroup
+\scriptsize
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.14}
+\begin{longtable}{L{2.75cm}L{4.6cm}L{6.3cm}L{1.2cm}}
+\toprule
+Study & Published endpoint or evidence & Relation to the shortlist endpoint & Source \\
+\midrule
+\endfirsthead
+\toprule
+Study & Published endpoint or evidence & Relation to the shortlist endpoint & Source \\
+\midrule
+\endhead
+\bottomrule
+\endfoot
+Lindig et al. (2020) & PV quality, filters, weather-data imputation & Record-quality and imputation context & \href{https://doi.org/10.3390/en13195099}{DOI} \\
+Livera et al. (2021) & PR quality verification; max 0.92\% PR error in a stated \ensuremath{\leq 10\%} invalid-data condition & Continuous performance-ratio fidelity & \href{https://doi.org/10.1002/pip.3349}{DOI} \\
+Lindig et al. (2021) & Data-quality benchmarking of performance-loss rates & Long-term PLR estimation & \href{https://doi.org/10.1002/pip.3397}{DOI} \\
+Romero-Fiances et al. (2022) & Duration and missing-data effects in degradation analysis & Degradation-rate estimation & \href{https://doi.org/10.1016/j.renene.2021.09.078}{DOI} \\
+Choi et al. (2022) & Solar-monitoring data errors in Korean plants & Monitoring-record anomalies & \href{https://doi.org/10.1016/j.rser.2021.112007}{DOI} \\
+de-Paz-Centeno et al. (2023) & PV-power reconstruction with severe data gaps & PV signal reconstruction & \href{https://doi.org/10.1016/j.eswa.2023.119510}{DOI} \\
+Theristis et al. (2024) & Continuous outages and climate-sensitive PLR uncertainty & Continuous-gap effects on PLR & \href{https://doi.org/10.1002/solr.202300815}{DOI} \\
+Laguna et al. (2024) & RLS abnormal-operation detection with low sensor availability & Physical abnormal-operation detection & \href{https://doi.org/10.1016/j.solener.2024.112556}{DOI} \\
+IEA PVPS Task 13 (2024) & KPI guidance: missingness distribution and use-specific choices & Technical KPI guidance and gap patterns & \href{https://iea-pvps.org/wp-content/uploads/2024/12/IEA-PVPS-T13-28-2024-REPORT-Technical-and-Economic-KPIs.pdf}{Task 13 report} \\
+Miskovich et al. (2025) & Solar Data Tools: quality and unlabeled PV data analytics & Automated PV record screening & \href{https://doi.org/10.21105/joss.08478}{DOI} \\
+Quest et al. (2025) & Multi-annual PLR; reported tenfold CI reduction & Multi-year PLR uncertainty & \href{https://doi.org/10.1002/pip.3855}{DOI} \\
+Quest et al. (2025) & More than 300 strings; relate faults to PLR trends & Fault-associated PLR trends & \href{https://doi.org/10.1002/solr.202500487}{DOI} \\
+Liu et al. (2025) & FDD review organized by data available and fault tasks & Fault-detection method taxonomy & \href{https://doi.org/10.1016/j.apenergy.2025.126636}{DOI} \\
+Miraftabzadeh et al. (2025) & Unsupervised PV anomaly detection; test F1 = 0.9535 & Anomaly detection using F1 & \href{https://doi.org/10.1016/j.segan.2025.101769}{DOI} \\
+Mantuano et al. (2025) & Energy-model consequences of renewable-series imputation & Energy-system model outcomes & \href{https://doi.org/10.1016/j.enconman.2025.119857}{DOI} \\
+Lee et al. (2026) & SLR/kNN/ANN BIPV gap imputation and reproducibility & BIPV power imputation & \href{https://doi.org/10.1016/j.solener.2026.114428}{DOI} \\
+Wang and Zhang (2026) & Repair policies and four held-out PV monitoring sites & Missing-value repair policies & \href{https://doi.org/10.3390/s26206589}{DOI} \\
+Zhang et al. (2026) & Weather/context transformer PV-power gap repair & PV power reconstruction & \href{https://doi.org/10.1016/j.renene.2025.124576}{DOI} \\
+Mendonca Severiano et al. (2026) & 1,089 systems; 807 fault events; 92/88\% category accuracy & Labelled inverter-event classification & \href{https://doi.org/10.1016/j.solener.2026.114382}{DOI} \\
+Tang et al. (2026) & Panel-risk evidence and maintenance-priority scores & Maintenance-risk prioritization & \href{https://doi.org/10.3390/s26144487}{DOI} \\
+Daskalov et al. (2026) & SolarMagix open dataset with inter-/intra-day gaps & Possible resource for further gap studies & \href{https://doi.org/10.1016/j.dib.2026.112830}{DOI} \\
+\end{longtable}
+\endgroup
+
+\paragraph{Exact claim boundary.} The study extends existing evidence on PV data gaps by examining a prespecified shortlist and exact tolerance intervals. The literature comparison is therefore organized by measured endpoint rather than ranking dissimilar reported accuracy metrics.
+
+\section*{S7. Reproducibility and rights boundary}
+The public \href{https://github.com/shaikhamalkawi-ux/pv-missing-day-decision-reliability}{pv-missing-day-decision-reliability} repository retains the original three-source code and derived results. A \href{https://github.com/shaikhamalkawi-ux/pv-missing-day-decision-reliability/tree/main/release/2026-11-22-r55-ep2}{current author-review snapshot} provides the manuscript, Supplementary Material, approved figures, published aggregates and a standalone complete-month shortlist script with synthetic software tests. The snapshot is not a complete raw-data-to-result reproduction of the extended four-source audit. Supporting source-pinned MORE-EU subset and retained-data score tests are documented in S4i--S4j; the conditional PVDAQ transfer audit is linked in S4k. Additional exact-$q$ and gain-sensitivity verification records remain in the separately controlled evidence archive. Donor-restricted PROPRE.MA, original EURAC, CC BY-NC MORE-EU, HKUST and PVDAQ raw files are not republished; they must be obtained from their authorized custodians subject to source terms. PROPRE.MA reconstructed point-yield intervals remain conditional on source-timing uncertainty.
+
+HKUST replay uses its original 2024 public Zenodo record 10909062 (original archive SHA-256 \texttt{\seqsplit{610500cfda8309bcba85c4562a1406592882094638132c7ee478cd53e37e96ec}}), not a later replacement release. The original-publisher paired-power audit includes 93 complete Library days in the admitted decision comparison; other roofs remain secondary or held. The independent time-support checks were reproduced from the original checksum-verified archive, with original roof-month admission preserved (\href{https://github.com/shaikhamalkawi-ux/pv-missing-day-decision-reliability/actions/runs/43821197373}{source-validation run}). The site-power stream is numerically reconstructible from its inverter constituents and does not establish independent instrument calibration or an independently surviving backup channel. Author approval is required before release of extended source-derived certificates or submission declarations.
+
+
+\medskip
+\section*{S8. Supplementary visual summaries of the admitted source records}
+Figures S1--S4 summarize the four source contexts, invisible-margin counts and PV equipment metadata used in the audit. Drawn modules are schematic, and the source fractions should be read within their respective comparison definitions.
+\setcounter{figure}{0}
+\renewcommand{\thefigure}{S\arabic{figure}}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.99\textwidth]{figures/PV_CONTEXT_FOUR_SOURCES.pdf}
+\caption{Four distinct observed comparison contexts under the identical $q=5\%$, $L\leq3$ common-day deletion test: PROPRE.MA 3/25, EURAC 1/7, MORE-EU 45/79, and HKUST Library 0/3. Cohort sizes, candidate counts, and measurement definitions differ; this descriptive visual must not be read as a comparative PV technology, site, or equipment reliability ranking. The module icons are illustrative.}
+\label{fig:s_four_source_context}
+\end{figure}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.99\textwidth]{figures/RESULT_INVISIBLE_INTERVALS.pdf}
+\caption{Source-specific fragile $q$ intervals not intersected by the original five-point tolerance grid (PROPRE.MA 33/45; EURAC 12/14; MORE-EU 175/275; HKUST Library 3/4). Ratios count \emph{margin intervals} rather than months or future failure events. In MORE-EU the median width of the 175 invisible intervals is 0.409 percentage points. The PROPRE.MA intervals are conditional on the archived reconstructed point yields.}
+\label{fig:s_hidden_margins}
+\end{figure}
+
+
+\medskip
+\paragraph{System context.} Figures S3 and S4 depict the recorded EURAC and HKUST candidate configurations.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.98\textwidth]{figures/PV_CONTEXT_EURAC.pdf}
+\caption{Illustrative PV module contexts corresponding to the four EURAC systems retained for source-specific shortlist analysis: Trina polycrystalline Si (2.070~kW), SunPower monocrystalline Si (1.200~kW), Sanyo HJT (3.870~kW), and W\"urth CIGS (1.050~kW) installed system DC-STC normalizers. The observed 1/7 fragile-month result at $q=5\%$, $L\leq3$ refers to a \emph{collective four-system shortlist}, not a technology-specific score. PV drawings are conceptual, not actual site photographs (\href{https://doi.org/10.5281/zenodo.18316996}{source: EURAC Research}).}
+\label{fig:s_pv_eurac}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.98\textwidth]{figures/PV_CONTEXT_HKUST.pdf}
+\caption{Illustrative configuration of the three HKUST Library inverter groups based on the source module counts and DC-STC normalizers: 156 modules (57.72~kW), 152 modules (56.24~kW), and 152 modules (56.24~kW); source module rating 370~W. Each inverter contributes five-minute observed AC output. The $0/3$ at $q=5\%$ is a retrospective shortlist-deletion result for three source months, not a comparison of PV module technologies. Graphics are schematics and do not represent measured roof layout (\href{https://doi.org/10.1038/s41597-025-04397-y}{source: Lin et al., 2025}).}
+\label{fig:s_pv_hkust}
+\end{figure}
+
+
+\clearpage
+\section*{S9. Practitioner workflow: retrospective shortlist audit on complete PV monitoring records}
+This procedure is intended for PV performance analysts working with the data custodian or O\&M engineer who can verify timestamps, candidate identity and normalization. It assesses the stability of a near-best-yield shortlist on complete archived months. Establish the original source-calendar coverage and comparable daily yields before calculation; if the complete reference cannot be verified, mark the month \textsc{hold}.
+
+The question is: for this set of candidates and selection margin $q$, does deleting the same consecutive recorded days change which candidates meet $(1-q)$ times the highest retained normalized monthly yield? Report membership changes for the tested windows and keep them separate from physical fault labels.
+
+\paragraph{Five implementation steps.}
+\begin{enumerate}
+\item \textbf{Choose the decision object.} Freeze the source/site, candidate IDs, daily normalized-yield meaning, screening margin $q$, and maximum tested common-day gap $L$. The original comparison uses $q\in\{0,0.025,0.05,0.075,0.10\}$ and $1\leq L\leq7$; $q=0.05$ is an illustration, \emph{not} a deployment setting.
+\item \textbf{Check the source gate.} Only keep a calendar month when all required qualified days and the \emph{same} candidates have admitted, comparable measurements. Do not fill any missing cell, quietly change time bases, mix AC with DC yields, or assume undocumented array-to-inverter pairings. An actual incomplete month is \textbf{HOLD} for this complete-reference test.
+\item \textbf{Establish the reference.} Sum each candidate's admitted normalized daily yields over the complete calendar month and retain the candidates at or above $(1-q)$ times the highest total (main Eq.~1). Record the exact IDs, not only a count.
+\item \textbf{Try every eligible common-day deletion.} For each block of one to $L$ consecutive calendar days that leaves at least ten retained days, remove those dates from \emph{every} candidate, recompute the same rule and record the added/removed candidates. A month is fragile when \emph{at least one} eligible block changes membership (main Eqs.~2--3). Deletion windows overlap and must not be treated as independent outage events.
+\item \textbf{Report, interpret and stop appropriately.} Return the source-month, measurement basis, candidate universe, $q$, omitted start/end dates, complete reference set, retained set and change indicator. ``Unchanged'' describes only these tested retrospective deletions. ``Changed'' requests record review; neither label establishes a physical fault or the correctness of a naturally incomplete future month.
+\end{enumerate}
+
+\paragraph{Small companion program.}
+The reproducible source ZIP contains \nolinkurl{pv_shortlist_retrospective_audit.py}, a Python standard-library reference for the set comparison above, plus deterministic synthetic \emph{software-only} tests. It accepts a CSV with exactly these headings:
+\begin{center}\small\texttt{month,date,candidate,normalized\_yield}\end{center}
+Here \texttt{month} is \texttt{YYYY-MM}, \texttt{date} is a source-calendar \texttt{YYYY-MM-DD}, \texttt{candidate} is a stable physical comparison ID, and \texttt{normalized\_yield} is the already quality-approved nonnegative daily normalized production value. A complete candidate-by-day calendar matrix is required. The script rejects missing dates, duplicated candidate-day rows, incomplete candidate coverage, invalid values and undefined maximum-yield cases. It tests blocks no longer than seven days and never imputes a value. It does \emph{not} replicate source-specific admission, physical normalization, published MORE-EU holdout score calibration, PVDAQ transfer, exact-$q$ interval construction, or any other later analysis.
+
+Run on authorized source-qualified data, after independently confirming source and measurement definitions:
+\begin{quote}\small\ttfamily
+python pv\_shortlist\_retrospective\_audit.py
+
+\hspace*{1em}-{}-input qualified\_complete\_daily.csv
+
+\hspace*{1em}-{}-source-id MY\_SOURCE
+
+\hspace*{1em}-{}-measurement-basis source\_qualified\_normalized\_yield
+
+\hspace*{1em}-{}-q 0.05 -{}-max-gap 3 -{}-out audit\_results
+\end{quote}
+The program writes \nolinkurl{scenario_membership_audit.csv}, \nolinkurl{month_fragility_summary.csv} and \nolinkurl{audit_scope_and_provenance.json} with a SHA-256 digest of the supplied CSV. The digest records the input version; source qualification remains a separate check.
+
+\paragraph{Worked audit record from the published HKUST example (not a new experiment).}
+A monitoring analyst can write the example without reconstructing unreported daily energy values: \emph{Source/month}: HKUST Library, July 2023; \emph{candidates}: Inverters 1, 2 and 3; \emph{margin}: $q=10\%$; \emph{complete-month reference}: \{1,2,3\}. Under the shared 1--7 July omission the retained list is \{1,2,3\}, so membership is unchanged; under the equally long 5--11 July omission the retained list is \{1,2\}, so Inverter 3 is removed. Both are \emph{hypothetical omissions of observed days}. A local analyst should report these alongside its own verified measurement basis and source evidence, never relabel the counterfactual rows as true outages or inferred equipment faults.
+
+\paragraph{When to stop rather than calculate.}
+If an archived candidate-month fails source-clock, physical-identity, normalization or full-calendar coverage checks, the retrospective audit is \textsc{hold} and the operator should first resolve source quality. If a current month has natural missing days, the true reference list is unavailable; the present script cannot decide whether its retained-data shortlist is correct. Recovering trusted observations, establishing independent bounds or training a site-validated review policy are \emph{different} tasks requiring their own evidence. An unflagged event is not automatically a stable or safe shortlist.
+
+\paragraph{Decision transfer rule.}
+A team wishing to use this work on naturally incomplete records would need either recovered trusted observations or independently justified candidate-specific bounds on the missing energy, and a separately validated operational decision rule. The tested MORE-EU review flag missed 61/167 known retrospective changes in later months; its frozen cutoff at the conditional PVDAQ site flagged 0/14. Accordingly, this code must not be presented as an alert, fault detector, automatic rejection mechanism, safe-performance guarantee, or deployed review-cost optimizer.
+
+\end{document}

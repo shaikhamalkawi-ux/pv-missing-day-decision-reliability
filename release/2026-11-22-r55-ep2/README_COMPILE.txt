@@ -1,0 +1,1 @@
+Paper/supplement are standalone LaTeX documents. Build with pdflatex twice from the repository root, retaining the `paper/` and `figures/` subfolder layout, or from `paper/` using the figures directory one level above as in the provided layout. See manuscript for Data and code availability. This snapshot is author review, not journal accepted.

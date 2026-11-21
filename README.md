@@ -1,126 +1,43 @@
 # PV Missing-Day Decision Reliability
 
-Public reproducibility materials for the manuscript:
+This is the public repository supporting the author-review manuscript **When Missing Monitoring Days Change Photovoltaic Screening Shortlists: A Four-Source Retrospective Audit** (22 November 2026). It studies whether a declared near-best-yield comparison shortlist changes when common consecutive days are removed from qualified complete monitoring months. The tested retrospective shortlist is **not** a fault detector, maintenance queue, operational alarm or guarantee about actual missing-data periods.
 
-**When Missing Days Change a Photovoltaic Comparison Decision: A No-Imputation Reliability Surface Across Three Field Datasets**
+## Current manuscript, figures and data-access guide
 
-## What this repository contains
+**[Current author-review snapshot: R55-EP2](release/2026-11-22-r55-ep2/README_RELEASE.md)**
 
-This repository supports a PV-domain decision-reliability study that asks whether a declared candidate shortlist remains unchanged when whole observed days are unavailable. Missing energy is **not imputed** in the primary analysis.
+- [Main manuscript (PDF)](release/2026-11-22-r55-ep2/paper/main.pdf)
+- [Supplementary Material (PDF)](release/2026-11-22-r55-ep2/paper/supplement.pdf)
+- [Main followed by Supplementary Material (PDF)](release/2026-11-22-r55-ep2/paper/main_then_supplement.pdf)
+- [LaTeX source and approved vector figures](release/2026-11-22-r55-ep2/paper/main.tex)
+- [Published aggregate results only](release/2026-11-22-r55-ep2/data/locked_published_summary.csv)
+- [Original-data access register](release/2026-11-22-r55-ep2/data/source_access_register.csv)
+- [Runnable complete-month shortlist script and synthetic tests](release/2026-11-22-r55-ep2/code/)
+- [Integrity verifier and manifest](release/2026-11-22-r55-ep2/verify_snapshot.py)
 
-The locked analysis uses three materially different sources:
+The latest manuscript uses four non-pooled sources: PROPRE.MA, EURAC, MORE-EU and a retrospective HKUST Library subset. The separate conditional NREL PVDAQ test evaluates a frozen review cutoff on another site. The manuscript and its supplement explain the scope and limitations; source-specific records are not exchangeable.
 
-- **PROPRE.MA (Morocco):** restricted donor archive; only derived, non-raw results are released here.
-- **EURAC (Bolzano, Italy):** public dataset on Zenodo, DOI `10.5281/zenodo.18316996`.
-- **MORE-EU:** public `OpenData` repository; the analysis pins `Array Power.csv` Git blob `5611277efdd581bb839ec380239846a43ebe0ba7`.
+## Scientific snapshots and historical branches
 
-The study does **not** claim a new generic case-removal robustness principle, intrinsic PV-technology superiority, a procurement error probability, or a causal climate effect.
+The older root `paper/`, `code/`, `results/` and `figures/` retain the **original three-source R25 public reproduction**, not the current four-source author-review paper. They remain in place for scientific provenance. Additional public source-pinned investigations were published on historical branches, including:
 
-## Repository structure
+- [`r42-moreeu-candidate-count-rateonly-audit`](https://github.com/shaikhamalkawi-ux/pv-missing-day-decision-reliability/tree/r42-moreeu-candidate-count-rateonly-audit)
+- [`r43-moreeu-retained-margin-timeholdout`](https://github.com/shaikhamalkawi-ux/pv-missing-day-decision-reliability/tree/r43-moreeu-retained-margin-timeholdout)
+- [`r44-pvdaq2107-external-source-eligibility`](https://github.com/shaikhamalkawi-ux/pv-missing-day-decision-reliability/tree/r44-pvdaq2107-external-source-eligibility)
 
-```text
-paper/       manuscript/Supplement LaTeX; CI-generated review PDFs
-code/        analysis and verification scripts
-results/     locked derived result tables and result certificates
-figures/     CI-generated central q x gap-length reliability surfaces
-metadata/    source and literature registers
-```
+These source-specific branches are *not* identical to a single end-to-end raw-data replay of the current four-source paper. The old R25 root workflow continues to reproduce its own locked results.
 
+## Public reproduction and data restrictions
 
-## Review PDFs
-
-The reproducibility workflow builds and commits:
-
-- `paper/106Amen_R25_JournalNeutral_Main.pdf`
-- `paper/106Amen_R25_Supplementary_Material.pdf`
-- `paper/106Amen_R25_Main_plus_Supplement.pdf`
-
-If these PDFs are not yet present immediately after repository initialization, check the `Reproducibility and PDF build` GitHub Actions run; the generated files are committed after the first successful build.
-
-## Locked primary design
-
-- shortlist margin: `q in {0, 2.5%, 5%, 7.5%, 10%}`
-- contiguous whole-day gap length: `L = 1,...,7`
-- at least 10 retained days
-- no missing-day energy imputation
-- datasets are analyzed separately and are not pooled into a single failure probability
-
-At `q=5%` and gaps no longer than three days, the locked fragile-month counts are:
-
-- PROPRE.MA: `3/25`
-- EURAC: `1/7`
-- MORE-EU: `45/79`
-
-These are descriptive source-specific counts, not independent-trial probabilities.
-
-## Quick public reproduction
-
-### 1. Create an environment
+Run the limited standalone reader on already source-qualified, complete daily normalized-yield data:
 
 ```bash
-python -m venv .venv
-source .venv/bin/activate  # Windows: .venv\\Scripts\\activate
-pip install -r requirements.txt
+python release/2026-11-22-r55-ep2/code/test_pv_shortlist_retrospective_audit.py
+python release/2026-11-22-r55-ep2/verify_snapshot.py
 ```
 
-### 2. Rebuild the publication figures from locked released tables
+The original raw source files are **not redistributed** in this repository: restricted PROPRE.MA donor records require authorization; the public source archives for EURAC, MORE-EU, HKUST and NREL PVDAQ must be obtained directly from their respective providers and used under the providers' terms. See [DATA_AVAILABILITY.md](DATA_AVAILABILITY.md) and Supplementary Section S7. Original derived summary counts are not probabilities of field outages.
 
-```bash
-python code/plot_decision_reliability_surface.py \
-  --surface results/R22_DECISION_RELIABILITY_SURFACE.csv \
-  --out figures/rebuilt
-```
+## Publication and citation status
 
-### 3. Verify the locked publication counts
-
-```bash
-python code/verify_publication_results.py
-```
-
-### 4. Re-run the public EURAC branch
-
-Download the official EURAC archive from Zenodo and run:
-
-```bash
-bash code/r19_eurac/reproduce_all_r19.sh /path/to/EURAC.rar /tmp/eurac_extracted /path/to/output
-```
-
-The scripts verify the expected source checksum before analysis.
-
-### 5. Re-run the public MORE-EU branch
-
-Obtain `Solar Park Data -INACCESS/Array Power.csv` from the official MORE-EU repository at the pinned Git blob and run:
-
-```bash
-python code/r20_more_eu/reproduce_r20_more_eu.py \
-  "/path/to/Array Power.csv" \
-  /path/to/output
-```
-
-The exact MORE-EU source identity is pinned in `DATA_AVAILABILITY.md` and `results/R22_RESULT_CERTIFICATE.json`; obtain `Array Power.csv` from that exact Git blob before replay.
-
-## PROPRE.MA rights boundary
-
-Raw PROPRE.MA donor files are intentionally **not redistributed**. The public repository contains only derived publication-level tables/figures and analysis code that does not embed donor raw bytes. Full raw-source replay of the PROPRE.MA branch therefore requires authorized access to the restricted donor archive.
-
-## Data sources
-
-- EURAC Research, *EURAC photovoltaic data*, Zenodo v1: https://doi.org/10.5281/zenodo.18316996
-- MORE-EU/OpenData: https://github.com/MORE-EU/OpenData
-- PROPRE.MA background publication: https://doi.org/10.1016/j.esd.2019.09.002
-
-## Reproducibility status
-
-The manuscript integrates locked R22 results. Upstream project QA reported exact cross-stage reproduction of the `q=5%`, `L<=3` counts and clean-source compilation of the manuscript and Supplementary Material. See `results/R22_RESULT_CERTIFICATE.json` and `paper/`.
-
-## License and citation
-
-- Analysis code in `code/`: MIT License (see `LICENSE`).
-- Third-party datasets retain their original licenses and are **not** redistributed here.
-- Manuscript, figures, and derived result tables are provided for scholarly review and reproducibility; copyright remains with the authors unless a later release states otherwise.
-
-Author metadata is intentionally not invented here. See `CITATION_TEMPLATE.md`; a machine-readable `CITATION.cff` should be added only after the final author list and ORCIDs are approved.
-
-## Continuous verification
-
-GitHub Actions reruns the locked result checks, rebuilds the three q x gap-length surfaces, compiles the journal-neutral manuscript and Supplementary Material, and commits the generated review PDFs back to the repository.
+This is a reproducibility and author-review repository, not an accepted journal publication. Bibliographic author metadata, permissions, licences for any wider redistribution and DOI have not been finalized. See [citation guidance](CITATION_TEMPLATE.md) before citing. Code licences are project-specific, with existing original analysis code under MIT; third-party source data retain their original terms.

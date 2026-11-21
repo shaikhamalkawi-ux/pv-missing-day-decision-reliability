@@ -1,0 +1,6 @@
+source,role,public_original_landing,raw_redistributed,qualification
+PROPRE.MA,Primary restricted cohort,https://doi.org/10.1016/j.esd.2019.09.002,no,Donor authorization required for raw data; 25 admitted source-months from restricted counter data
+EURAC,Primary observed-system cohort,https://doi.org/10.5281/zenodo.18316996,no,7 admitted months; four systems; official archive separately downloadable
+MORE-EU,Primary normalized-array cohort,https://github.com/MORE-EU/OpenData,no,79 admitted complete months; Git blob 5611277efdd581bb839ec380239846a43ebe0ba7
+HKUST Library,Retrospective fourth source,https://zenodo.org/records/10909062,no,3 admitted months; source ZIP SHA256 610500cfda8309bcba85c4562a1406592882094638132c7ee478cd53e37e96ec
+NREL PVDAQ 2107,Conditional cross-site review cutoff stress test,https://doi.org/10.25984/1846021,no,Source-specific 2024 electrical and metadata hashes in Supplement; module-to-inverter mapping unverified

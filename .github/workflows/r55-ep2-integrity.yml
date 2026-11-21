@@ -1,0 +1,33 @@
+name: Current four-source paper snapshot integrity
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'release/2026-11-22-r55-ep2/**'
+      - '.github/workflows/r55-ep2-integrity.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify-snapshot:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Verify published snapshot bytes and source-rights boundary
+        run: python release/2026-11-22-r55-ep2/verify_snapshot.py
+      - name: Test qualified complete-month shortlist utility (synthetic only)
+        run: python release/2026-11-22-r55-ep2/code/test_pv_shortlist_retrospective_audit.py
+      - name: Confirm release directory and paper links
+        run: |
+          test -f release/2026-11-22-r55-ep2/paper/main.pdf
+          test -f release/2026-11-22-r55-ep2/paper/supplement.pdf
+          test -f release/2026-11-22-r55-ep2/paper/main.tex
+          test -f release/2026-11-22-r55-ep2/paper/supplement.tex
+          grep -q 'pv-missing-day-decision-reliability' release/2026-11-22-r55-ep2/paper/main.tex
+          grep -q 'release/2026-11-22-r55-ep2' README.md

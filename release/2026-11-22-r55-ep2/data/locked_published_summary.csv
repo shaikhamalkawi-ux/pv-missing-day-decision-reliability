@@ -1,0 +1,11 @@
+group,measure,numerator,denominator,condition,scope
+PROPRE.MA,fragile admitted months,3,25,q=0.05 and max gap 3 days,source-specific retrospective
+EURAC,fragile admitted months,1,7,q=0.05 and max gap 3 days,source-specific retrospective
+MORE-EU,fragile admitted months,45,79,q=0.05 and max gap 3 days,source-specific retrospective
+HKUST Library,fragile admitted months,0,3,q=0.05 and max gap 3 days,retrospective single-roof extension
+HKUST Library,changed seven-day placements,3,25,July 2023 and q=0.10,retrospective counterfactual
+MORE-EU,mixed changed-unchanged months for fixed three-day gaps,43,79,q=0.05 14 arrays,within-plant overlapping scenarios
+MORE-EU,grid-invisible exact-q intervals,175,275,q between 0 and 0.10,post hoc source point-yield intervals
+MORE-EU later months,flagged changed shortlists,106,167,24 later months; 206 flagged windows,retrospective retained-record signal
+MORE-EU later months,unflagged changed shortlists,61,167,24 later months,retrospective retained-record signal
+NREL PVDAQ 2107,flagged changed shortlists,0,14,strict 2024 six-month conditional mapping,conditional negative cutoff transfer

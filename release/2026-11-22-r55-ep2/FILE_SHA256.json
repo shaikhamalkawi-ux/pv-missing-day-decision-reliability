@@ -1,0 +1,33 @@
+{
+  "files": {
+    ".gitignore": "25e275aac9e84105413869ae592b951b495fa531b303f6d5e3e0737cf10514f0",
+    "CITATION_TEMPLATE.md": "b67f8bd8b5174d990aed357531b72e7bcf521e0a6edba351aff2f2e5f5382072",
+    "README_COMPILE.txt": "eaee888948a9f400c518827f6c4d7fb60c928bae240bf426197602aafe9baef6",
+    "README_RELEASE.md": "029f28422b8c1a50597c3d6d197e1168bed243b00feef7abc6c55ee1acc9904f",
+    "RELEASE_SCOPE.md": "e1b7574a9cafe073d75fbc9447fb3c3754cf65d08d5819440c16d72a4324de62",
+    "STAGING_NOTE.md": "109267a0635dc9cc0c6de71cfe46e0a8aa04087ff976fe35528cb62fc275f600",
+    "code/pv_shortlist_retrospective_audit.py": "41f999e778836610c78becd38eedcc06e3e605304951913177c066646b6863e0",
+    "code/qualified_daily_template.csv": "90ea412724411f698ef007217cd837bf66c8fdd9d32c83fdca93bdfe32b6e68b",
+    "code/test_pv_shortlist_retrospective_audit.py": "418e382c9c2ee493d230451edd416483ac57c398142353e586c5602c7a68edcd",
+    "data/locked_published_summary.csv": "2a7ba3c01f8ac208f6b49be87605bbaa0ac9daa7d33829292c325aeea0d48703",
+    "data/source_access_register.csv": "9150de00e53b0a48cc1c619c009e55143a5002d78663d3436fe12352b01a5bc4",
+    "figures/PV_CONTEXT_EURAC.pdf": "c56d8122391f7f00f4fb65a53036e9dba7c84cff3b4dd54c4109ed6acfe38ae3",
+    "figures/PV_CONTEXT_FOUR_SOURCES.pdf": "9aaefe0239814057002a7d25d14d4a8720543ab7057310e2b91063c6a62a4916",
+    "figures/PV_CONTEXT_HKUST.pdf": "b75d01351b710bbe7c641070e65ef3f1af13c831029196bf0fee7a2126d917c6",
+    "figures/R42_MORE_EU_CANDIDATE_COUNT.pdf": "3abfdd276375bbae244cb622b90a432ec59f863c0a559d0df11d77a1616a1596",
+    "figures/RESULT_EQUAL_SEVEN_DAYS.pdf": "6c87d7a60b7c58166e909be8c28af24de3c869157d7b4a72c9fc78b8c0e43b7b",
+    "figures/RESULT_EURAC.pdf": "3b985c4470949497e769746d95e8fe7b404fcf52af6a937e7032be8003562949",
+    "figures/RESULT_HKUST_EXACTQ.pdf": "34880cd198d321e0b7da245708af657ff4f15673d29e6460f5fea766792f473a",
+    "figures/RESULT_INVISIBLE_INTERVALS.pdf": "011a532a63016953c37526242ce9498dff6a292c8d68ab5f283ef4c41ec2c54f",
+    "figures/RESULT_MORE_EU.pdf": "0d182ec267935af5d220fc5231f9491889d4a97f5cd4137fe53150970579a891",
+    "figures/RESULT_PROPREMA.pdf": "ec0942b327bed67cb6bf57ad3793564036aec67f72b52c77690f9f422edf6db9",
+    "figures/RESULT_SOURCE_TIMEBASE.pdf": "7719265fd64fcc2bad2348020a88e34a267b9962e0289004eb3e0fafbd430d45",
+    "paper/main.pdf": "df80b5d72990ee7ba379540047ae697afecb2a9ce27174c8383a0b3322ccbd83",
+    "paper/main.tex": "f85b5c8accc6556537546aee8b8b0bdbc28c71d56b2dbed61cf5feada9858339",
+    "paper/main_then_supplement.pdf": "b0dd779354a3849ebdb733480c25bef1ee0ef9650a96f3ca7dfa24d43c8162c7",
+    "paper/supplement.pdf": "8e03e4630a942ba78ed188133e25c52ecd011e9be066026374d7770ea92ef442",
+    "paper/supplement.tex": "1ee94f8e8a5f87d141df8074964bf7ec6d3b020ae5a4f424959cc82f93864fb0"
+  },
+  "purpose": "source/paper synchronization; limited public release",
+  "release_id": "2026-11-22-r55-ep2"
+}
