@@ -1,0 +1,33 @@
+name: R55-EP3 original MORE-EU same-gap worked-case verification
+on:
+  push:
+    branches: [r55-ep3-editorial-evidence]
+    paths:
+      - ".github/workflows/r55-ep3-moreeu-worked-case.yml"
+      - "experimental/r55_ep3_moreeu_worked_case.py"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  example_from_pinned_source:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Obtain original MORE-EU archive under its own terms
+        run: |
+          git clone --depth 1 https://github.com/MORE-EU/OpenData.git pinned_upstream
+          test "$(git -C pinned_upstream hash-object 'Solar Park Data -INACCESS/Array Power.csv')" = "5611277efdd581bb839ec380239846a43ebe0ba7"
+      - name: Verify original data and produce derived-only equal-gap example
+        run: |
+          python experimental/r55_ep3_moreeu_worked_case.py --source "pinned_upstream/Solar Park Data -INACCESS/Array Power.csv"
+      - name: Store derived evidence without third-party original rows
+        uses: actions/upload-artifact@v4
+        with:
+          name: r55-ep3-moreeu-equal-gap-derived-only
+          path: R55_EP3_DERIVED_CASE/
+          if-no-files-found: error
+          retention-days: 30
