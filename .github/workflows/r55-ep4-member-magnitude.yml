@@ -1,0 +1,35 @@
+name: R55-EP4 original-data membership magnitude QA
+on:
+  push:
+    branches: [r55-ep3-editorial-evidence]
+    paths:
+      - ".github/workflows/r55-ep4-member-magnitude.yml"
+      - "experimental/r55_ep4_membership_magnitude_original_source.py"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  source_admitted_replay:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Clone the original publisher source without redistributing source rows
+        run: |
+          git clone --depth 1 https://github.com/MORE-EU/OpenData.git upstream_source
+          test "$(git -C upstream_source hash-object 'Solar Park Data -INACCESS/Array Power.csv')" = "5611277efdd581bb839ec380239846a43ebe0ba7"
+      - name: Independently recheck locked original outcomes and quantify changed memberships
+        run: |
+          python experimental/r55_ep4_membership_magnitude_original_source.py \
+            --source "upstream_source/Solar Park Data -INACCESS/Array Power.csv" \
+            --out R55_EP4_DERIVED_ONLY
+      - name: Upload only derived JSON, not licensed telemetry
+        uses: actions/upload-artifact@v4
+        with:
+          name: r55-ep4-moreeu-magnitude-derived-only
+          path: R55_EP4_DERIVED_ONLY/
+          if-no-files-found: error
+          retention-days: 30
