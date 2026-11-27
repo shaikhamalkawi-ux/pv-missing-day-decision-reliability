@@ -1,0 +1,63 @@
+name: NIST PV public annual archive inventory
+on:
+  push:
+    branches: [source-inventory-pvdaq-20261128]
+    paths: ['.github/workflows/public-nist-pv-year-archives.yml']
+permissions:
+  contents: read
+jobs:
+  archive_inventory:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - run: python -m pip install --quiet 'python-socketio[client]' requests
+      - name: Resolve the publicly offered one-minute annual archive selections
+        run: |
+          mkdir -p result
+          python -u - <<'PY'
+          import socketio,threading,json,pathlib,requests
+          s=socketio.Client(reconnection=False,request_timeout=15)
+          token=None; tok=threading.Event(); ready=threading.Event(); boxfile=None
+          out=[]
+          @s.on('box token')
+          def on_token(x):
+              global token
+              token=x.get('access_token')
+              tok.set()
+          @s.on('bulk boxfile')
+          def on_file(x):
+              global boxfile
+              boxfile=x.get('boxfile')
+              ready.set()
+          try:
+              s.connect('https://pvdata.nist.gov',headers={'User-Agent':'Public scientific source audit/1.0'},transports=['websocket'],wait_timeout=15)
+              s.emit('get box token')
+              assert tok.wait(15) and token,'Public portal did not return its download token'
+              for loc in ['Canopy','Ground','Roof']:
+                  for year in [2015,2016]:
+                      rec={'location':loc,'year':year,'dataset':'1-min-avg'}
+                      ready.clear();boxfile=None
+                      s.emit('get bulk boxfile',{'date':f'{year}-07-01T12:00:00.000Z','location':loc,'dataset':'1-min-avg','view':''})
+                      if not ready.wait(12) or not boxfile:
+                          rec['status']='NO_ARCHIVE_RESPONSE';out.append(rec);continue
+                      try:
+                          # Normal public download button flow; never store or print token or signed link.
+                          r=requests.get(f'https://api.box.com/2.0/files/{boxfile}',params={'fields':'id,name,size,sha1,download_url'},headers={'Authorization':'Bearer '+token},timeout=20)
+                          rec['http']=r.status_code
+                          if r.ok:
+                              j=r.json()
+                              rec.update({k:j.get(k) for k in ['id','name','size','sha1']})
+                              rec['download_url_available']=bool(j.get('download_url'))
+                      except Exception:rec['status']='METADATA_ACCESS_ERROR'
+                      print('ARCHIVE',json.dumps(rec),flush=True)
+                      out.append(rec)
+          except Exception as e:out.append({'status':'PUBLIC_PORTAL_ERROR','error_type':type(e).__name__})
+          finally:
+              if s.connected:s.disconnect()
+          pathlib.Path('result/nist_annual_inventory.json').write_text(json.dumps(out,indent=2)+'\n')
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: nist-pv-annual-archive-inventory
+          path: result/
+          retention-days: 14
