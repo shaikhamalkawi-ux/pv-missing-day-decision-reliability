@@ -43,7 +43,7 @@ jobs:
               mask=t.dt.strftime('%Y-%m').isin(months)
               z=df.loc[mask,cols].apply(pd.to_numeric,errors='raise').copy()
               z.index=pd.DatetimeIndex(t[mask]);records.append(z)
-          x=pd.concat(records).sort_index()
+          x=pd.concat(records).sort_index().astype('float64')
           assert n==768948 and not x.index.has_duplicates
           assert np.isfinite(x.to_numpy()).all() and (x.to_numpy()>=0).all()
           assert (x.index.minute%5==0).all() and (x.index.second==0).all()
