@@ -1,0 +1,70 @@
+name: Public OEDI priority metadata
+on:
+  push:
+    branches: [source-inventory-pvdaq-20261128]
+    paths: ['.github/workflows/public-oedi-priority-metadata.yml']
+permissions:
+  contents: read
+jobs:
+  metadata:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Fetch public index and system metadata
+        run: |
+          mkdir -p metadata
+          python -u - <<'PY'
+          import urllib.request,urllib.parse,xml.etree.ElementTree as E,pathlib,json,re,hashlib,concurrent.futures
+          base='https://oedi-data-lake.s3.amazonaws.com/'
+          out=pathlib.Path('metadata')
+          def get(url,maxbytes=20000000):
+              with urllib.request.urlopen(url,timeout=15) as f:
+                  return f.read(maxbytes+1)
+          def index():
+              url=base+'?'+urllib.parse.urlencode({'list-type':'2','prefix':'pvdaq/2023-solar-data-prize/','delimiter':'/'})
+              b=get(url)
+              (out/'prize_root.xml').write_bytes(b)
+              root=E.fromstring(b)
+              prefixes=[x.findtext('{*}Prefix') for x in root.findall('{*}CommonPrefixes')]
+              print('PREFIXES',prefixes,flush=True)
+              records=[]
+              for pre in prefixes:
+                  if not re.search('9068|9069',pre): continue
+                  token=None
+                  while True:
+                      q={'list-type':'2','prefix':pre}
+                      if token:q['continuation-token']=token
+                      root=E.fromstring(get(base+'?'+urllib.parse.urlencode(q)))
+                      for a in root.findall('{*}Contents'):
+                          records.append({'key':a.findtext('{*}Key'),'size':int(a.findtext('{*}Size')),'etag':a.findtext('{*}ETag')})
+                      token=root.findtext('{*}NextContinuationToken')
+                      if not token:break
+              (out/'keys.json').write_text(json.dumps(records,indent=2))
+              for r in records:print(r['size'],r['key'],flush=True)
+              selected=[r for r in records if r['size']<=5000000 and re.search(r'metadata|readme|dictionary|channel|mapping|layout|\.pdf$|\.xlsx?$',r['key'],re.I)]
+              def download(r):
+                  try:
+                      b=get(base+urllib.parse.quote(r['key'],safe='/'),5000000)
+                      if len(b)==r['size']:
+                          (out/(r['key'].replace('/','__'))).write_bytes(b)
+                  except Exception as e:print('metadata download error',r['key'],str(e),flush=True)
+              with concurrent.futures.ThreadPoolExecutor(max_workers=8) as ex:list(ex.map(download,selected))
+          def meta(n):
+              k=f'pvdaq/csv/system_metadata/{n}_system_metadata.json'
+              b=get(base+k,5000000)
+              json.loads(b)
+              (out/f'{n}_system_metadata.json').write_bytes(b)
+              print('SYSTEM_METADATA',n,len(b),hashlib.sha256(b).hexdigest(),flush=True)
+          tasks=[('index',index),('9068',lambda:meta(9068)),('9069',lambda:meta(9069))]
+          def safe(p):
+              try:p[1]()
+              except Exception as e:print(p[0],type(e).__name__,str(e),flush=True)
+          with concurrent.futures.ThreadPoolExecutor(max_workers=3) as ex:list(ex.map(safe,tasks))
+          PY
+      - name: Preserve public metadata and index
+        uses: actions/upload-artifact@v4
+        with:
+          name: pvdaq-priority-public-metadata
+          path: metadata/
+          if-no-files-found: error
+          retention-days: 7
