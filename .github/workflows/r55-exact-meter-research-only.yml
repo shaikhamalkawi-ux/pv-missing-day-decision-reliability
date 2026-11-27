@@ -1,0 +1,37 @@
+name: R55 exact total-meter value-of-information (RESEARCH ONLY)
+on:
+  push:
+    branches: [r55-pmedc-feasibility-research-only]
+    paths:
+      - ".github/workflows/r55-exact-meter-research-only.yml"
+      - "experimental/r55_exact_meter_value_of_information.py"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  original_source_research:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install exact linear programming verifier
+        run: python -m pip install --disable-pip-version-check numpy==2.3.5 scipy==1.16.3
+      - name: Obtain original MORE-EU pinned research source
+        run: |
+          git clone --depth 1 https://github.com/MORE-EU/OpenData.git upstream_source
+          test "$(git -C upstream_source hash-object 'Solar Park Data -INACCESS/Array Power.csv')" = "5611277efdd581bb839ec380239846a43ebe0ba7"
+      - name: Original-source exact certificate and counterfactual independent meter audit
+        run: |
+          python experimental/r55_exact_meter_value_of_information.py \
+            --source "upstream_source/Solar Park Data -INACCESS/Array Power.csv" \
+            --out R55_EXACT_METER_GATE
+      - name: Upload derived results only, never licensed telemetry
+        uses: actions/upload-artifact@v4
+        with:
+          name: r55-exact-meter-value-of-information-derived-only
+          path: R55_EXACT_METER_GATE/
+          if-no-files-found: error
+          retention-days: 30
