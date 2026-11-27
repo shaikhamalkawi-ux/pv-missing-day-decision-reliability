@@ -137,6 +137,9 @@ def run(source,outdir):
                         wrong_full.append({
                           'envelope':b,'month':mt['month'],'gap_start_day':s+1,'masked_array':j+1,
                           'predicted_gap_abs_error':round(abs(z-block[j]),6),
+                          'predicted_minus_true_gap':round(float(z-block[j]),6),
+                          'point_best_array':int(np.argmax(point))+1,
+                          'reference_best_array':int(np.argmax(full))+1,
                           'historical_error_radius':round(radius,6),
                           'true_gap_outside_interval':not coverage,
                           'wrong_included_array_ids':','.join(str(k+1) for k in fi) or '-',
