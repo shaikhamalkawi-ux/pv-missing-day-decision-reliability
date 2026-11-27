@@ -1,0 +1,125 @@
+name: NIST PV cumulative meter endpoint support (RESEARCH ONLY)
+on:
+  push:
+    branches: [source-inventory-pvdaq-20261128]
+    paths: ['.github/workflows/public-nist-pv-meter-endpoint-support.yml']
+permissions:
+  contents: read
+jobs:
+  source_support:
+    runs-on: ubuntu-latest
+    timeout-minutes: 9
+    steps:
+      - run: python -m pip install --quiet 'python-socketio[client]' requests numpy pandas
+      - name: Acquire six pinned archives from the public annual download option and screen temporal support
+        run: |
+          mkdir -p result raw
+          python -u - <<'PY'
+          import socketio,threading,json,pathlib,requests,hashlib,zipfile,csv,io,concurrent.futures,collections
+          import numpy as np,pandas as pd
+          items=[
+          ('Canopy',2015,'500736406024',65593584,'cee89a9c5b73e11f95770354f6b8b583ebec83a1'),
+          ('Canopy',2016,'500731443484',67521467,'3fd3ff74a9c98cb7dceabdff3cceeeee25b683c5'),
+          ('Ground',2015,'500736558308',56758477,'56567f8d0d812165ad8f4642623b89753cb61d58'),
+          ('Ground',2016,'500741050416',61320076,'c7b657cbfe8751d5dfd217420c03b5e887490f3c'),
+          ('Roof',2015,'500739219862',84866642,'dd5aae81b2a3598afcd19925f8c63ef079d17468'),
+          ('Roof',2016,'500784101477',84825966,'cd979ac09d0ef1c82526db05b715c9823305b912')]
+          s=socketio.Client(reconnection=False,request_timeout=15)
+          token=None; tok=threading.Event();ready=threading.Event();returned=None
+          @s.on('box token')
+          def on_token(x):
+              global token
+              token=x.get('access_token');tok.set()
+          @s.on('bulk boxfile')
+          def on_file(x):
+              global returned
+              returned=str(x.get('boxfile'));ready.set()
+          s.connect('https://pvdata.nist.gov',headers={'User-Agent':'Public scientific source audit/1.0'},transports=['websocket'],wait_timeout=15)
+          s.emit('get box token')
+          assert tok.wait(20) and token,'No public download session'
+          jobs=[]
+          for loc,y,id,size,sha1 in items:
+              ready.clear();returned=None
+              s.emit('get bulk boxfile',{'date':f'{y}-07-01T12:00:00.000Z','location':loc,'dataset':'1-min-avg','view':''})
+              assert ready.wait(15) and returned==id,(loc,y,'archive identifier mismatch')
+              r=requests.get(f'https://api.box.com/2.0/files/{id}',params={'fields':'id,name,size,sha1,download_url'},headers={'Authorization':'Bearer '+token},timeout=20)
+              assert r.ok,(loc,y,r.status_code)
+              j=r.json();assert j['size']==size and j['sha1']==sha1
+              jobs.append((loc,y,id,size,sha1,j['download_url']))
+          s.disconnect()
+          def get(item):
+              loc,y,id,size,sha1,url=item;p=pathlib.Path('raw')/f'{loc}-{y}.zip';a=hashlib.sha1();h=hashlib.sha256()
+              with requests.get(url,stream=True,timeout=(20,60)) as r:
+                  assert r.ok,(loc,y,r.status_code)
+                  with p.open('wb') as f:
+                      for b in r.iter_content(1024*1024):
+                          if b:f.write(b);a.update(b);h.update(b)
+              assert p.stat().st_size==size and a.hexdigest()==sha1
+              print('SOURCE',loc,y,size,h.hexdigest(),flush=True)
+              # Alternate endpoint defined from the documented cumulative generated-energy meter, not fitted or imputed power.
+              # Return observed meter counter and metadata only within runner; raw values never uploaded.
+              meta={'location':loc,'year':y,'box_file_id':id,'size':size,'sha1':sha1,'sha256':h.hexdigest()}
+              frames=[]
+              with zipfile.ZipFile(p) as z:
+                  assert z.testzip() is None
+                  for m in z.infolist():
+                      if m.is_dir():continue
+                      if not m.filename.lower().endswith('.csv'):continue
+                      with z.open(m) as fh:
+                          df=pd.read_csv(fh,usecols=['TIMESTAMP','PwrMtrErec_kWh_Max'],dtype=str)
+                      ts=pd.to_datetime(df.TIMESTAMP,format='mixed',errors='raise')
+                      v=pd.to_numeric(df.PwrMtrErec_kWh_Max,errors='coerce').astype(float)
+                      v.index=pd.DatetimeIndex(ts);frames.append(v)
+              assert frames
+              ser=pd.concat(frames).sort_index()
+              assert not ser.index.has_duplicates and all(t.utcoffset().total_seconds()==-18000 for t in ser.index)
+              meta.update(rows=len(ser),first=str(ser.index.min()),last=str(ser.index.max()),nonfinite=int((~np.isfinite(ser.to_numpy())).sum()))
+              return meta,ser
+          with concurrent.futures.ThreadPoolExecutor(max_workers=3) as ex:results=list(ex.map(get,jobs))
+          byloc={}
+          diag={}
+          ratings={'Canopy':260,'Ground':260,'Roof':75}
+          # Freeze calendar split BEFORE any decision outcomes: 2015 development; 2016 test.
+          # Use 00:00-to-00:00 source labels in fixed EST. Missing intermediate reads do not invalidate
+          # a cumulative meter difference by themselves; observed decreases or missing exact boundary reads do.
+          # Reject negative/nonfinite boundary counters, nonmonotone observed values, and grossly implausible increments.
+          # Never bridge a missing boundary, assume a reset offset, or fill an unobserved counter.
+          for loc in ratings:
+              x=pd.concat([v for m,v in results if m['location']==loc]).sort_index()
+              assert not x.index.has_duplicates
+              rec={}
+              for start in pd.date_range('2015-01-01','2016-12-31',freq='D',tz='Etc/GMT+5'):
+                  end=start+pd.Timedelta(days=1)
+                  a=x.get(start,np.nan);b=x.get(end,np.nan)
+                  interval=x.loc[start:end]
+                  values=interval.to_numpy(float)
+                  finite=values[np.isfinite(values)]
+                  decrease=bool(np.any(np.diff(finite)<0))
+                  negative=bool(np.any(finite<0))
+                  boundary=bool(np.isfinite(a) and np.isfinite(b) and a>=0 and b>=0)
+                  gross=bool(boundary and (b-a>2*ratings[loc]*24 or b<a))
+                  good=bool(boundary and not decrease and not negative and not gross)
+                  rec[str(start.date())]={'boundary_available':boundary,'observed_decrease':decrease,'negative_observed':negative,'gross_increment':gross,'valid':good,'finite_inclusive_reads':len(finite),'expected_inclusive_reads':1441}
+              byloc[loc]=rec
+              diag[loc]={k:sum(v[k] for v in rec.values()) for k in ['boundary_available','observed_decrease','negative_observed','gross_increment','valid']}
+              print('COUNTER_SUPPORT',loc,diag[loc],flush=True)
+          months=[]
+          for mo in pd.period_range('2015-01','2016-12',freq='M'):
+              dates=pd.date_range(mo.start_time,mo.end_time.normalize(),freq='D').strftime('%Y-%m-%d')
+              m={'month':str(mo),'days':len(dates),'joint_valid_days':sum(all(byloc[l][day]['valid'] for l in ratings) for day in dates)}
+              m['complete']=m['joint_valid_days']==m['days'];months.append(m)
+          summary={'state':'SOURCE_COUNTER_ENDPOINT_SUPPORT_ONLY_NO_SCORING','source_doi':'10.18434/M3S67G',
+              'endpoint':'difference of measured PwrMtrErec_kWh_Max at successive midnight EST source labels; not reconstructed minute output; monotonicity checked on observed reads only',
+              'qualification':'exact finite nonnegative boundary reads, observed nondecreasing nonnegative counter throughout inclusive day; reject increment above twice AC nameplate x24h; no imputation/reset corrections',
+              'design_before_scoring':{'dev_year':2015,'test_year':2016,'minimum_complete_months_each':6,'cohort':['Canopy','Ground','Roof'],'dc_nameplate_kWp':[1032*.235,1152*.235,312*.235],'q':.05,'gap_days':3,'local_wide':'max monthly max','local_p90':'nearest-rank ceil(0.9*n) monthly max','unavailable':'retain and report'},
+              'archives':[m for m,v in results],'per_array':diag,'monthly':months,'daily':byloc,'complete_months_by_year':{str(y):sum(m['complete'] and m['month'].startswith(str(y)) for m in months) for y in [2015,2016]},
+              'limits':'Observed monotonicity cannot rule out unobserved resets. Meter records have finite resolution; no field safety guarantee. No performance or ranking scored.'}
+          pathlib.Path('result/nist_counter_support.json').write_text(json.dumps(summary,indent=2)+'\n')
+          print('COUNTER_COMPLETE_MONTHS',summary['complete_months_by_year'],flush=True)
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: nist-pv-counter-support-summary
+          path: result/
+          retention-days: 14
+          if-no-files-found: error
