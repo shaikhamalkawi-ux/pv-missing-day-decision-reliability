@@ -1,0 +1,39 @@
+name: R55 MORE-EU plant weather channel provenance (RESEARCH ONLY)
+on:
+  push:
+    branches: [r55-pmedc-feasibility-research-only]
+    paths:
+      - ".github/workflows/r55-source-channel-provenance.yml"
+      - "experimental/r55_plant_weather_provenance_audit.py"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  original_source_role_audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install mathematics dependency
+        run: python -m pip install --disable-pip-version-check numpy==2.3.5
+      - name: Clone original three-channel source
+        run: |
+          git clone --depth 1 https://github.com/MORE-EU/OpenData.git upstream_source
+          test "$(git -C upstream_source hash-object 'Solar Park Data -INACCESS/Array Power.csv')" = "5611277efdd581bb839ec380239846a43ebe0ba7"
+      - name: Source identity, clock alignment and redundancy tests
+        run: |
+          python experimental/r55_plant_weather_provenance_audit.py \
+            --array "upstream_source/Solar Park Data -INACCESS/Array Power.csv" \
+            --plant "upstream_source/Solar Park Data -INACCESS/Plant Active Power.csv" \
+            --weather "upstream_source/Solar Park Data -INACCESS/Weather Data.csv" \
+            --out R55_CHANNEL_PROVENANCE
+      - name: Publish only derived diagnostics
+        uses: actions/upload-artifact@v4
+        with:
+          name: r55-plant-weather-source-role-derived-only
+          path: R55_CHANNEL_PROVENANCE/
+          retention-days: 30
+          if-no-files-found: error
