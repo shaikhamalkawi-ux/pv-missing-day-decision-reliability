@@ -1,0 +1,37 @@
+name: R55 single PV array peer-imputation experiment (RESEARCH ONLY)
+on:
+  push:
+    branches: [r55-pmedc-feasibility-research-only]
+    paths:
+      - ".github/workflows/r55-single-array-peer-prediction.yml"
+      - "experimental/r55_single_array_peer_prediction.py"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  source_locked_single_array:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install pinned NumPy
+        run: python -m pip install --disable-pip-version-check numpy==2.3.5
+      - name: Clone and verify original source
+        run: |
+          git clone --depth 1 https://github.com/MORE-EU/OpenData.git upstream_source
+          test "$(git -C upstream_source hash-object 'Solar Park Data -INACCESS/Array Power.csv')" = "5611277efdd581bb839ec380239846a43ebe0ba7"
+      - name: Retrospective peer-based reconstruction of single-array outage
+        run: |
+          python experimental/r55_single_array_peer_prediction.py \
+            --array "upstream_source/Solar Park Data -INACCESS/Array Power.csv" \
+            --out R55_SINGLE_ARRAY_DERIVED_ONLY
+      - name: Upload only derived aggregates
+        uses: actions/upload-artifact@v4
+        with:
+          name: r55-single-array-peer-imputation-derived-only
+          path: R55_SINGLE_ARRAY_DERIVED_ONLY/
+          if-no-files-found: error
+          retention-days: 30
