@@ -1,0 +1,35 @@
+name: R55 paired-energy bound feasibility (RESEARCH ONLY)
+on:
+  push:
+    branches: [r55-pmedc-feasibility-research-only]
+    paths:
+      - ".github/workflows/r55-pmedc-feasibility-research-only.yml"
+      - "experimental/r55_pmedc_paired_bounds_original_source.py"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  original_source_research:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Obtain original MORE-EU repository, verify locked blob
+        run: |
+          git clone --depth 1 https://github.com/MORE-EU/OpenData.git upstream_source
+          test "$(git -C upstream_source hash-object 'Solar Park Data -INACCESS/Array Power.csv')" = "5611277efdd581bb839ec380239846a43ebe0ba7"
+      - name: Recompute historical envelopes and held-out certificate outcomes
+        run: |
+          python experimental/r55_pmedc_paired_bounds_original_source.py \
+            --source "upstream_source/Solar Park Data -INACCESS/Array Power.csv" \
+            --out R55_PMEDC_FEASIBILITY_OUTPUTS
+      - name: Upload derived audit results only (NEVER upload original telemetry)
+        uses: actions/upload-artifact@v4
+        with:
+          name: r55-pmedc-paired-bounds-original-source-derived-only
+          path: R55_PMEDC_FEASIBILITY_OUTPUTS/
+          if-no-files-found: error
+          retention-days: 30
