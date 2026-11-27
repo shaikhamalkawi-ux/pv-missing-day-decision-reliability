@@ -1,0 +1,125 @@
+name: Public PVDAQ AC time-support screen
+on:
+  push:
+    branches: [source-inventory-pvdaq-20261128]
+    paths: ['.github/workflows/public-pvdaq-ac-time-support.yml']
+permissions:
+  contents: read
+jobs:
+  support:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - name: Acquire 9068 AC files and screen time and value support only
+        run: |
+          mkdir -p result raw
+          python -u - <<'PY'
+          import urllib.request, urllib.parse, csv, json, hashlib, pathlib, datetime as dt, math, calendar, collections, re, concurrent.futures, io
+          BASE='https://oedi-data-lake.s3.amazonaws.com/'
+          OUT=pathlib.Path('result')
+          keys=[
+             ('pvdaq/2023-solar-data-prize/9068_OEDI/data/9068_ac_power_data.csv',65002925),
+             ('pvdaq/2023-solar-data-prize/9068_OEDI/data/9068_ac_power_data_20240101_20250430.csv',10870311)]
+          expected=['Inverter_1_AC POWER (kW)','Inverter_2_AC POWER (kW)']
+          aliases=[['inverter_1_ac_power_(kw)_inv_150143','150143'],['inverter_2_ac_power_(kw)_inv_150144','150144']]
+          def url(k):return BASE+urllib.parse.quote(k,safe='/')
+          def acquire(item):
+              k,n=item; p=pathlib.Path('raw')/k.rsplit('/',1)[1]
+              h=hashlib.sha256(); size=0
+              with urllib.request.urlopen(url(k),timeout=30) as r,p.open('wb') as f:
+                  etag=r.headers.get('ETag')
+                  while True:
+                      b=r.read(1024*1024)
+                      if not b:break
+                      f.write(b);h.update(b);size+=len(b)
+              assert size==n,(k,size,n)
+              print('ACQUIRED',p.name,size,h.hexdigest(),flush=True)
+              return p,{'key':k,'bytes':size,'sha256':h.hexdigest(),'etag':etag}
+          with concurrent.futures.ThreadPoolExecutor(max_workers=2) as ex:
+              files=list(ex.map(acquire,keys))
+          # No production values or shortlist outcomes exported. Only availability/format/quality counts.
+          days=collections.defaultdict(dict); detail=[]; parse_errors=collections.Counter(); mapped=True
+          def norm(s):return s.strip().casefold()
+          for p,manifest in files:
+              with p.open(newline='',encoding='utf-8-sig') as f:
+                  r=csv.reader(f); header=next(r)
+                  manifest['header']=header
+                  print('HEADER',p.name,repr(header[:30]),flush=True)
+                  try:
+                      idx=[next(i for i,s in enumerate(header) if norm(s) in {norm(e),*[norm(a) for a in al]}) for e,al in zip(expected,aliases)]
+                  except StopIteration:
+                      manifest['mapping_state']='HOLD_HEADER_NOT_MATCHED';mapped=False;detail.append(manifest);continue
+                  manifest['matched_source_tags']=[header[i] for i in idx]
+                  tkeys={'timestamp','date/time','datetime','measured_on','time','date time','date_time','date','timestamp (local)','local timestamp'}
+                  times=[i for i,s in enumerate(header) if norm(s) in tkeys]
+                  if len(times)!=1:
+                      manifest['mapping_state']='HOLD_TIMESTAMP_HEADER_UNCLEAR';mapped=False;detail.append(manifest);continue
+                  ti=times[0];manifest['timestamp_header']=header[ti]
+                  count=0; flags=collections.Counter(); mint=None;maxt=None
+                  for row in r:
+                      if not row:continue
+                      count+=1
+                      try:
+                          text=row[ti].strip();t=dt.datetime.fromisoformat(text.replace('Z','+00:00'))
+                      except Exception:
+                          for fmt in ('%m/%d/%Y %H:%M:%S','%m/%d/%Y %H:%M','%Y-%m-%d %H:%M:%S','%m/%d/%Y %I:%M:%S %p'):
+                              try:t=dt.datetime.strptime(text,fmt);break
+                              except Exception:pass
+                          else:
+                              parse_errors['bad_timestamp']+=1;continue
+                      if t.tzinfo is not None:flags['timezone_aware']+=1
+                      mint=min(mint,t.isoformat()) if mint else t.isoformat();maxt=max(maxt,t.isoformat()) if maxt else t.isoformat()
+                      day=t.date().isoformat();slot=(t.hour*60+t.minute)//5
+                      aligned=t.minute%5==0 and t.second==0 and t.microsecond==0
+                      if not aligned:flags['off_grid']+=1;parse_errors['off_grid']+=1
+                      finite=[]; nonnegative=[]
+                      for k in idx:
+                          try:v=float(row[k]);valid=math.isfinite(v)
+                          except Exception:v=float('nan');valid=False
+                          finite.append(valid); nonnegative.append(valid and v>=0)
+                          if not valid:flags[f'nonfinite_channel_{k}']+=1
+                          elif v<0:flags[f'negative_channel_{k}']+=1
+                      entry=days[day]; record=(aligned,all(finite),all(nonnegative))
+                      if slot in entry:
+                          flags['duplicate_slots']+=1;entry[slot]=(False,False,False)
+                      else:entry[slot]=record
+                  manifest.update(rows=count,first_timestamp=mint,last_timestamp=maxt,quality_counts=dict(flags))
+                  detail.append(manifest)
+          months=collections.defaultdict(lambda:collections.Counter())
+          for day,slots in sorted(days.items()):
+              mo=day[:7];x=months[mo];x['observed_days']+=1
+              complete=len(slots)==288 and all(v[0] for v in slots.values())
+              finite=complete and all(v[1] for v in slots.values()); nonneg=finite and all(v[2] for v in slots.values())
+              x['complete_grid_days']+=int(complete);x['complete_finite_days']+=int(finite);x['complete_nonnegative_days']+=int(nonneg)
+          monthly=[]
+          for month,c in sorted(months.items()):
+              y,m=map(int,month.split('-')); n=calendar.monthrange(y,m)[1]
+              monthly.append({'month':month,'calendar_days':n,**dict(c),'complete_grid_month':c['complete_grid_days']==n,'complete_finite_month':c['complete_finite_days']==n,'complete_nonnegative_month':c['complete_nonnegative_days']==n})
+          summary={'state':'SUPPORT_SCREEN_ONLY_NO_DECISION_OUTCOMES','site':9068,'matched_headers':mapped,'source_files':detail,'parse_errors':dict(parse_errors),'months':monthly,
+              'complete_grid_months':sum(m['complete_grid_month'] for m in monthly),'complete_finite_months':sum(m['complete_finite_month'] for m in monthly),
+              'complete_nonnegative_months':sum(m['complete_nonnegative_month'] for m in monthly),
+              'limits':'Observed naive local label grid only; not certified UTC/DST convention or physical calibration; no conversion or imputation, no ranking results.'}
+          (OUT/'9068_time_support.json').write_text(json.dumps(summary,indent=2)+'\n')
+          print('TIME_SUPPORT', {k:v for k,v in summary.items() if k not in ['months','source_files']},flush=True)
+          # 9069 is 1.77 GB. Inspect only the exact file header and endpoint time labels.
+          k='pvdaq/2023-solar-data-prize/9069_OEDI/data/9069_electrical_ac.csv';n=1767155102
+          def range_fetch(spec):
+              req=urllib.request.Request(url(k),headers={'Range':spec})
+              with urllib.request.urlopen(req,timeout=20) as f:
+                  assert f.status==206, f.status
+                  return f.read(131073),f.headers.get('ETag')
+          try:
+              b,etag=range_fetch('bytes=0-131071');lines=b.decode('utf-8-sig',errors='replace').splitlines()
+              tail,_=range_fetch(f'bytes={n-131072}-{n-1}');last=tail.decode('utf-8',errors='replace').splitlines()
+              result={'state':'HEADER_ONLY','key':k,'size':n,'etag':etag,'header':next(csv.reader(lines[:1])),'first_field_first_row':next(csv.reader(lines[1:2]))[0],'first_field_last_row':next(csv.reader(last[-1:]))[0]}
+          except Exception as e:result={'state':'HOLD','error':str(e),'key':k}
+          (OUT/'9069_header_support.json').write_text(json.dumps(result,indent=2)+'\n')
+          print('9069_HEADER_STATE',result['state'],flush=True)
+          PY
+      - name: Publish time-support summaries only
+        uses: actions/upload-artifact@v4
+        with:
+          name: pvdaq-ac-time-support-summary
+          path: result/
+          if-no-files-found: error
+          retention-days: 7
