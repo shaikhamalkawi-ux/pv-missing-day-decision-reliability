@@ -1,0 +1,76 @@
+name: Public OEDI source inventory
+on:
+  push:
+    branches: [source-inventory-pvdaq-20261128]
+    paths: ['.github/workflows/public-oedi-source-inventory.yml']
+permissions:
+  contents: read
+jobs:
+  inventory:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - name: Inventory public files and inspect metadata
+        shell: bash
+        run: |
+          python - <<'PY'
+          import urllib.request, urllib.parse, xml.etree.ElementTree as ET, json, pathlib, hashlib, re, csv, io, time
+          out=pathlib.Path('inventory');out.mkdir()
+          endpoint='https://oedi-data-lake.s3.amazonaws.com/'
+          def fetch(url,range_=None):
+              req=urllib.request.Request(url,headers={'User-Agent':'Public-OEDI-source-inventory/1.0',**({'Range':range_} if range_ else {})})
+              with urllib.request.urlopen(req,timeout=60) as r:
+                  return r.read(), dict(r.headers), r.status
+          def listkeys(prefix):
+              records=[]; token=None
+              while True:
+                  q={'list-type':'2','prefix':prefix}
+                  if token: q['continuation-token']=token
+                  data,_,_=fetch(endpoint+'?'+urllib.parse.urlencode(q))
+                  root=ET.fromstring(data)
+                  for a in root.findall('{*}Contents'):
+                      records.append({'key':a.findtext('{*}Key'),'size':int(a.findtext('{*}Size')),'etag':a.findtext('{*}ETag'),'modified':a.findtext('{*}LastModified')})
+                  token=root.findtext('{*}NextContinuationToken')
+                  if not token: break
+              return records
+          records=listkeys('pvdaq/2023-solar-data-prize/')
+          records=[r for r in records if re.search(r'(?<!\d)(9068|9069)(?!\d)',r['key'])]
+          assert records,'No matching source keys'
+          print('MATCHED_KEYS',len(records))
+          for r in records: print(r['size'],r['key'])
+          for i,r in enumerate(records):
+              name=r['key'].split('/')[-1]
+              if not name or r['size']==0: continue
+              url=endpoint+urllib.parse.quote(r['key'],safe='/')
+              ext=pathlib.Path(name).suffix.lower()
+              try:
+                  meta=(ext in ['.pdf','.xlsx','.xls','.docx','.txt','.md','.json','.xml','.png','.jpg','.jpeg'] or bool(re.search(r'meta|readme|dictionary|support|mapping|sensor.?list|channel.?list|specif|equipment',name,re.I)))
+                  if meta and r['size']<=20_000_000:
+                      data,h,status=fetch(url)
+                      assert len(data)==r['size']
+                      fn=f'{i:03d}_{name}'
+                      (out/fn).write_bytes(data)
+                      r.update(metadata_file=fn,sha256=hashlib.sha256(data).hexdigest())
+                  elif ext=='.csv':
+                      n=min(r['size'],131072)
+                      data,h,status=fetch(url,f'bytes=0-{n-1}')
+                      if status!=206 and r['size']>n: raise ValueError('Range unsupported')
+                      text=data.decode('utf-8-sig',errors='replace')
+                      lines=text.splitlines()
+                      r['header_preview']=lines[0][:60000] if lines else ''
+                      r['column_count_first_line']=len(next(csv.reader(lines[:1]))) if lines else 0
+                      if len(lines)>1:
+                          r['first_field_first_row']=next(csv.reader(lines[1:2]))[0][:100]
+                      data,h,status=fetch(url,f'bytes={max(0,r["size"]-n)}-{r["size"]-1}')
+                      last=data.decode('utf-8',errors='replace').splitlines()
+                      if len(last)>1: r['first_field_last_row']=next(csv.reader(last[-1:]))[0][:100]
+              except Exception as e: r['inspection_error']=str(e)
+          (out/'inventory.json').write_text(json.dumps(records,indent=2)+'\n')
+          print('INVENTORY_COMPLETE',len(records), 'inspection_errors',sum('inspection_error' in r for r in records))
+          PY
+      - name: Upload public metadata and inventory only
+        uses: actions/upload-artifact@v4
+        with:
+          name: pvdaq-public-source-inventory
+          path: inventory/
+          retention-days: 7
