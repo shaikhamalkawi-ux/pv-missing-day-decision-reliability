@@ -12,7 +12,11 @@ BLOB_ARRAY=original.BLOB
 
 def load(path):
     data=Path(path).read_bytes();blob=hashlib.sha1(f'blob {len(data)}\0'.encode()+data).hexdigest()
-    rd=csv.reader(io.StringIO(data.decode('utf-8-sig') if not any(x>=128 for x in data[:200] if x==169) else data.decode('cp1252')))
+    try:
+        decoded=data.decode('utf-8-sig')
+    except UnicodeDecodeError:
+        decoded=data.decode('cp1252')
+    rd=csv.reader(io.StringIO(decoded))
     header=next(rd)
     items={};dups=0;broken=0;missing=0;rawcount=0;count=Counter();first_fmt=None
     for row in rd:
