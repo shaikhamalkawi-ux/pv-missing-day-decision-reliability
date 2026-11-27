@@ -1,0 +1,78 @@
+name: Oakville full source support screen (RESEARCH ONLY)
+on:
+  push:
+    branches: [source-inventory-pvdaq-20261128]
+    paths: ['.github/workflows/public-oakville-support-screen.yml']
+permissions:
+  contents: read
+jobs:
+  support:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - run: python -m pip install --quiet numpy pandas
+      - name: Acquire and hash 12 source inverter files; audit support without scoring
+        run: |
+          mkdir -p raw result
+          python -u - <<'PY'
+          import pathlib,urllib.request,hashlib,json,concurrent.futures,calendar,collections
+          import pandas as pd,numpy as np
+          base='https://data.openei.org/files/6179/'
+          sizes=[43201730,86440904,49095006,46988169,51159288,39865361,50605066,47762988,51015199,15475633,44488258,47520025]
+          ratings=[33.3]*11+[20]
+          def get(i):
+              name=f'FPV_Oakville_CA_Inverter{i}_data.csv'
+              p=pathlib.Path('raw')/name;h=hashlib.sha256()
+              with urllib.request.urlopen(base+name,timeout=60) as r,p.open('wb') as f:
+                  etag=r.headers.get('ETag')
+                  while True:
+                      b=r.read(1024*1024)
+                      if not b:break
+                      f.write(b);h.update(b)
+              assert p.stat().st_size==sizes[i-1]
+              print('SOURCE',i,p.stat().st_size,h.hexdigest(),etag,flush=True)
+              x=pd.read_csv(p,usecols=['DAY','HOUR','ACPWRT'],dtype=str)
+              day=pd.to_datetime(x.DAY,format='%Y%j',errors='coerce')
+              hour=x.HOUR.str.strip()
+              v=pd.to_numeric(x.ACPWRT,errors='coerce').to_numpy(float)
+              finite=np.isfinite(v)
+              # 32767 kW is physically implausible against documented 20-33.3 kW AC ratings; its exact missing-code semantics are not presumed.
+              plausible=finite&(v!=32767)&(v>=0)&(v<=2*ratings[i-1])
+              parsed=hour.str.extract(r'^(\d{1,2}):(\d{2}):(\d{2})$').apply(pd.to_numeric,errors='coerce')
+              h0,m,s=parsed[0],parsed[1],parsed[2]
+              aligned=(h0.between(0,23)&m.between(0,59)&(m%5==0)&(s==0))|((h0==24)&(m==0)&(s==0))
+              minute=h0*60+m
+              t=pd.DataFrame({'day':day,'minute':minute,'grid':aligned,'valid':plausible,'finite':finite})
+              d={}
+              gridA=set(range(0,1440,5));gridB=set(range(5,1441,5))
+              for dy,g in t.groupby('day'):
+                  times=set(g.minute.dropna().tolist())
+                  a=len(g)==288 and bool(g.grid.all()) and times==gridA
+                  b=len(g)==288 and bool(g.grid.all()) and times==gridB
+                  d[dy.strftime('%Y-%m-%d')]={'grid_A':a,'grid_B':b,'finite_A':a and bool(g.finite.all()),'finite_B':b and bool(g.finite.all()),'plausible_A':a and bool(g.valid.all()),'plausible_B':b and bool(g.valid.all()),'observed_rows':len(g)}
+              result={'inverter':i,'source_url':base+name,'bytes':p.stat().st_size,'sha256':h.hexdigest(),'etag':etag,'rows':len(x),'first_day':str(day.min()),'last_day':str(day.max()),'bad_day':int(day.isna().sum()),'off_grid':int((~aligned).sum()),'duplicates':int(x.duplicated(['DAY','HOUR']).sum()),'00:00':int((minute==0).sum()),'24:00':int((minute==1440).sum()),'nonfinite':int((~finite).sum()),'32767':int((v==32767).sum()),'negative':int((finite&(v<0)).sum()),'above_rating':int((finite&(v>ratings[i-1])&(v!=32767)).sum()),'above_2x_rating_excl_32767':int((finite&(v>2*ratings[i-1])&(v!=32767)).sum()),'zero':int((v==0).sum()),'daily':d}
+              print('QUALITY', {k:w for k,w in result.items() if k!='daily'},flush=True)
+              return result
+          with concurrent.futures.ThreadPoolExecutor(max_workers=4) as ex:r=list(ex.map(get,range(1,13)))
+          # Cohorts specified from metadata, before viewing support: all 12; early-coverage 11 (inverter 10 starts May 2023); six equal DC/AC ratings.
+          cohorts={'all12':list(range(1,13)),'early11':[i for i in range(1,13) if i!=10],'equal_dc_ac_1_6':list(range(1,7))}
+          months=pd.period_range('2022-01','2024-03',freq='M')
+          monthly={}
+          keys=['grid_A','grid_B','finite_A','finite_B','plausible_A','plausible_B']
+          for key,ids in cohorts.items():
+              rows=[]
+              for mo in months:
+                  dates=pd.date_range(mo.start_time,mo.end_time.normalize(),freq='D').strftime('%Y-%m-%d')
+                  z={k:sum(all(r[i-1]['daily'].get(day,{}).get(k,False) for i in ids) for day in dates) for k in keys}
+                  rows.append({'month':str(mo),'days':len(dates),**z})
+              monthly[key]={'ids':ids,'complete_months':{k:sum(m[k]==m['days'] for m in rows) for k in keys},'months':rows}
+              print('COHORT',key,monthly[key]['complete_months'],flush=True)
+          result={'state':'SUPPORT_ONLY_NO_DECISION_SCORING','rating_source':'FPV_metafile_mm.xlsx meta sheet; 33.3 kW AC except inverter 12 20 kW','grid_A':'00:00 to 23:55','grid_B':'00:05 to 24:00, source day label','plausibility':'finite nonnegative, exclude 32767 kW and values above twice documented AC rating; diagnostic only, not calibration or documented missing-code semantics','files':r,'cohorts':monthly}
+          pathlib.Path('result/oakville_support.json').write_text(json.dumps(result,indent=2)+'\n')
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: oakville-12-source-support
+          path: result/
+          retention-days: 14
+          if-no-files-found: error
