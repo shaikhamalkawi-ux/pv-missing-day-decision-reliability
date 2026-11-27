@@ -1,0 +1,37 @@
+name: R56 empirical uncertainty vs PV decision gate (RESEARCH ONLY)
+on:
+  push:
+    branches: [r55-pmedc-feasibility-research-only]
+    paths:
+      - ".github/workflows/r56-conditional-engineer-decision-research.yml"
+      - "experimental/r56_source_conditional_interval_gate.py"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  original_pinned:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install pinned numerical dependency
+        run: python -m pip install --disable-pip-version-check numpy==2.3.5
+      - name: Verify upstream original data without redistribution
+        run: |
+          git clone --depth 1 https://github.com/MORE-EU/OpenData.git upstream_source
+          test "$(git -C upstream_source hash-object 'Solar Park Data -INACCESS/Array Power.csv')" = "5611277efdd581bb839ec380239846a43ebe0ba7"
+      - name: Train historical envelopes and check later retained months
+        run: |
+          python experimental/r56_source_conditional_interval_gate.py \
+            --source "upstream_source/Solar Park Data -INACCESS/Array Power.csv" \
+            --out R56_DERIVED_ONLY
+      - name: Export aggregate summaries only
+        uses: actions/upload-artifact@v4
+        with:
+          name: r56-empirical-envelope-engineer-decision-derived-only
+          path: R56_DERIVED_ONLY/
+          retention-days: 30
+          if-no-files-found: error
