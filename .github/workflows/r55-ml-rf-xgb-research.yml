@@ -1,0 +1,37 @@
+name: R55 RF vs XGBoost masked single-array prediction (RESEARCH ONLY)
+on:
+  push:
+    branches: [r55-pmedc-feasibility-research-only]
+    paths:
+      - ".github/workflows/r55-ml-rf-xgb-research.yml"
+      - "experimental/r55_ml_rf_xgb_single_array.py"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  source_pinned_ml_comparison:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install predeclared model stack
+        run: python -m pip install --disable-pip-version-check numpy==2.3.5 scikit-learn==1.8.0 xgboost==3.1.3
+      - name: Clone original source and verify frozen Git blob (no redistribution)
+        run: |
+          git clone --depth 1 https://github.com/MORE-EU/OpenData.git upstream_source
+          test "$(git -C upstream_source hash-object 'Solar Park Data -INACCESS/Array Power.csv')" = "5611277efdd581bb839ec380239846a43ebe0ba7"
+      - name: Run RF/XGB/peer source-locked one-array mask evaluation
+        run: |
+          python experimental/r55_ml_rf_xgb_single_array.py \
+            --source "upstream_source/Solar Park Data -INACCESS/Array Power.csv" \
+            --out R55_ML_RF_XGB_DERIVED_ONLY
+      - name: Upload derived JSON/CSV only; never telemetry, never trained model files
+        uses: actions/upload-artifact@v4
+        with:
+          name: r55-ml-rf-xgb-single-array-aggregate-research-only
+          path: R55_ML_RF_XGB_DERIVED_ONLY/
+          if-no-files-found: error
+          retention-days: 30
