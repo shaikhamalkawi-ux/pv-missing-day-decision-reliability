@@ -1,0 +1,140 @@
+name: PVDAQ 9069 fixed endpoint and availability audit (RESEARCH ONLY)
+on:
+  push:
+    branches: [source-inventory-pvdaq-20261128]
+    paths: ['.github/workflows/public-pvdaq-9069-index-audit.yml']
+permissions:
+  contents: read
+jobs:
+  index_test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: 9cfd1675853beaa854461fd4069bac6612dec66c
+      - run: python -m pip install --quiet numpy pandas
+      - name: Execute frozen 24+9 channel-index protocol
+        env:
+          PYTHONPATH: experimental
+        run: |
+          mkdir -p result
+          python -u - <<'PY'
+          import urllib.request, urllib.parse, hashlib, pathlib, json, calendar, collections, math
+          import numpy as np,pandas as pd
+          import r57_partial_resolution_source_replay as r57
+          import r55_single_array_peer_prediction as peer
+          # Frozen BEFORE inspecting any test outcomes. A separate index study, not a physical yield replication.
+          months='2018-08 2018-12 2019-01 2020-04 2020-05 2020-06 2020-07 2020-11 2020-12 2021-01 2021-02 2021-04 2021-05 2021-06 2021-09 2021-11 2021-12 2022-02 2022-04 2022-05 2022-06 2022-07 2022-08 2022-09 2022-11 2022-12 2023-01 2023-02 2023-04 2023-06 2023-07 2023-08 2023-09'.split()
+          cols=[f'inverter_{i:02d}_ac_power_(kw)_inv_{150952+i}' for i in range(1,6)]
+          key='pvdaq/2023-solar-data-prize/9069_OEDI/data/9069_electrical_ac.csv'
+          p=pathlib.Path('source.csv');h=hashlib.sha256()
+          with urllib.request.urlopen('https://oedi-data-lake.s3.amazonaws.com/'+urllib.parse.quote(key,safe='/'),timeout=45) as r,p.open('wb') as f:
+              while True:
+                  b=r.read(4*1024*1024)
+                  if not b:break
+                  f.write(b);h.update(b)
+          assert p.stat().st_size==1767155102 and h.hexdigest()=='a888a7730d8699e0cf4188de8a951682f098c6b4e40ba0ec9a28635903a20425'
+          print('SOURCE_SHA256_PASS',h.hexdigest(),flush=True)
+          records=[]; n=0
+          for df in pd.read_csv(p,usecols=['measured_on']+cols,dtype=str,chunksize=50000):
+              n+=len(df)
+              t=pd.to_datetime(df.measured_on,format='%Y-%m-%d %H:%M:%S',errors='raise')
+              mask=t.dt.strftime('%Y-%m').isin(months)
+              z=df.loc[mask,cols].apply(pd.to_numeric,errors='raise').copy()
+              z.index=pd.DatetimeIndex(t[mask]);records.append(z)
+          x=pd.concat(records).sort_index().astype('float64')
+          assert n==768948 and not x.index.has_duplicates
+          assert np.isfinite(x.to_numpy()).all() and (x.to_numpy()>=0).all()
+          assert (x.index.minute%5==0).all() and (x.index.second==0).all()
+          series=[]
+          for mo in months:
+              y,m=map(int,mo.split('-'));d=calendar.monthrange(y,m)[1]
+              a=x.loc[mo]; exp=pd.date_range(mo+'-01',periods=d*288,freq='5min')
+              assert a.index.equals(exp),(mo,len(a),len(exp))
+              # Arithmetic sum of native AC sample magnitudes; no kWh, no inferred capacity, no fill.
+              v=a.to_numpy().reshape(d,288,5).sum(axis=1)
+              series.append((mo,v))
+          dev,test=series[:24],series[24:]
+          J=5;r57.J=J;peer.J=J
+          def est(v,s,j):
+              return peer.evaluate_models(v,s,j,np.ones(J)).get('peer_boundary_ratio')
+          dev_max=[];dev_possible=dev_eligible=0
+          for mo,v in dev:
+              errs=[[] for _ in cols]
+              for s in range(len(v)-2):
+                  for j in range(J):
+                      dev_possible+=1;p=est(v,s,j)
+                      if p is None:continue
+                      dev_eligible+=1;errs[j].append(abs(p-v[s:s+3,j].sum()))
+              assert all(errs),('HOLD no dev masks',mo)
+              dev_max.append([max(e) for e in errs])
+          mx=np.array(dev_max);rad={'wide':mx.max(0),'p90':np.sort(mx,axis=0)[math.ceil(.9*24)-1]}
+          total={k:collections.Counter() for k in rad}; monthly={};targets={k:{j:collections.Counter() for j in cols} for k in rad}
+          point=collections.Counter();abs_err=truth_sum=0.;max_error_cases=[]
+          audit={'availability_by_month':{},'wrong_events':[],'endpoint_comparisons':0,'mask_perturbation_checks':0,'contained_wrong':0}
+          def cl(y):return r57.classify(y)
+          for mo,v in test:
+              full=v.sum(0);truth=cl(full);mc={k:collections.Counter() for k in rad}
+              av=collections.Counter();audit['availability_by_month'][mo]={'all_zero_reference':bool(np.all(full==0)),'zero_days_per_channel':np.sum(v==0,axis=0).tolist(),'all_zero_days':int(np.sum(np.all(v==0,axis=1))),'reasons':av}
+              for s in range(len(v)-2):
+                  hidden=v[s:s+3].sum(0)
+                  for j in range(J):
+                      p=est(v,s,j);point['possible']+=1
+                      masked=v.copy();masked[s:s+3,j]=0.
+                      p_masked=est(masked,s,j)
+                      assert p_masked==p,('masked-target dependency',mo,s,j)
+                      audit['mask_perturbation_checks']+=1
+                      reason=r57.count_missing_reason(v,s,j);av[reason]+=1
+                      assert (p is not None)==(reason=='available')
+                      for k in rad:
+                          for c in (total[k],mc[k],targets[k][cols[j]]):
+                              c.update({'possible':1,'all_possible':J,'peer_possible':J-1})
+                      if p is None:point['unavailable']+=1;continue
+                      point['eligible']+=1;abs_err+=abs(p-hidden[j]);truth_sum+=hidden[j]
+                      y=full.copy();y[j]=masked[:,j].sum()+p
+                      point['point_list_correct']+=int(np.array_equal(cl(y),truth))
+                      point['point_target_correct']+=int(cl(y)[j]==truth[j])
+                      zero=full.copy();zero[j]-=hidden[j]
+                      point['zero_list_correct']+=int(np.array_equal(cl(zero),truth))
+                      for k,R in rad.items():
+                          st=r57.statuses(y,j,float(R[j]));resolved=[i for i,t in enumerate(st) if t!='?']
+                          lo=y.copy();hi=y.copy();lo[j]=max(0.,lo[j]-R[j]);hi[j]+=R[j]
+                          f0=cl(lo);f1=cl(hi)
+                          independent=['I' if u and w else 'E' if not u and not w else '?' for u,w in zip(f0,f1)]
+                          assert independent==st,('endpoint discrepancy',mo,s,j,k)
+                          audit['endpoint_comparisons']+=J
+                          wrong=[i for i in resolved if (st[i]=='I')!=bool(truth[i])]
+                          fi=[i for i in wrong if st[i]=='I'];fo=[i for i in wrong if st[i]=='E']
+                          covered=abs(p-hidden[j])<=R[j]+r57.EPS
+                          assert not(covered and wrong),('conditional arithmetic violation',mo,s,j,k)
+                          if wrong:audit['wrong_events'].append({'month':mo,'gap_start_day':s+1,'masked_channel':cols[j],'envelope':k,'covered':bool(covered),'wrong_labels':[{'channel':cols[i],'reported':st[i],'reference':'I' if truth[i] else 'E'} for i in wrong]})
+                          d={'eligible':1,'covered':int(covered),'full_resolved':int(len(resolved)==J),'full_wrong':int(len(resolved)==J and bool(wrong)),
+                             'all_resolved':len(resolved),'all_wrong':len(wrong),'false_in':len(fi),'false_out':len(fo),
+                             'target_resolved':int(j in resolved),'target_wrong':int(j in wrong),'target_false_in':int(j in fi),'target_false_out':int(j in fo),
+                             'peer_resolved':len(resolved)-int(j in resolved),'peer_wrong':len(wrong)-int(j in wrong),
+                             'peer_false_in':len(fi)-int(j in fi),'peer_false_out':len(fo)-int(j in fo)}
+                          for c in (total[k],mc[k],targets[k][cols[j]]):c.update(d)
+              monthly[mo]={k:dict(c) for k,c in mc.items()}
+          assert point['possible']==sum((len(v)-2)*J for _,v in test)
+          for k,c in total.items():
+              assert c['all_resolved']==c['target_resolved']+c['peer_resolved']
+              assert c['all_wrong']==c['target_wrong']+c['peer_wrong']==c['false_in']+c['false_out']
+          res={'state':'RESEARCH_ONLY_NATIVE_AC_CHANNEL_INDEX_NOT_PHYSICAL_ENERGY','site':9069,'source_sha256':h.hexdigest(),'source_rows':n,'candidate_ids':cols,
+              'dev_months':[m for m,_ in dev],'test_months':[m for m,_ in test],'q':.05,'gap_days':3,
+              'index_definition':'Daily sum of 288 native nonnegative AC power samples, same local-label grid; no capacity division or kWh integration; source_id null; only channel-index endpoint.',
+              'dev_possible':dev_possible,'dev_eligible':dev_eligible,'radii':{k:v.tolist() for k,v in rad.items()},'point':dict(point),
+              'omitted_index_WAPE_pct':100*abs_err/truth_sum if truth_sum else None,'overall':{k:dict(v) for k,v in total.items()},
+              'monthly':monthly,'by_target':{k:{j:dict(c) for j,c in d.items()} for k,d in targets.items()},
+              'diagnostic_max_native_kw_sample':dict(zip(cols,x.max().tolist())),
+              'limits':['Fixed five named channels, not certified physical inverter mapping','No physical energy or capacity-normalized yield claim','24+9 complete local-label months, not 55+24 replication','Artificial masks, post-gap estimator, overlapping placements','No physical calibration or coverage guarantee','All radii source-local, no tuning on test outcomes']}
+          pathlib.Path('result/9069_index_portability.json').write_text(json.dumps(res,indent=2)+'\n')
+          pathlib.Path('result/9069_index_diagnostic.json').write_text(json.dumps(audit,indent=2)+'\n')
+          print('INDEX_PORTABILITY_PASS',json.dumps({k:res[k] for k in ['dev_possible','dev_eligible','point','omitted_index_WAPE_pct','overall','diagnostic_max_native_kw_sample']}),flush=True)
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: pvdaq-9069-index-diagnostic-aggregates
+          path: result/
+          if-no-files-found: error
+          retention-days: 14
