@@ -1,0 +1,79 @@
+name: Public PVDAQ 9069 AC support screen
+on:
+  push:
+    branches: [source-inventory-pvdaq-20261128]
+    paths: ['.github/workflows/public-pvdaq-9069-support.yml']
+permissions:
+  contents: read
+jobs:
+  support:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Install numerical parser
+        run: python -m pip install --quiet numpy pandas
+      - name: Hash source and measure fixed-cohort temporal completeness
+        run: |
+          mkdir -p result
+          python -u - <<'PY'
+          import urllib.request,urllib.parse,hashlib,pathlib,json,calendar,collections,datetime as dt
+          import numpy as np,pandas as pd
+          key='pvdaq/2023-solar-data-prize/9069_OEDI/data/9069_electrical_ac.csv'
+          url='https://oedi-data-lake.s3.amazonaws.com/'+urllib.parse.quote(key,safe='/')
+          # Cohort fixed from official equipment metadata, not availability or decision outcomes.
+          columns=[f'inverter_{i:02d}_ac_power_(kw)_inv_{150952+i}' for i in range(1,41)]
+          fixed_five=columns[:5]
+          p=pathlib.Path('electrical_ac.csv');h=hashlib.sha256();n=0
+          with urllib.request.urlopen(url,timeout=45) as r,p.open('wb') as f:
+              etag=r.headers.get('ETag')
+              while True:
+                  b=r.read(4*1024*1024)
+                  if not b:break
+                  h.update(b);n+=len(b);f.write(b)
+          assert n==1767155102 and etag=='"afc20cf1b0e656ff6b5a9ec9cf346679-106"',(n,etag)
+          print('SOURCE_PINNED',n,h.hexdigest(),etag,flush=True)
+          day_slots={};counts=collections.Counter();invalid=np.zeros(40,np.int64);neg=np.zeros(40,np.int64)
+          min_t=None;max_t=None;chunks=0
+          for df in pd.read_csv(p,usecols=['measured_on']+columns,dtype=str,chunksize=25000):
+              chunks+=1;counts['rows']+=len(df)
+              time=pd.to_datetime(df['measured_on'],format='%Y-%m-%d %H:%M:%S',errors='coerce')
+              v=df[columns].apply(pd.to_numeric,errors='coerce').to_numpy(float)
+              finite=np.isfinite(v); nonnegative=finite&(v>=0)
+              invalid+=np.sum(~finite,axis=0);neg+=np.sum(finite&(v<0),axis=0)
+              a=np.stack([finite[:,:5].all(1),nonnegative[:,:5].all(1),finite.all(1),nonnegative.all(1)],axis=1)
+              for t,row in zip(time,a):
+                  if pd.isna(t):
+                      counts['bad_timestamp']+=1;continue
+                  tt=t.isoformat();min_t=min(min_t,tt) if min_t else tt;max_t=max(max_t,tt) if max_t else tt
+                  day=str(t.date());slot=(t.hour*60+t.minute)//5
+                  aligned=t.minute%5==0 and t.second==0 and t.microsecond==0
+                  if not aligned:counts['off_grid']+=1
+                  slots=day_slots.setdefault(day,{})
+                  if slot in slots:
+                      counts['duplicate_slots']+=1;slots[slot]=0
+                  else:
+                      slots[slot]=(1|sum(int(b)*(1<<(i+1)) for i,b in enumerate(row))) if aligned else 0
+              if chunks%10==0:print('ROWS_SCREENED',counts['rows'],flush=True)
+          per_month=collections.defaultdict(collections.Counter)
+          for day,slots in sorted(day_slots.items()):
+              c=per_month[day[:7]];c['observed_days']+=1
+              grid=len(slots)==288 and all(f&1 for f in slots.values())
+              c['grid_days']+=int(grid)
+              for bit,k in enumerate(['five_finite','five_nonnegative','forty_finite','forty_nonnegative'],1):
+                  c[k+'_days']+=int(grid and all(f&(1<<bit) for f in slots.values()))
+          months=[]
+          for month,c in sorted(per_month.items()):
+              y,m=map(int,month.split('-'));n_days=calendar.monthrange(y,m)[1]
+              months.append({'month':month,'calendar_days':n_days,**dict(c)})
+          complete={k:sum(m.get(k+'_days',0)==m['calendar_days'] for m in months) for k in ['grid','five_finite','five_nonnegative','forty_finite','forty_nonnegative']}
+          result={'state':'SUPPORT_SCREEN_ONLY_NO_DECISION_OUTCOMES','site':9069,'source_key':key,'source_sha256':h.hexdigest(),'etag':etag,'source_bytes':n,'timestamps':dict(counts),'first_timestamp':min_t,'last_timestamp':max_t,'fixed_five':fixed_five,'all_forty':columns,'source_capacity_note':'Five hardware records have documented 825 kW AC; no unverified mapping or missing capacity imputed. This is channel support only.', 'per_channel_nonfinite':dict(zip(columns,map(int,invalid))),'per_channel_negative':dict(zip(columns,map(int,neg))),'complete_months':complete,'months':months,'limits':'No power-to-energy conversion, no imputation, no test labels or ranking. Timestamp grid on local labels, time convention and physical channel mapping remain unresolved.'}
+          pathlib.Path('result/9069_time_support.json').write_text(json.dumps(result,indent=2)+'\n')
+          print('TIME_SUPPORT_9069',complete,dict(counts),flush=True)
+          PY
+      - name: Preserve aggregate support screen only
+        uses: actions/upload-artifact@v4
+        with:
+          name: pvdaq-9069-time-support-summary
+          path: result/
+          if-no-files-found: error
+          retention-days: 7
