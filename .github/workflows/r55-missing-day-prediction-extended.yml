@@ -1,0 +1,41 @@
+name: R55 extended array-specific missing-day prediction (RESEARCH ONLY)
+on:
+  push:
+    branches: [r55-pmedc-feasibility-research-only]
+    paths:
+      - ".github/workflows/r55-missing-day-prediction-extended.yml"
+      - "experimental/r55_missing_day_prediction_extended.py"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  original_source_prediction:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install fixed numerical dependency
+        run: python -m pip install --disable-pip-version-check numpy==2.3.5
+      - name: Verify source identities
+        run: |
+          git clone --depth 1 https://github.com/MORE-EU/OpenData.git upstream_source
+          test "$(git -C upstream_source hash-object 'Solar Park Data -INACCESS/Array Power.csv')" = "5611277efdd581bb839ec380239846a43ebe0ba7"
+          test "$(git -C upstream_source hash-object 'Solar Park Data -INACCESS/Plant Active Power.csv')" = "ed388bb714a02b44d8921738a30ef661fb41af31"
+          test "$(git -C upstream_source hash-object 'Solar Park Data -INACCESS/Weather Data.csv')" = "30b542c7caecca6eeac71ed25d1ec8ae4c7e20b1"
+      - name: Evaluate array-specific local weather and plant prediction
+        run: |
+          python experimental/r55_missing_day_prediction_extended.py \
+            --array "upstream_source/Solar Park Data -INACCESS/Array Power.csv" \
+            --plant "upstream_source/Solar Park Data -INACCESS/Plant Active Power.csv" \
+            --weather "upstream_source/Solar Park Data -INACCESS/Weather Data.csv" \
+            --out R55_PREDICTION_EXTENDED_DERIVED_ONLY
+      - name: Upload derived aggregates only
+        uses: actions/upload-artifact@v4
+        with:
+          name: r55-pv-missing-day-extended-prediction-derived-only
+          path: R55_PREDICTION_EXTENDED_DERIVED_ONLY/
+          if-no-files-found: error
+          retention-days: 30
