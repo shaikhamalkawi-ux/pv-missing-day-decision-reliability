@@ -1,0 +1,54 @@
+name: NIST PV public download options
+on:
+  push:
+    branches: [source-inventory-pvdaq-20261128]
+    paths: ['.github/workflows/public-nist-pv-download-options.yml']
+permissions:
+  contents: read
+jobs:
+  options:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - run: python -m pip install --quiet 'python-socketio[client]'
+      - run: |
+          mkdir -p evidence
+          python -u - <<'PY'
+          import socketio,threading,json,pathlib,time
+          s=socketio.Client(reconnection=False,request_timeout=10)
+          result={};done=threading.Event();dl=threading.Event()
+          @s.on('locations')
+          def loc(x):
+              result['locations']=x
+              print('LOCATIONS',x,flush=True)
+              done.set()
+          @s.on('downloads')
+          def downloads(x):
+              result.setdefault('downloads',[]).append(x)
+              print('DOWNLOAD_OPTIONS',x,flush=True)
+              dl.set()
+          @s.on('tables')
+          def tables(x):
+              result.setdefault('tables',[]).append(x)
+              print('TABLES',x,flush=True)
+          try:
+              s.connect('https://pvdata.nist.gov',headers={'User-Agent':'Public scientific source audit/1.0'},transports=['websocket'],wait_timeout=10)
+              s.emit('get locations',{'date':'2015-07-01T12:00:00.000Z','rid':1})
+              if done.wait(12):
+                  for i,locname in enumerate(result['locations'].get('locations',[])):
+                      dl.clear()
+                      s.emit('get downloads',{'loc':locname,'rid':i+2})
+                      s.emit('get tables',{'loc':locname,'date':'2015-07-01T12:00:00.000Z','rid':i+10})
+                      dl.wait(8)
+                  time.sleep(1)
+              else:result['error']='No location response'
+          except Exception as e:result['error']=repr(e);print('ERROR',repr(e),flush=True)
+          finally:
+              if s.connected:s.disconnect()
+          pathlib.Path('evidence/nist_public_download_options.json').write_text(json.dumps(result,indent=2)+'\n')
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: nist-public-download-options
+          path: evidence/
+          retention-days: 14
