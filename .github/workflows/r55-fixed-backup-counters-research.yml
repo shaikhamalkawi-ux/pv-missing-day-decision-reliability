@@ -1,0 +1,37 @@
+name: R55 optimal fixed backup counters original-source audit (RESEARCH ONLY)
+on:
+  push:
+    branches: [r55-pmedc-feasibility-research-only]
+    paths:
+      - ".github/workflows/r55-fixed-backup-counters-research.yml"
+      - "experimental/r55_fixed_backup_counter_placement.py"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  original_source_sensor_design:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install numerical arrays for exhaustive 7,907-subset design
+        run: python -m pip install --disable-pip-version-check numpy==2.3.5
+      - name: Freeze and verify raw original MORE-EU source (no redistribution)
+        run: |
+          git clone --depth 1 https://github.com/MORE-EU/OpenData.git upstream_source
+          test "$(git -C upstream_source hash-object 'Solar Park Data -INACCESS/Array Power.csv')" = "5611277efdd581bb839ec380239846a43ebe0ba7"
+      - name: Exhaustive fixed-subset development selection, later-month audit
+        run: |
+          python experimental/r55_fixed_backup_counter_placement.py \
+            --source "upstream_source/Solar Park Data -INACCESS/Array Power.csv" \
+            --out R55_FIXED_BACKUP_OUTPUTS
+      - name: Archive only derived JSON and CSV
+        uses: actions/upload-artifact@v4
+        with:
+          name: r55-fixed-backup-counters-derived-only
+          path: R55_FIXED_BACKUP_OUTPUTS/
+          if-no-files-found: error
+          retention-days: 30
