@@ -1,0 +1,128 @@
+name: NIST PV annual raw support audit (RESEARCH ONLY)
+on:
+  push:
+    branches: [source-inventory-pvdaq-20261128]
+    paths: ['.github/workflows/public-nist-pv-raw-support.yml']
+permissions:
+  contents: read
+jobs:
+  source_support:
+    runs-on: ubuntu-latest
+    timeout-minutes: 9
+    steps:
+      - run: python -m pip install --quiet 'python-socketio[client]' requests numpy pandas
+      - name: Acquire six pinned archives from the public annual download option and screen temporal support
+        run: |
+          mkdir -p result raw
+          python -u - <<'PY'
+          import socketio,threading,json,pathlib,requests,hashlib,zipfile,csv,io,concurrent.futures,collections
+          import numpy as np,pandas as pd
+          items=[
+          ('Canopy',2015,'500736406024',65593584,'cee89a9c5b73e11f95770354f6b8b583ebec83a1'),
+          ('Canopy',2016,'500731443484',67521467,'3fd3ff74a9c98cb7dceabdff3cceeeee25b683c5'),
+          ('Ground',2015,'500736558308',56758477,'56567f8d0d812165ad8f4642623b89753cb61d58'),
+          ('Ground',2016,'500741050416',61320076,'c7b657cbfe8751d5dfd217420c03b5e887490f3c'),
+          ('Roof',2015,'500739219862',84866642,'dd5aae81b2a3598afcd19925f8c63ef079d17468'),
+          ('Roof',2016,'500784101477',84825966,'cd979ac09d0ef1c82526db05b715c9823305b912')]
+          s=socketio.Client(reconnection=False,request_timeout=15)
+          token=None; tok=threading.Event();ready=threading.Event();returned=None
+          @s.on('box token')
+          def on_token(x):
+              global token
+              token=x.get('access_token');tok.set()
+          @s.on('bulk boxfile')
+          def on_file(x):
+              global returned
+              returned=str(x.get('boxfile'));ready.set()
+          s.connect('https://pvdata.nist.gov',headers={'User-Agent':'Public scientific source audit/1.0'},transports=['websocket'],wait_timeout=15)
+          s.emit('get box token')
+          assert tok.wait(20) and token,'No public download session'
+          jobs=[]
+          for loc,y,id,size,sha1 in items:
+              ready.clear();returned=None
+              s.emit('get bulk boxfile',{'date':f'{y}-07-01T12:00:00.000Z','location':loc,'dataset':'1-min-avg','view':''})
+              assert ready.wait(15) and returned==id,(loc,y,'archive identifier mismatch')
+              r=requests.get(f'https://api.box.com/2.0/files/{id}',params={'fields':'id,name,size,sha1,download_url'},headers={'Authorization':'Bearer '+token},timeout=20)
+              assert r.ok,(loc,y,r.status_code)
+              j=r.json();assert j['size']==size and j['sha1']==sha1
+              jobs.append((loc,y,id,size,sha1,j['download_url']))
+          s.disconnect()
+          def get(item):
+              loc,y,id,size,sha1,url=item;p=pathlib.Path('raw')/f'{loc}-{y}.zip';a=hashlib.sha1();h=hashlib.sha256()
+              with requests.get(url,stream=True,timeout=(20,60)) as r:
+                  assert r.ok,(loc,y,r.status_code)
+                  with p.open('wb') as f:
+                      for b in r.iter_content(1024*1024):
+                          if b:f.write(b);a.update(b);h.update(b)
+              assert p.stat().st_size==size and a.hexdigest()==sha1
+              print('SOURCE',loc,y,size,h.hexdigest(),flush=True)
+              # Read member files in place. No raw data or credentials exported.
+              meta={'location':loc,'year':y,'box_file_id':id,'size':size,'sha1':sha1,'sha256':h.hexdigest()}
+              frames=[];header_records=[];unmapped=[];crc=None
+              with zipfile.ZipFile(p) as z:
+                  crc=z.testzip();assert crc is None
+                  allfiles=[x for x in z.infolist() if not x.is_dir()]
+                  meta['members']=[{'name':x.filename,'size':x.file_size} for x in allfiles]
+                  for m in allfiles:
+                      if not m.filename.lower().endswith(('.csv','.dat','.txt')):continue
+                      with z.open(m) as fh:
+                          pre=io.TextIOWrapper(fh,encoding='utf-8-sig',errors='replace',newline='')
+                          rd=csv.reader(pre); rows=[]
+                          for i in range(6):
+                              try:rows.append(next(rd))
+                              except StopIteration:break
+                      idx=next((i for i,row in enumerate(rows) if any(a.strip().lower()=='timestamp' for a in row) and any(a.strip()=='InvPAC_kW_Avg' for a in row)),None)
+                      if idx is None:
+                          unmapped.append({'name':m.filename,'preview':rows[:2] if len(unmapped)<4 else []});continue
+                      header=rows[idx];mapping={k:header.index(k) for k in ['InvPAC_kW_Avg','PwrMtrP_kW_Avg','PwrMtrErec_kWh_Max'] if k in header}
+                      ti=next(i for i,a in enumerate(header) if a.strip().lower()=='timestamp')
+                      if len(header_records)<4:header_records.append({'name':m.filename,'header':header,'following_two_rows':rows[idx+1:idx+3]})
+                      with z.open(m) as fh:
+                          df=pd.read_csv(fh,skiprows=idx,usecols=[ti]+list(mapping.values()),dtype=str,encoding='utf-8-sig',on_bad_lines='error')
+                      tcol=header[ti]
+                      # TOA5 units and processing rows are non-time rows, never treated as records.
+                      timestamp=pd.to_datetime(df[tcol],format='mixed',errors='coerce')
+                      good=timestamp.notna()
+                      # Reject unexpectedly malformed data rows; units/processing headers counted separately.
+                      selected=df.loc[good,list(mapping)].apply(pd.to_numeric,errors='coerce').astype(float)
+                      selected.index=pd.DatetimeIndex(timestamp[good]);frames.append(selected)
+              meta['header_records']=header_records;meta['unmapped_members']=unmapped
+              if not frames:
+                  meta['state']='HOLD_NO_MATCHING_MEASUREMENT_HEADER';return meta,{}
+              a=pd.concat(frames).sort_index()
+              meta.update(state='SUPPORT_SCREEN',rows=len(a),first=str(a.index.min()),last=str(a.index.max()),duplicates=int(a.index.duplicated().sum()),off_minute=int(((a.index.second!=0)|(a.index.microsecond!=0)).sum()))
+              idx=a.index
+              v=a['InvPAC_kW_Avg'].to_numpy(float)
+              meta['primary_nonfinite']=int((~np.isfinite(v)).sum());meta['primary_negative']=int((np.isfinite(v)&(v<0)).sum());meta['primary_zero']=int((v==0).sum())
+              meta['primary_above_twice_ac_nameplate']=int((v>2*(75 if loc=='Roof' else 260)).sum())
+              daily={}
+              for day,g in a.groupby(a.index.normalize()):
+                  z=g['InvPAC_kW_Avg'].to_numpy(float)
+                  grid=len(g)==1440 and g.index.equals(pd.date_range(day,periods=1440,freq='min'))
+                  finite=grid and np.isfinite(z).all()
+                  plausible=finite and (z>=0).all() and (z<=2*(75 if loc=='Roof' else 260)).all()
+                  meter=g.get('PwrMtrP_kW_Avg',pd.Series(index=g.index,dtype=float)).to_numpy(float)
+                  energy=g.get('PwrMtrErec_kWh_Max',pd.Series(index=g.index,dtype=float)).to_numpy(float)
+                  daily[str(day.date())]={'grid':bool(grid),'primary_finite':bool(finite),'primary_plausible':bool(plausible),'meter_finite':bool(grid and np.isfinite(meter).all()),'counter_finite':bool(grid and np.isfinite(energy).all())}
+              print('SUPPORT',loc,y,{k:meta[k] for k in ['rows','first','last','duplicates','primary_nonfinite','primary_negative','primary_above_twice_ac_nameplate']},flush=True)
+              return meta,daily
+          with concurrent.futures.ThreadPoolExecutor(max_workers=3) as ex:
+              results=list(ex.map(get,jobs))
+          meta=[m for m,d in results];days={loc:{} for loc in ['Canopy','Ground','Roof']}
+          for m,d in results:days[m['location']].update(d)
+          months=[]
+          keys=['grid','primary_finite','primary_plausible','meter_finite','counter_finite']
+          for mo in pd.period_range('2015-01','2016-12',freq='M'):
+              dates=pd.date_range(mo.start_time,mo.end_time.normalize(),freq='D').strftime('%Y-%m-%d')
+              row={'month':str(mo),'days':len(dates),**{k:sum(all(days[l].get(day,{}).get(k,False) for l in days) for day in dates) for k in keys}}
+              months.append(row)
+          summary={'state':'SOURCE_SUPPORT_ONLY_NO_DECISION_SCORING','source_doi':'10.18434/M3S67G','clock':'EST fixed UTC-05:00 as documented Boyd 2017 Section 3','primary':'InvPAC_kW_Avg (one-minute inverter AC real-power averages); no negative/clipped replacement','secondary':'PwrMtrP_kW_Avg and PwrMtrErec_kWh_Max support only, not substituted','cohort':['Canopy','Ground','Roof'],'archives':meta,'months':months,'complete_months':{k:sum(m[k]==m['days'] for m in months) for k in keys},'daily':days}
+          pathlib.Path('result/nist_raw_support.json').write_text(json.dumps(summary,indent=2)+'\n')
+          print('NIST_COMPLETE_MONTHS',summary['complete_months'],flush=True)
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: nist-pv-raw-support-summary
+          path: result/
+          retention-days: 14
+          if-no-files-found: error
