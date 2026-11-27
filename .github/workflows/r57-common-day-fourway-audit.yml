@@ -1,0 +1,37 @@
+name: R57 colleague original common-day imputation audit (RESEARCH ONLY)
+on:
+  push:
+    branches: [r55-pmedc-feasibility-research-only]
+    paths:
+      - ".github/workflows/r57-common-day-fourway-audit.yml"
+      - "experimental/r57_common_day_fourway_audit.py"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  source_locked:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install numerical dependencies
+        run: python -m pip install --disable-pip-version-check numpy==2.3.5
+      - name: Download and hash-verify MORE-EU upstream
+        run: |
+          git clone --depth 1 https://github.com/MORE-EU/OpenData.git upstream_source
+          test "$(git -C upstream_source hash-object 'Solar Park Data -INACCESS/Array Power.csv')" = "5611277efdd581bb839ec380239846a43ebe0ba7"
+      - name: Audit common three-day gap methods and shortlist impact
+        run: |
+          python experimental/r57_common_day_fourway_audit.py \
+            --source "upstream_source/Solar Park Data -INACCESS/Array Power.csv" \
+            --out R57_COMMON_GAP_DERIVED_ONLY
+      - name: Upload derived counts only
+        uses: actions/upload-artifact@v4
+        with:
+          name: r57-original-common-gap-fourway-aggregate
+          path: R57_COMMON_GAP_DERIVED_ONLY/
+          retention-days: 30
+          if-no-files-found: error
