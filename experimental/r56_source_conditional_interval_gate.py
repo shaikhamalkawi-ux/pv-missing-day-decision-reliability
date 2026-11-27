@@ -32,13 +32,16 @@ def evaluate(src,out):
     months=old.read_months(src)
     assert len(months)==79
     dev,test=months[:55],months[55:]
-    devmax=np.zeros(J);monthly_mx=[]
+    devmax=np.zeros(J);monthly_mx=[];skipped_dev=0
     for mt in dev:
         vals=np.asarray(mt['days'],float)
         current=np.zeros(J)
         for s in range(len(vals)-2):
             for j in range(J):
-                pred=peer.evaluate_models(vals,s,j,np.ones(J))['peer_boundary_ratio']
+                pred=peer.evaluate_models(vals,s,j,np.ones(J)).get('peer_boundary_ratio')
+                if pred is None:
+                    skipped_dev+=1
+                    continue
                 truth=float(vals[s:s+3,j].sum())
                 current[j]=max(current[j],abs(pred-truth))
         devmax=np.maximum(devmax,current)
@@ -83,6 +86,7 @@ def evaluate(src,out):
        'source_pinned':True,
        'error_envelope':'For each array, per-calendar-development-month maximum over all 3-day masked starts of |peer-boundary estimated hidden 3-day sum - actual 3-day sum|. Quantile is higher discrete order statistic across months. No physical error theorem or distribution-free confidence.',
        'q':Q, 'arrays':J,'development_months':55,'test_months':24,'cases':9520,
+       'development_missing_predictor_excluded_count':skipped_dev,
        'thresholds':{k:[float(z) for z in v] for k,v in envelope.items()},
        'results':{k:dict(v) for k,v in stats.items()},
        'test_monthly_counts':{k:{mon:dict(stat) for mon,stat in v.items()} for k,v in monthly.items()},
