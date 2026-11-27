@@ -1,0 +1,42 @@
+name: NIST PV public data access discovery
+on:
+  push:
+    branches: [source-inventory-pvdaq-20261128]
+    paths: ['.github/workflows/public-nist-pv-access.yml']
+permissions:
+  contents: read
+jobs:
+  access:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - run: |
+          mkdir -p evidence
+          python -u - <<'PY'
+          import urllib.request,pathlib,hashlib,re,json
+          base='https://pvdata.nist.gov/'
+          out=pathlib.Path('evidence')
+          def get(url,limit=5000000):
+              with urllib.request.urlopen(url,timeout=25) as r:
+                  data=r.read(limit+1)
+                  assert len(data)<=limit
+                  print('ACQUIRED',url,len(data),hashlib.sha256(data).hexdigest(),flush=True)
+                  return data
+          html=get(base).decode()
+          out.joinpath('portal.html').write_text(html)
+          scripts=re.findall(r'<script[^>]+src="([^"]+\.js)"',html)
+          for s in scripts:
+              if not s.startswith('/assets/'):continue
+              try:
+                  b=get(base.rstrip('/')+s);out.joinpath('portal_app.js').write_bytes(b)
+                  js=b.decode()
+                  for m in re.finditer(r'(?:https?://[^"\s\x27]{4,150}|["\x27]/(?:api|data|download|static|files)[^"\x27]{0,150}["\x27])',js,re.I):
+                      v=m.group(0)
+                      if any(k in v.lower() for k in ['nist','api','download','bulk','csv']):print('ENDPOINT',v[:170],flush=True)
+              except Exception as e:print('ERROR',repr(e),flush=True)
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: nist-pv-access-evidence
+          path: evidence/
+          retention-days: 7
