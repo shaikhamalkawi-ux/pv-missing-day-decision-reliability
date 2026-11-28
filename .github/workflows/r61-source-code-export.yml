@@ -1,0 +1,26 @@
+name: R61 immutable source-code export
+on:
+  push:
+    branches: [source-inventory-pvdaq-20261128]
+    paths: ['.github/workflows/r61-source-code-export.yml']
+permissions:
+  contents: read
+jobs:
+  export:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: b1662cd24198e3a2250300425bb370ef6a8056eb
+      - run: |
+          mkdir -p export
+          cp experimental/r61_minimum_evidence_replay.py export/
+          cp .github/workflows/r61-{moreeu,nist,pvdaq}-minimum-evidence.yml export/
+          (cd export && sha256sum * > SHA256SUMS.txt)
+      - uses: actions/upload-artifact@v4
+        with:
+          name: r61-frozen-source-code-and-workflows
+          path: export/
+          retention-days: 30
+          if-no-files-found: error
