@@ -1,0 +1,63 @@
+name: DecisionLab example file verification
+on:
+  push:
+    branches: [source-inventory-pvdaq-20261128]
+    paths: ['.github/workflows/decisionlab-example-verification.yml']
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - name: Verify live page and sample against frozen source
+        run: |
+          mkdir -p result
+          base=https://raw.githubusercontent.com/shaikhamalkawi-ux/pv-missing-day-decision-reliability/4fa6691e09e367f99f3f0e671b6f97186bfc9685
+          url=https://shaikhamalkawi-ux.github.io/pv-missing-day-decision-reliability
+          curl -fsSL "$base/index.html" -o result/index.html
+          curl -fsSL "$base/PV_DecisionLab_Example.csv" -o result/PV_DecisionLab_Example.csv
+          curl -fsSL https://raw.githubusercontent.com/shaikhamalkawi-ux/pv-missing-day-decision-reliability/8510818400526ab23dc18a2d2d0875ebe1139cff/index.html -o old.html
+          for attempt in $(seq 1 15); do
+            if curl -fsSL --max-time 12 "$url/?qa=4fa6691e-$attempt" -o live.html && curl -fsSL --max-time 12 "$url/PV_DecisionLab_Example.csv?qa=4fa6691e-$attempt" -o live.csv && cmp live.html result/index.html && cmp live.csv result/PV_DecisionLab_Example.csv; then
+              echo PUBLIC_PAGE_AND_EXAMPLE_MATCH_PASS
+              break
+            fi
+            sleep 4
+          done
+          cmp live.html result/index.html
+          cmp live.csv result/PV_DecisionLab_Example.csv
+      - name: Verify example format, preserved engine and expected fill
+        run: |
+          node <<'JS'
+          const fs=require('fs'),vm=require('vm'),assert=require('assert/strict')
+          const h=fs.readFileSync('result/index.html','utf8'),old=fs.readFileSync('old.html','utf8')
+          const source=fs.readFileSync('result/PV_DecisionLab_Example.csv','utf8')
+          const script=h.match(/<script>([\s\S]*?)<\/script>/)[1]
+          const engine=s=>s.slice(s.indexOf('function parseCSV('),s.indexOf('function invalidate('))
+          assert.equal(engine(h),engine(old),'calculation engine unchanged')
+          assert.match(h,/href="\.\/PV_DecisionLab_Example\.csv" download=/)
+          assert.equal((h.match(/class="blank" aria-label="Missing reading"/g)||[]).length,3)
+          assert.match(h,/exampleTitle:"كيف يجب أن يكون شكل الملف؟"/)
+          const stub={addEventListener(){},replaceChildren(){},textContent:'',value:'',checked:false}
+          const sandbox={document:{getElementById(){return Object.create(stub)},querySelectorAll(){return []},documentElement:{}},window:{},console}
+          vm.createContext(sandbox);vm.runInContext(script,sandbox)
+          const {validate,solve,synthetic}=sandbox.window.PVFill
+          const p=validate(source)
+          assert.equal(p.dates.length,30)
+          assert.equal(p.ids.length,3)
+          assert.equal(p.raw.flat().filter(x=>x===null).length,3)
+          assert.equal(source.replace(/\r\n/g,'\n'),synthetic().replace(/\r\n/g,'\n'))
+          const r=solve(p,'peer',true)
+          assert.equal(r.estimated,3)
+          assert.equal(r.remain.reduce((a,b)=>a+b,0),0)
+          assert.ok([11,12,13].every(i=>Math.abs(r.filled[i][2]-p.raw[i][0]*.98)<2e-6))
+          assert.ok(p.raw.every((row,i)=>row.every((v,j)=>v===null||r.filled[i][j]===v)))
+          console.log('EXAMPLE_30_DAYS_3_MISSING_FILL_PASS')
+          fs.writeFileSync('result/QA.json',JSON.stringify({public_page_matches:true,public_csv_matches:true,engine_unchanged:true,days:30,arrays:3,missing:3,filled:3,original_values_preserved:true},null,2))
+          JS
+      - uses: actions/upload-artifact@v4
+        with:
+          name: decisionlab-example-verified
+          path: result/
+          retention-days: 30
