@@ -1,0 +1,77 @@
+name: R62 pvdaq individual label certificate (RESEARCH ONLY)
+on:
+  push:
+    branches: [source-inventory-pvdaq-20261128]
+    paths: ['.github/workflows/r62-pvdaq-individual-label-recovery.yml']
+permissions:
+  contents: read
+jobs:
+  index_test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: 9cfd1675853beaa854461fd4069bac6612dec66c
+      - name: Fetch frozen R60 evaluator
+        run: curl -fsSL https://raw.githubusercontent.com/shaikhamalkawi-ux/pv-missing-day-decision-reliability/593d707b86cacb9ad041cbac882c3e5fd1ace4b0/experimental/r60_observation_constrained_replay.py -o experimental/r60_observation_constrained_replay.py
+      - name: Fetch frozen R61 evaluator
+        run: curl -fsSL https://raw.githubusercontent.com/shaikhamalkawi-ux/pv-missing-day-decision-reliability/986150f4f706751834e29990a0bb3e58e7dda78a/experimental/r61_minimum_evidence_replay.py -o experimental/r61_minimum_evidence_replay.py
+      - name: Fetch frozen R62 evaluator
+        run: curl -fsSL https://raw.githubusercontent.com/shaikhamalkawi-ux/pv-missing-day-decision-reliability/d225313abb976d60930fc779c1c0b2c4f16d545a/experimental/r62_minimum_measurement_recovery.py -o experimental/r62_minimum_measurement_recovery.py
+      - name: Fetch frozen individual-label evaluator
+        run: curl -fsSL https://raw.githubusercontent.com/shaikhamalkawi-ux/pv-missing-day-decision-reliability/62a92b541ab597374fc4ce23e2f7e0f196185abb/experimental/r62_individual_membership_recovery.py -o experimental/r62_individual_membership_recovery.py
+      - run: python -m pip install --quiet numpy pandas
+      - name: Execute frozen 24+9 channel-index protocol
+        env:
+          PYTHONPATH: experimental
+        run: |
+          mkdir -p result
+          python -u - <<'PY'
+          import urllib.request, urllib.parse, hashlib, pathlib, json, calendar, collections, math
+          import numpy as np,pandas as pd
+          import r57_partial_resolution_source_replay as r57
+          import r55_single_array_peer_prediction as peer
+          # Frozen BEFORE inspecting any test outcomes. A separate index study, not a physical yield replication.
+          months='2018-08 2018-12 2019-01 2020-04 2020-05 2020-06 2020-07 2020-11 2020-12 2021-01 2021-02 2021-04 2021-05 2021-06 2021-09 2021-11 2021-12 2022-02 2022-04 2022-05 2022-06 2022-07 2022-08 2022-09 2022-11 2022-12 2023-01 2023-02 2023-04 2023-06 2023-07 2023-08 2023-09'.split()
+          cols=[f'inverter_{i:02d}_ac_power_(kw)_inv_{150952+i}' for i in range(1,6)]
+          key='pvdaq/2023-solar-data-prize/9069_OEDI/data/9069_electrical_ac.csv'
+          p=pathlib.Path('source.csv');h=hashlib.sha256()
+          with urllib.request.urlopen('https://oedi-data-lake.s3.amazonaws.com/'+urllib.parse.quote(key,safe='/'),timeout=45) as r,p.open('wb') as f:
+              while True:
+                  b=r.read(4*1024*1024)
+                  if not b:break
+                  f.write(b);h.update(b)
+          assert p.stat().st_size==1767155102 and h.hexdigest()=='a888a7730d8699e0cf4188de8a951682f098c6b4e40ba0ec9a28635903a20425'
+          print('SOURCE_SHA256_PASS',h.hexdigest(),flush=True)
+          records=[]; n=0
+          for df in pd.read_csv(p,usecols=['measured_on']+cols,dtype=str,chunksize=50000):
+              n+=len(df)
+              t=pd.to_datetime(df.measured_on,format='%Y-%m-%d %H:%M:%S',errors='raise')
+              mask=t.dt.strftime('%Y-%m').isin(months)
+              z=df.loc[mask,cols].apply(pd.to_numeric,errors='raise').copy()
+              z.index=pd.DatetimeIndex(t[mask]);records.append(z)
+          x=pd.concat(records).sort_index().astype('float64')
+          assert n==768948 and not x.index.has_duplicates
+          assert np.isfinite(x.to_numpy()).all() and (x.to_numpy()>=0).all()
+          assert (x.index.minute%5==0).all() and (x.index.second==0).all()
+          series=[]
+          for mo in months:
+              y,m=map(int,mo.split('-'));d=calendar.monthrange(y,m)[1]
+              a=x.loc[mo]; exp=pd.date_range(mo+'-01',periods=d*288,freq='5min')
+              assert a.index.equals(exp),(mo,len(a),len(exp))
+              # Arithmetic sum of native AC sample magnitudes; no kWh, no inferred capacity, no fill.
+              v=a.to_numpy().reshape(d,288,5).sum(axis=1)
+              series.append((mo,v))
+          dev,test=series[:24],series[24:]
+          import r62_individual_membership_recovery as r62
+          res=r62.evaluate(test,cols,'PVDAQ 9069 native AC channel index only')
+          res['source_sha256']=h.hexdigest()
+          pathlib.Path('result/pvdaq_r62_labels.json').write_text(json.dumps(res,indent=2)+'\n')
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: r62-pvdaq-individual-label-recovery
+          path: result/
+          if-no-files-found: error
+          retention-days: 14
