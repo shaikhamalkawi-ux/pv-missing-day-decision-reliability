@@ -1,0 +1,32 @@
+name: R60 MORE-EU observation-constrained replay (RESEARCH ONLY)
+on:
+  push:
+    branches: [source-inventory-pvdaq-20261128]
+    paths: ['.github/workflows/r60-moreeu-observation-constraints.yml']
+permissions:
+  contents: read
+jobs:
+  replay:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: 9cfd1675853beaa854461fd4069bac6612dec66c
+      - name: Fetch frozen R60 evaluator
+        run: |
+          curl -fsSL https://raw.githubusercontent.com/shaikhamalkawi-ux/pv-missing-day-decision-reliability/593d707b86cacb9ad041cbac882c3e5fd1ace4b0/experimental/r60_observation_constrained_replay.py -o experimental/r60_observation_constrained_replay.py
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: python -m pip install --disable-pip-version-check numpy==2.3.5
+      - run: |
+          git clone --depth 1 https://github.com/MORE-EU/OpenData.git upstream_source
+          test "$(git -C upstream_source hash-object 'Solar Park Data -INACCESS/Array Power.csv')" = "5611277efdd581bb839ec380239846a43ebe0ba7"
+          python experimental/r60_observation_constrained_replay.py --source "upstream_source/Solar Park Data -INACCESS/Array Power.csv" --out result
+      - uses: actions/upload-artifact@v4
+        with:
+          name: r60-moreeu-observation-constraints
+          path: result/
+          retention-days: 30
+          if-no-files-found: error
