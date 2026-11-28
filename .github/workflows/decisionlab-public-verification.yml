@@ -1,0 +1,62 @@
+name: PV DecisionLab public web verification
+on:
+  push:
+    branches: [source-inventory-pvdaq-20261128]
+    paths: ['.github/workflows/decisionlab-public-verification.yml']
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Retrieve frozen source and verify deployed page
+        run: |
+          mkdir -p result
+          curl -fsSL https://raw.githubusercontent.com/shaikhamalkawi-ux/pv-missing-day-decision-reliability/8510818400526ab23dc18a2d2d0875ebe1139cff/index.html -o result/PV_DecisionLab_Web.html
+          sha256sum result/PV_DecisionLab_Web.html
+          for attempt in $(seq 1 10); do
+            if curl -fsSL --max-time 15 "https://shaikhamalkawi-ux.github.io/pv-missing-day-decision-reliability/?qa=85108184-$attempt" -o live.html && cmp live.html result/PV_DecisionLab_Web.html; then
+              echo PUBLIC_URL_MATCH_PASS
+              break
+            fi
+            sleep 4
+          done
+          cmp live.html result/PV_DecisionLab_Web.html
+      - name: Check arithmetic, missingness and validation
+        run: |
+          node <<'JS'
+          const fs=require('fs'), vm=require('vm'), assert=require('assert/strict')
+          const html=fs.readFileSync('result/PV_DecisionLab_Web.html','utf8')
+          const script=html.match(/<script>([\s\S]*?)<\/script>/)[1]
+          const stub={addEventListener(){},replaceChildren(){},textContent:'',value:'',checked:false};
+          const sandbox={document:{getElementById(){return Object.create(stub)},querySelectorAll(){return []},documentElement:{}},window:{},console};
+          vm.createContext(sandbox);vm.runInContext(script,sandbox)
+          const {validate,solve,synthetic,csvRows}=sandbox.window.PVFill
+          let n=0
+          function check(x,msg){assert.ok(x,msg);n++}
+          const input=validate(synthetic()),p=solve(input,'peer',true)
+          check(p.missing===3&&p.estimated===3,'three blanks only')
+          check(p.peerEligible&&p.peerAvailable,'peer gate')
+          check(p.used.length===1&&p.used[0]==='peer_boundary_ratio','method provenance')
+          check([11,12,13].every(i=>Math.abs(p.filled[i][2]-.98*input.raw[i][0])<=2e-6),'peer formula')
+          check(input.raw.every((r,i)=>r.every((v,j)=>v===null||p.filled[i][j]===v)),'surviving values unchanged')
+          for(const m of ['mean','median','linear','auto'])check(solve(input,m,true).estimated===3,m)
+          check(solve(input,'peer',false).obs.every(x=>x==='HOLD'),'qualification gate')
+          const multi=validate(synthetic().replace('2025-04-01,3.53,3.3888,3.4594','2025-04-01,,3.3888,3.4594'))
+          check(!solve(multi,'peer',true).peerEligible&&solve(multi,'peer',true).estimated===0,'multiple gap peer refusal')
+          check(solve(multi,'auto',true).estimated===4,'fallback provenance')
+          const blank=validate(synthetic(true));check(solve(blank,'auto',true).estimated===0,'all missing retained')
+          check(solve(blank,'auto',true).obs.every(x=>x==='HOLD'),'zero gate')
+          assert.throws(()=>validate(synthetic().replace('2025-04-02','2025-04-01')));n++
+          assert.throws(()=>validate(synthetic().replace('3.53','-3.53')));n++
+          const tsv=synthetic().replaceAll(',','\t');check(validate(tsv).dates.length===30,'spreadsheet paste')
+          console.log('FUNCTIONAL_PASS',n)
+          fs.writeFileSync('result/QA.json',JSON.stringify({checks:n,public_url_matches_frozen_source:true,scope:'arithmetic, parsing, missingness, provenance, local calculation'},null,2))
+          JS
+      - uses: actions/upload-artifact@v4
+        with:
+          name: decisionlab-public-verified
+          path: result/
+          if-no-files-found: error
+          retention-days: 30
