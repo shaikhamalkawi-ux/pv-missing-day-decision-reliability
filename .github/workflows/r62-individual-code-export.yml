@@ -1,0 +1,25 @@
+name: R62 complete research code export
+on:
+  push:
+    branches: [source-inventory-pvdaq-20261128]
+    paths: ['.github/workflows/r62-individual-code-export.yml']
+permissions:
+  contents: read
+jobs:
+  export:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: b6c60dc964f9ecf27f572d97927cf6d4c06d19fc
+      - run: |
+          mkdir -p export
+          cp experimental/r62_minimum_measurement_recovery.py experimental/r62_individual_membership_recovery.py export/
+          cp .github/workflows/r62-{moreeu,nist,pvdaq}-{measurement-recovery,individual-label-recovery}.yml export/
+          (cd export && sha256sum * > SHA256SUMS.txt)
+      - uses: actions/upload-artifact@v4
+        with:
+          name: r62-complete-frozen-code
+          path: export/
+          retention-days: 30
